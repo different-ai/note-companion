@@ -1,13 +1,12 @@
-import { ClerkProvider, SignedIn, SignedOut, SignIn, SignInButton, UserButton } from "@clerk/nextjs";
+import { ClerkProvider, SignedIn, SignedOut, SignIn, UserButton } from "@clerk/nextjs";
 import type { Metadata } from "next";
-import { PHProvider } from "./providers";
-import dynamic from "next/dynamic";
+// import { PHProvider } from "./providers";
 import Logo from "@/components/ui/logo";
-import { Toaster } from "react-hot-toast";
+// import { Toaster } from "react-hot-toast";
 
 import "./globals.css";
 import Link from "next/link";
-import ExtraUserSettings from "@/components/user-management";
+// import ExtraUserSettings from "@/components/user-management";
 
 export const metadata: Metadata = {
   title: "Note Companion - Dashboard",
@@ -22,10 +21,10 @@ export default function RootLayout({
   return process.env.ENABLE_USER_MANAGEMENT == "true" ? (
     <ClerkProvider afterSignOutUrl="/sign-in">
       <html lang="en">
-        <PHProvider>
+        {/* <PHProvider> */}
           <SignedIn>
             <body className="">
-              <Toaster />
+              {/* <Toaster /> */}
               <header className="p-4 border-b border-stone-300">
                 <nav className="max-w-9xl mx-auto flex items-center space-x-6 justify-between w-full">
                   <div className=" sm:block">
@@ -34,7 +33,7 @@ export default function RootLayout({
                     </Link>
                   </div>
                   <div className="flex items-center gap-2">
-                    <ExtraUserSettings />
+                    {/* <ExtraUserSettings /> */}
                     <UserButton />
                   </div>
                 </nav>
@@ -46,7 +45,7 @@ export default function RootLayout({
           </SignedIn>
           <SignedOut>
             <body className="">
-              <Toaster />
+              {/* <Toaster /> */}
               <main className="min-h-screen text-stone-900 font-sans">
                 <div className="flex items-center justify-center h-screen">
                   <SignIn />
@@ -54,7 +53,7 @@ export default function RootLayout({
               </main>
             </body>
           </SignedOut>
-        </PHProvider>
+        {/* </PHProvider> */}
       </html>
     </ClerkProvider>
   ) : (
@@ -63,3 +62,19 @@ export default function RootLayout({
     </html>
   );
 }
+
+// export default function RootLayout({ children }: { children: React.ReactNode }) {
+//   return (
+//     <html lang="en">
+//       <body>
+//         {/* <Toaster /> */}
+//         <header className="p-4 border-b border-stone-300">
+//           <nav className="max-w-9xl mx-auto flex items-center space-x-6 justify-between w-full">
+//             {/* <Logo /> */}
+//           </nav>
+//         </header>
+//         <main className="min-h-screen text-stone-900 font-sans">{children}</main>
+//       </body>
+//     </html>
+//   );
+// }

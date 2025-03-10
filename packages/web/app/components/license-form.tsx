@@ -18,33 +18,29 @@ import { useUser } from "@clerk/nextjs";
 const LicenseForm = () => {
   const [licenseKey, setLicenseKey] = useState<string>("");
   const [isPaid, setIsPaid] = useState(false);
-  async function onCreate(formData: FormData) {
-    const res = await createLicenseKey();
-    // @ts-ignore
-    if (res?.error) {
-      // @ts-ignore
-      alert(res.error);
-      return;
-    }
-    if (res) {
-      setLicenseKey(res.key?.key ?? "");
-    }
-  }
   const [loading, setLoading] = useState(false);
-  // Show loading state in UI while key is being generated
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  
+  const { user } = useUser();
+
+  const handleCreateKey = async () => {
     setLoading(true);
     try {
-      await onCreate(new FormData(event.target as HTMLFormElement));
+      const res = await createLicenseKey();
+      // @ts-ignore
+      if (res?.error) {
+        // @ts-ignore
+        alert(res.error);
+        return;
+      }
+      if (res) {
+        setLicenseKey(res.key?.key ?? "");
+      }
     } catch (error) {
       console.error(error);
     } finally {
       setLoading(false);
     }
   };
-
-  const { user } = useUser();
 
   useEffect(() => {
     const handleSetIsPaidUser = async () => {
@@ -56,27 +52,24 @@ const LicenseForm = () => {
   }, [user]);
 
   return (
-    // center elements
-    <div className="mt-8 flex flex-col ">
+    <div className="mt-8 flex flex-col">
       {isPaid ? (
         <>
           <Card className="w-full bg-transparent">
             <CardHeader></CardHeader>
-            <form action={onCreate} onSubmit={handleSubmit}>
-              <CardFooter className="flex justify-center">
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full mt-4 "
-                >
-                  {loading ? "Generating Key..." : "Create Key"}{" "}
-                </Button>{" "}
-              </CardFooter>
-              <CardDescription className="text-center">
-                You'll need it to unlock Note Companion in your plugin
-                settings.
-              </CardDescription>
-            </form>
+            <CardFooter className="flex justify-center">
+              <Button
+                onClick={handleCreateKey}
+                disabled={loading}
+                className="w-full mt-4"
+              >
+                {loading ? "Generating Key..." : "Create Key"}
+              </Button>
+            </CardFooter>
+            <CardDescription className="text-center">
+              You'll need it to unlock Note Companion in your plugin
+              settings.
+            </CardDescription>
           </Card>
           {licenseKey && licenseKey.length > 0 && (
             <>

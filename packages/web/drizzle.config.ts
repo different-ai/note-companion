@@ -1,5 +1,8 @@
 import { defineConfig } from "drizzle-kit";
-import "./drizzle/envConfig";
+import { loadEnvConfig } from "@next/env";
+
+const projectDir = process.cwd();
+loadEnvConfig(projectDir);
 
 export default defineConfig({
   schema: "./drizzle/schema.ts",

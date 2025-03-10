@@ -397,7 +397,7 @@ export async function generateTranscriptFromAudio(
 
   // Save the audio buffer to a temporary file
   const tempFilePath = join(tmpdir(), `audio_${Date.now()}.${fileExtension}`);
-  await fsPromises.writeFile(tempFilePath, Buffer.from(audioBuffer));
+  await fsPromises.writeFile(tempFilePath, new Uint8Array(audioBuffer));
 
   // Create a readable stream from the temporary file
   const audioStream = fs.createReadStream(tempFilePath);

@@ -2,23 +2,22 @@
   "name": "file-organizer-2000-monorepo",
   "private": true,
   "devDependencies": {
-    "@types/node": "^22.13.9",
+    "@types/node": "^22.13.10",
     "node-gyp": "^11.1.0",
-    "turbo": "^2.4.4",
-    "typescript": "^5.2.2"
+    "typescript": "^5.8.2"
   },
   "version": "1.0.0",
-  "packageManager": "pnpm@10.1.0",
+  "packageManager": "yarn@4.2.0",
   "pnpm": {
     "patchedDependencies": {
       "xcode@3.0.1": "patches/xcode@3.0.1.patch"
     }
   },
   "scripts": {
-    "build": "turbo run build",
-    "dev": "turbo run dev",
-    "lint": "turbo run lint",
-    "test": "turbo run test",
+    "build": "pnpm run -r build",
+    "dev": "pnpm run -r dev",
+    "lint": "pnpm run -r lint",
+    "test": "pnpm run -r test",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "postinstall": "node scripts/create-fabric-provider.js"

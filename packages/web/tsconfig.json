@@ -21,6 +21,7 @@
     ],
     "paths": {
       "@/*": ["./*"]
+      
     },
     "strictNullChecks": false,
     "baseUrl": ".",
@@ -31,13 +32,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "types/**/*.d.ts",
-    "drizzle/envConfig.js",
-    "components/**/*.ts",
-    "components/**/*.tsx"
+    "types/**/*.d.ts"
   ],
-  "exclude": ["node_modules"],
-  "references": [
-    { "path": "../shared" }
-  ]
+  "exclude": ["node_modules"]
 }

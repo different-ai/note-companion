@@ -29,3 +29,7 @@ data.json
 **/.turbo/
 .vercel
 .env*.local
+
+# Expo native directories
+/android/
+/ios/
