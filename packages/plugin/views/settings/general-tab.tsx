@@ -145,6 +145,21 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ plugin, userId, email })
                     plugin.saveSettings();
                   }}
                 />
+                <div className="space-y-2">
+                  <h4 className="font-medium mb-2 mt-0">Clerk Public Key</h4>
+                  <textarea
+                    placeholder="Enter your Clerk Public Key (PEM format)"
+                    value={plugin.settings.CLERK_PUBLIC_KEY}
+                    onChange={e => {
+                      plugin.settings.CLERK_PUBLIC_KEY = e.target.value;
+                      plugin.saveSettings();
+                    }}
+                    className="w-full h-32 bg-[--background-primary] border rounded px-3 py-1.5 border-[--background-modifier-border]"
+                  />
+                  <p className="text-sm text-[--text-muted]">
+                    This is used for JWT verification. You can find this in your Clerk Dashboard under API Keys.
+                  </p>
+                </div>
                 <button 
                   onClick={async () => {
                     // Validate inputs first

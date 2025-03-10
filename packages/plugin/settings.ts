@@ -3,6 +3,7 @@ export class FileOrganizerSettings {
   CLERK_SESSION_TOKEN = ""; // Store Clerk session token
   CLERK_EMAIL = ""; // Store Clerk email
   CLERK_PASSWORD = ""; // Store Clerk password
+  CLERK_PUBLIC_KEY = ""; // Store Clerk public key for JWT verification
   isLicenseValid = false;
   licenseErrorMessage = ""; // Store license validation error message
   useLogs = true;

@@ -50,7 +50,7 @@ import {
   moveFile,
 } from "./fileUtils";
 
-import { checkLicenseKey, checkClerkAuth } from "./apiUtils";
+import { checkLicenseKey, checkClerkAuth, handleAuthenticatedRequest } from "./apiUtils";
 import { makeApiRequest } from "./apiUtils";
 import { signInWithClerk, refreshClerkToken, isClerkTokenValid, ClerkAuthResponse } from "./auth/clerk";
 
@@ -123,7 +123,7 @@ export default class FileOrganizer extends Plugin {
         : this.getServerUrl();
     const premiumStatus = await fetch(`${serverUrl}/api/check-premium`, {
       headers: {
-        Authorization: `Bearer ${this.settings.API_KEY}`,
+        Authorization: `Bearer ${this.getAuthToken()}`,
       },
     });
     const { hasCatalystAccess } = await premiumStatus.json();
@@ -184,7 +184,7 @@ export default class FileOrganizer extends Plugin {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${this.settings.API_KEY}`,
+            Authorization: `Bearer ${this.getAuthToken()}`,
           },
           body: JSON.stringify({ content }),
         }
@@ -212,7 +212,7 @@ export default class FileOrganizer extends Plugin {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${this.settings.API_KEY}`,
+          Authorization: `Bearer ${this.getAuthToken()}`,
         },
         body: JSON.stringify({
           content,
@@ -464,6 +464,18 @@ export default class FileOrganizer extends Plugin {
     return this.settings.API_KEY;
   }
   
+  getAuthToken(): string {
+    // If we have a Clerk token, use it
+    if (this.settings.CLERK_SESSION_TOKEN) {
+      // Note: We can't use async/await here since this is a synchronous method
+      // The actual token verification will happen in handleAuthenticatedRequest
+      // or in the refreshClerkToken/isClerkTokenValid methods
+      return this.settings.CLERK_SESSION_TOKEN;
+    }
+    // Otherwise, fall back to the API key
+    return this.settings.API_KEY;
+  }
+  
   async signInWithClerk(email: string, password: string): Promise<boolean> {
     try {
       console.log(`Attempting to sign in with Clerk using email: ${email.substring(0, 3)}...`);
@@ -515,7 +527,13 @@ export default class FileOrganizer extends Plugin {
     if (!this.settings.CLERK_SESSION_TOKEN) return false;
     
     try {
-      const auth = await refreshClerkToken(this.getServerUrl(), this.settings.CLERK_SESSION_TOKEN);
+      // Pass the public key for local JWT verification if available
+      const auth = await refreshClerkToken(
+        this.getServerUrl(), 
+        this.settings.CLERK_SESSION_TOKEN,
+        this.settings.CLERK_PUBLIC_KEY
+      );
+      
       if (auth) {
         this.settings.CLERK_SESSION_TOKEN = auth.token;
         await this.saveSettings();
@@ -531,7 +549,12 @@ export default class FileOrganizer extends Plugin {
   async isClerkTokenValid(): Promise<boolean> {
     if (!this.settings.CLERK_SESSION_TOKEN) return false;
     try {
-      return await isClerkTokenValid(this.getServerUrl(), this.settings.CLERK_SESSION_TOKEN);
+      // Pass the public key for local JWT verification if available
+      return await isClerkTokenValid(
+        this.getServerUrl(), 
+        this.settings.CLERK_SESSION_TOKEN,
+        this.settings.CLERK_PUBLIC_KEY
+      );
     } catch (error) {
       logger.error("Error validating Clerk token:", error);
       return false;
@@ -606,7 +629,7 @@ export default class FileOrganizer extends Plugin {
       method: "POST",
       body: formData,
       headers: {
-        Authorization: `Bearer ${this.settings.API_KEY}`,
+        Authorization: `Bearer ${this.getAuthToken()}`,
         // "Content-Type": "multipart/form-data",
       },
     });
@@ -653,24 +676,35 @@ export default class FileOrganizer extends Plugin {
     const serverUrl = this.getServerUrl();
     const cutoff = this.settings.contentCutoffChars;
     const trimmedContent = content.slice(0, cutoff);
-    const response = await fetch(`${serverUrl}/api/classify1`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${this.settings.API_KEY}`,
+    
+    // Use handleAuthenticatedRequest for error handling and token refresh
+    return await handleAuthenticatedRequest(
+      async () => {
+        const response = await fetch(`${serverUrl}/api/classify1`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${this.getAuthToken()}`,
+          },
+          body: JSON.stringify({
+            content: trimmedContent,
+            templateNames: classifications,
+          }),
+        });
+
+        if (!response.ok) {
+          // Check if it's an authentication error
+          if (response.status === 401) {
+            throw new Error(`Authentication failed: ${response.status}`);
+          }
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const { documentType } = await response.json();
+        return documentType;
       },
-      body: JSON.stringify({
-        content: trimmedContent,
-        templateNames: classifications,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const { documentType } = await response.json();
-    return documentType;
+      this
+    );
   }
 
   async getTextFromFile(file: TFile): Promise<string> {
@@ -849,24 +883,34 @@ export default class FileOrganizer extends Plugin {
   async extractTextFromImage(image: ArrayBuffer): Promise<string> {
     const base64Image = arrayBufferToBase64(image);
 
-    const response = await fetch(`${this.getServerUrl()}/api/vision`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${this.settings.API_KEY}`,
+    // Use handleAuthenticatedRequest for error handling and token refresh
+    return await handleAuthenticatedRequest(
+      async () => {
+        const response = await fetch(`${this.getServerUrl()}/api/vision`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${this.getAuthToken()}`,
+          },
+          body: JSON.stringify({
+            image: base64Image,
+            instructions: this.settings.imageInstructions,
+          }),
+        });
+
+        if (!response.ok) {
+          // Check if it's an authentication error
+          if (response.status === 401) {
+            throw new Error(`Authentication failed: ${response.status}`);
+          }
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const { text } = await response.json();
+        return text;
       },
-      body: JSON.stringify({
-        image: base64Image,
-        instructions: this.settings.imageInstructions,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const { text } = await response.json();
-    return text;
+      this
+    );
   }
 
   async getBacklog() {
@@ -911,26 +955,36 @@ export default class FileOrganizer extends Plugin {
     const cutoff = this.settings.contentCutoffChars;
     const trimmedContent = content.slice(0, cutoff);
 
-    const response = await fetch(`${this.getServerUrl()}/api/tags/v2`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${this.settings.API_KEY}`,
+    // Use handleAuthenticatedRequest for error handling and token refresh
+    return await handleAuthenticatedRequest(
+      async () => {
+        const response = await fetch(`${this.getServerUrl()}/api/tags/v2`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${this.getAuthToken()}`,
+          },
+          body: JSON.stringify({
+            content: trimmedContent,
+            fileName: filePath,
+            existingTags,
+            customInstructions: this.settings.customTagInstructions,
+          }),
+        });
+
+        if (!response.ok) {
+          // Check if it's an authentication error
+          if (response.status === 401) {
+            throw new Error(`Authentication failed: ${response.status}`);
+          }
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const { tags: suggestedTags } = await response.json();
+        return suggestedTags;
       },
-      body: JSON.stringify({
-        content: trimmedContent,
-        fileName: filePath,
-        existingTags,
-        customInstructions: this.settings.customTagInstructions,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const { tags: suggestedTags } = await response.json();
-    return suggestedTags;
+      this
+    );
   }
 
   async recommendFolders(
@@ -940,28 +994,38 @@ export default class FileOrganizer extends Plugin {
     const customInstructions = this.settings.customFolderInstructions;
     const cutoff = this.settings.contentCutoffChars;
     const trimmedContent = content.slice(0, cutoff);
-
     const folders = this.getAllUserFolders();
-    const response = await fetch(`${this.getServerUrl()}/api/folders/v2`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${this.settings.API_KEY}`,
+    
+    // Use handleAuthenticatedRequest for error handling and token refresh
+    return await handleAuthenticatedRequest(
+      async () => {
+        const response = await fetch(`${this.getServerUrl()}/api/folders/v2`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${this.getAuthToken()}`,
+          },
+          body: JSON.stringify({
+            content: trimmedContent,
+            fileName: fileName,
+            folders,
+            customInstructions,
+          }),
+        });
+
+        if (!response.ok) {
+          // Check if it's an authentication error
+          if (response.status === 401) {
+            throw new Error(`Authentication failed: ${response.status}`);
+          }
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const { folders: suggestedFolders } = await response.json();
+        return suggestedFolders;
       },
-      body: JSON.stringify({
-        content: trimmedContent,
-        fileName: fileName,
-        folders,
-        customInstructions,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const { folders: suggestedFolders } = await response.json();
-    return suggestedFolders;
+      this
+    );
   }
 
   async appendTag(file: TFile, tag: string) {
@@ -1218,7 +1282,7 @@ export default class FileOrganizer extends Plugin {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${this.settings.API_KEY}`,
+        Authorization: `Bearer ${this.getAuthToken()}`,
       },
       body: JSON.stringify({
         content: trimmedContent,

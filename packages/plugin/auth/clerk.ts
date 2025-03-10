@@ -1,5 +1,6 @@
 import { requestUrl, RequestUrlResponse } from "obsidian";
 import { logger } from "../services/logger";
+import { verifyJwtToken, DecodedToken } from "./jwt-verification";
 
 export interface ClerkAuthResponse {
   token: string;
@@ -78,9 +79,26 @@ export async function signInWithClerk(
 
 export async function refreshClerkToken(
   serverUrl: string,
-  token: string
+  token: string,
+  publicKey?: string
 ): Promise<ClerkAuthResponse | null> {
   try {
+    // First try to verify the token locally if a public key is provided
+    if (publicKey) {
+      const decoded = await verifyJwtToken(token, publicKey);
+      
+      // If token is still valid, no need to refresh
+      if (decoded) {
+        logger.info("Token is still valid, no need to refresh");
+        return {
+          token,
+          userId: decoded.userId,
+          expiresAt: decoded.exp * 1000 // Convert to milliseconds
+        };
+      }
+    }
+    
+    // If local verification fails or public key is not set, try server refresh
     const response: RequestUrlResponse = await requestUrl({
       url: `${serverUrl}/api/auth/refresh`,
       method: "POST",
@@ -102,9 +120,21 @@ export async function refreshClerkToken(
 
 export async function isClerkTokenValid(
   serverUrl: string,
-  token: string
+  token: string,
+  publicKey?: string
 ): Promise<boolean> {
   try {
+    // First try to verify the token locally if a public key is provided
+    if (publicKey) {
+      const decoded = await verifyJwtToken(token, publicKey);
+      
+      if (decoded) {
+        logger.info("Token verified locally");
+        return true;
+      }
+    }
+    
+    // If local verification fails or public key is not set, try server validation
     const response: RequestUrlResponse = await requestUrl({
       url: `${serverUrl}/api/auth/validate`,
       method: "POST",
