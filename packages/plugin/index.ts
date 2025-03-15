@@ -37,8 +37,6 @@ import { DashboardView, DASHBOARD_VIEW_TYPE } from "./views/assistant/dashboard/
 import Jimp from "jimp/es/index";
 
 import { FileOrganizerSettings, DEFAULT_SETTINGS } from "./settings";
-import { checkAndCreateFolders } from "./fileUtils";
-
 import { registerEventHandlers } from "./handlers/eventHandlers";
 import {
   initializeOrganizer,
@@ -508,21 +506,20 @@ export default class FileOrganizer extends Plugin {
     audioBuffer: ArrayBuffer,
     fileExtension: string
   ): Promise<Response> {
-    const formData = new FormData();
-    const blob = new Blob([audioBuffer], { type: `audio/${fileExtension}` });
-    formData.append("audio", blob, `audio.${fileExtension}`);
-    formData.append("fileExtension", fileExtension);
-    // const newServerUrl = "http://localhost:3001/transcribe";
-    const newServerUrl =
-      "https://file-organizer-2000-audio-transcription.onrender.com/transcribe";
+    // Convert ArrayBuffer to base64
+    const base64Audio = Buffer.from(audioBuffer).toString('base64');
+    const serverUrl = this.getServerUrl();
 
-    const response = await fetch(newServerUrl, {
+    const response = await fetch(`${serverUrl}/api/transcribe`, {
       method: "POST",
-      body: formData,
       headers: {
-        Authorization: `Bearer ${this.settings.API_KEY}`,
-        // "Content-Type": "multipart/form-data",
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${this.settings.API_KEY}`,
       },
+      body: JSON.stringify({
+        audio: `data:audio/${fileExtension};base64,${base64Audio}`,
+        extension: fileExtension,
+      }),
     });
     if (!response.ok) {
       const errorData = await response.json();
