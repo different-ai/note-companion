@@ -691,10 +691,27 @@ export const InboxLogs: React.FC = () => {
 
   // Add a function to check if records have changed
   const haveRecordsChanged = (oldRecords: FileRecord[], newRecords: FileRecord[]) => {
+    // If the number of records has changed, records have definitely changed
     if (oldRecords.length !== newRecords.length) return true;
     
-    return newRecords.some((newRecord, index) => {
-      const oldRecord = oldRecords[index];
+    // Check if any new records have been added that match the current date filter
+    // This ensures new records are detected even if they don't match the current filter
+    const newRecordIds = new Set(newRecords.map(record => record.id));
+    const oldRecordIds = new Set(oldRecords.map(record => record.id));
+    
+    // If there are any new record IDs, records have changed
+    if (newRecordIds.size !== oldRecordIds.size) return true;
+    
+    // Check if any record IDs are different
+    for (const id of newRecordIds) {
+      if (!oldRecordIds.has(id)) return true;
+    }
+    
+    // Check if any existing records have changed
+    return newRecords.some((newRecord) => {
+      const oldRecord = oldRecords.find(r => r.id === newRecord.id);
+      if (!oldRecord) return true;
+      
       return (
         newRecord.status !== oldRecord.status ||
         newRecord.tags.length !== oldRecord.tags.length ||
@@ -716,9 +733,62 @@ export const InboxLogs: React.FC = () => {
       const newFiles = plugin.inbox.getAllFiles();
       const newAnalytics = plugin.inbox.getAnalytics();
       
+      // Check if there are new records that don't match the current date filter
+      const hasNewRecords = newFiles.length > records.length;
+      
       // Only update if something has changed
       if (haveRecordsChanged(records, newFiles)) {
         setRecords(newFiles);
+        
+        // If there are new records and the date filter is not set to 'all',
+        // check if we need to update the date filter to include the new records
+        if (hasNewRecords && dateFilter.range !== 'all') {
+          // Find the newest record
+          const newestRecord = [...newFiles].sort((a, b) => {
+            const aLatestLog = Object.values(a.logs).reduce((latest, log) => {
+              return !latest || moment(log.timestamp).isAfter(moment(latest.timestamp))
+                ? log
+                : latest;
+            }, null as LogEntry | null);
+            
+            const bLatestLog = Object.values(b.logs).reduce((latest, log) => {
+              return !latest || moment(log.timestamp).isAfter(moment(latest.timestamp))
+                ? log
+                : latest;
+            }, null as LogEntry | null);
+            
+            if (!aLatestLog || !bLatestLog) return 0;
+            return moment(bLatestLog.timestamp).diff(moment(aLatestLog.timestamp));
+          })[0];
+          
+          if (newestRecord) {
+            // Get the timestamp of the newest log entry
+            const newestLogTimestamp = Object.values(newestRecord.logs).reduce((latest, log) => {
+              return !latest || moment(log.timestamp).isAfter(moment(latest || ""))
+                ? log.timestamp
+                : latest;
+            }, "" as string);
+            
+            // If the newest log is outside the current date filter, update the filter
+            if (newestLogTimestamp) {
+              const newestLogDate = moment(newestLogTimestamp);
+              const startDate = moment(dateFilter.startDate).startOf('day');
+              const endDate = moment(dateFilter.endDate).endOf('day');
+              
+              if (!newestLogDate.isBetween(startDate, endDate, 'day', '[]')) {
+                // Update the date filter to include today
+                setDateFilter({
+                  range: 'today',
+                  startDate: moment().format('YYYY-MM-DD'),
+                  endDate: moment().format('YYYY-MM-DD'),
+                });
+                
+                // Show a notification to inform the user
+                new Notice("Date filter updated to show new records");
+              }
+            }
+          }
+        }
       }
       
       // Update analytics only if they've changed
