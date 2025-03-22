@@ -34,6 +34,7 @@ async function updateCronSchedule(intervalMinutes: number) {
       const content = await fs.readFile(pipeConfigPath, "utf8");
       config = JSON.parse(content);
     } catch (err) {
+      console.error("Error reading config:", err);
       console.log(
         `no existing config found, creating new one at ${pipeConfigPath}`
       );
@@ -97,6 +98,7 @@ export async function GET() {
         },
       });
     } catch (err) {
+      console.error("Error reading persisted settings:", err);
       // If no persisted settings, return normal settings
       const rawSettings = await settingsManager.getAll();
       return NextResponse.json(rawSettings);
