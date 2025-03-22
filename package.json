@@ -4,15 +4,17 @@
   "devDependencies": {
     "@types/node": "^22.13.10",
     "node-gyp": "^11.1.0",
+    "turbo": "^2.4.4",
     "typescript": "^5.8.2"
   },
   "version": "1.0.0",
   "packageManager": "pnpm@9.15.4",
   "scripts": {
-    "build": "pnpm run -r build",
-    "dev": "pnpm run -r dev",
-    "lint": "pnpm run -r lint",
-    "test": "pnpm run -r test"
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "lint": "turbo lint",
+    "test": "turbo test",
+    "clean": "turbo clean"
   },
   "dependencies": {
     "react-markdown": "^10.1.0",
