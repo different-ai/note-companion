@@ -2,6 +2,7 @@ export class FileOrganizerSettings {
   
   API_KEY = "";
   isLicenseValid = false;
+  isTokenLimitReached = false;
   useLogs = true;
   defaultDestinationPath = "_NoteCompanion/Processed";
   referencePath = "_NoteCompanion/References";

@@ -64,6 +64,24 @@ export const AccountData: React.FC<AccountDataProps> = ({ plugin, onLicenseKeyCh
         },
       });
       
+      if (response.status === 429) {
+        try {
+          const data = await response.json();
+          if (data && typeof data === 'object') {
+            setUsageData(data);
+            
+            if (data.isTokenLimitError) {
+              plugin.settings.isTokenLimitReached = true;
+              await plugin.saveSettings();
+            }
+          }
+        } catch (e) {
+          logger.error('Error parsing token limit response:', e);
+        }
+        setLoading(false);
+        return;
+      }
+      
       if (!response.ok) throw new Error('Failed to fetch usage data');
       
       const data = await response.json();
@@ -375,4 +393,4 @@ export const AccountData: React.FC<AccountDataProps> = ({ plugin, onLicenseKeyCh
       )}
     </div>
   );
-}; 
+};    

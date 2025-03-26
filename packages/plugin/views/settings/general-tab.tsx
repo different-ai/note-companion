@@ -34,7 +34,14 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ plugin, userId, email })
     if (!licenseKey) return;
     setKeyStatus('checking');
     const isValid = await plugin.isLicenseKeyValid(licenseKey);
-    setKeyStatus(isValid ? 'valid' : 'invalid');
+    
+    if (plugin.settings.isTokenLimitReached) {
+      setKeyStatus('valid'); // Keep license valid but show warning UI
+      logger.debug("Token limit reached, setting key status to valid with warning");
+    } else {
+      setKeyStatus(isValid ? 'valid' : 'invalid');
+      logger.debug(`License key validation result: ${isValid ? 'valid' : 'invalid'}`);
+    }
   };
 
   const handleLicenseKeyChange = async (value: string) => {
@@ -60,6 +67,16 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ plugin, userId, email })
           </div>
         );
       case 'invalid':
+        if (plugin.settings.isTokenLimitReached) {
+          return (
+            <div className="flex items-center text-[--text-warning] text-sm">
+              <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              Token limit reached. Please upgrade your plan.
+            </div>
+          );
+        }
         return (
           <div className="flex items-center text-[--text-error] text-sm">
             <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -85,6 +102,24 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ plugin, userId, email })
 
   return (
     <div className="file-organizer-settings space-y-6">
+      {plugin.settings.isTokenLimitReached && (
+        <div className="bg-yellow-50 text-yellow-800 p-4 rounded-lg mb-4">
+          <div className="flex items-center">
+            <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <div className="font-medium">Token limit reached. Your license is still valid, but you need to upgrade your plan for more tokens.</div>
+          </div>
+          <div className="mt-3">
+            <button 
+              onClick={() => window.open("https://notecompanion.ai/pricing?utm_source=obsidian&utm_medium=in-app&utm_campaign=token-limit", "_blank")}
+              className="inline-block bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded transition-colors"
+            >
+              Upgrade Plan
+            </button>
+          </div>
+        </div>
+      )}
       <div className="bg-[--background-primary-alt] p-4 rounded-lg">
         <div className="space-y-4">
           <div>
@@ -99,8 +134,9 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ plugin, userId, email })
               <input
                 type="text"
                 className={`flex-1 bg-[--background-primary] border rounded px-3 py-1.5 ${keyStatus === 'valid' ? 'border-[--text-success]' : 
+                  (plugin.settings.isTokenLimitReached ? 'border-[--text-warning]' : 
                   keyStatus === 'invalid' ? 'border-[--text-error]' : 
-                  'border-[--background-modifier-border]'}`}
+                  'border-[--background-modifier-border]')}`}
                 placeholder="Enter your File Organizer License Key"
                 value={licenseKey}
                 onChange={e => handleLicenseKeyChange(e.target.value)}
@@ -140,25 +176,21 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ plugin, userId, email })
         <p className="file-organizer-support-text mb-4">
           Note Companion is an open-source initiative developed by two
           brothers. If you find it valuable, please{" "}
-          <a
-            href="https://notecompanion.ai/?utm_source=obsidian&utm_medium=in-app&utm_campaign=support-us"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[--text-accent] hover:text-[--text-accent-hover]"
+          <button
+            onClick={() => window.open("https://notecompanion.ai/?utm_source=obsidian&utm_medium=in-app&utm_campaign=support-us", "_blank")}
+            className="text-[--text-accent] hover:text-[--text-accent-hover] inline bg-transparent border-none p-0 cursor-pointer"
           >
             consider supporting us
-          </a>{" "}
+          </button>{" "}
           to help improve and maintain the project. 🙏
         </p>
         <p className="text-[--text-muted]">
-          <a
-            href="https://discord.gg/UWH53WqFuE"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[--text-accent] hover:text-[--text-accent-hover]"
+          <button
+            onClick={() => window.open("https://discord.gg/UWH53WqFuE", "_blank")}
+            className="text-[--text-accent] hover:text-[--text-accent-hover] inline bg-transparent border-none p-0 cursor-pointer"
           >
             Need help? Ask me on Discord.
-          </a>
+          </button>
         </p>
       </div>
     </div>

@@ -299,9 +299,7 @@ export const checkUserSubscriptionStatus = async (userId: string) => {
     // Check for free tier
     if (userUsage[0].tier === "free") {
       console.log(`User ${userId} is on free tier`);
-      // For free tier, check if they have remaining tokens
-      const tokenCheck = await checkTokenUsage(userId);
-      return tokenCheck.remaining > 0;
+      return true;
     }
 
     // Check for paid tiers
