@@ -37,8 +37,6 @@ import { DashboardView, DASHBOARD_VIEW_TYPE } from "./views/assistant/dashboard/
 import Jimp from "jimp/es/index";
 
 import { FileOrganizerSettings, DEFAULT_SETTINGS } from "./settings";
-import { checkAndCreateFolders } from "./fileUtils";
-
 import { registerEventHandlers } from "./handlers/eventHandlers";
 import {
   initializeOrganizer,
@@ -512,52 +510,74 @@ export default class FileOrganizer extends Plugin {
     return formattedContent;
   }
 
-  async transcribeAudio(
-    audioBuffer: ArrayBuffer,
-    fileExtension: string
-  ): Promise<Response> {
-    const formData = new FormData();
-    const blob = new Blob([audioBuffer], { type: `audio/${fileExtension}` });
-    formData.append("audio", blob, `audio.${fileExtension}`);
-    formData.append("fileExtension", fileExtension);
-    // const newServerUrl = "http://localhost:3001/transcribe";
-    const newServerUrl =
-      "https://file-organizer-2000-audio-transcription.onrender.com/transcribe";
-
-    const response = await fetch(newServerUrl, {
-      method: "POST",
-      body: formData,
-      headers: {
-        Authorization: `Bearer ${this.settings.API_KEY}`,
-        // "Content-Type": "multipart/form-data",
-      },
-    });
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(`Transcription failed: ${errorData.error}`);
-    }
-    return response;
-  }
-
-  async generateTranscriptFromAudio(
-    file: TFile
-  ): Promise<AsyncIterableIterator<string>> {
+  async transcribeAudio(audioBuffer: ArrayBuffer, fileExtension: string): Promise<string> {
     try {
-      const audioBuffer = await this.app.vault.readBinary(file);
-      const response = await this.transcribeAudio(audioBuffer, file.extension);
+      const serverUrl = this.getServerUrl();
 
-      if (!response.body) {
-        throw new Error("Response body is null");
+      // Create a FormData object with the audio file
+      const formData = new FormData();
+      formData.append('file', new Blob([audioBuffer], { type: `audio/${fileExtension}` }), `recording.${fileExtension}`);
+      
+      // Upload directly to our server endpoint
+      const uploadResponse = await fetch(`${serverUrl}/api/transcribe/upload`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${this.settings.API_KEY}`,
+        },
+        body: formData,
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error('Failed to upload file');
+      }
+      
+      // Get the URL of the uploaded file
+      const { url } = await uploadResponse.json();
+
+      // Now send the blob URL to our transcribe endpoint
+      const transcribeResponse = await fetch(`${serverUrl}/api/transcribe`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${this.settings.API_KEY}`,
+        },
+        body: JSON.stringify({
+          blobUrl: url,
+          extension: fileExtension,
+        }),
+      });
+
+      if (!transcribeResponse.ok) {
+        throw new Error('Failed to transcribe audio');
       }
 
-      const reader = response.body.getReader();
+      // Read the streamed response
+      const reader = transcribeResponse.body?.getReader();
+      if (!reader) {
+        throw new Error('No response body');
+      }
+
+      let transcription = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        transcription += new TextDecoder().decode(value);
+      }
+
+      return transcription;
+    } catch (error) {
+      console.error('Error in transcribeAudio:', error);
+      throw error;
+    }
+  }
+
+  async generateTranscriptFromAudio(file: TFile): Promise<AsyncIterableIterator<string>> {
+    try {
+      const audioBuffer = await this.app.vault.readBinary(file);
+      const transcription = await this.transcribeAudio(audioBuffer, file.extension);
 
       async function* generateTranscript() {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          yield new TextDecoder().decode(value);
-        }
+        yield transcription;
       }
 
       return generateTranscript();
