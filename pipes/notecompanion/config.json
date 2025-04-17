@@ -1,0 +1,5 @@
+{
+    "meetingApps": ["Zoom", "Google Meet", "Microsoft Teams"],
+    "notificationTitle": "You're in a meeting!",
+    "notificationMessage": "Open a note in Obsidian"
+}
