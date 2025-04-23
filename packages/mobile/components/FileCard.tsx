@@ -8,6 +8,7 @@ import { useSemanticColor } from '@/hooks/useThemeColor';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import * as Haptics from 'expo-haptics';
+import FastImage from 'react-native-fast-image';
 
 // Content moderation check for displaying files
 const runContentModeration = async (text: string | undefined): Promise<{
@@ -84,13 +85,11 @@ export function FileCard({ file, onDelete, onView }: FileCardProps) {
   };
 
   // Get appropriate icon based on file type
-  const getFileIcon = (mimeType: string) => {
-    if (mimeType?.includes('image')) {
+  const getIconName = () => {
+    if (file.mimeType?.includes('image')) {
       return 'image';
-    } else if (mimeType?.includes('pdf')) {
-      return 'picture-as-pdf';
-    } else if (mimeType?.includes('text') || mimeType?.includes('markdown')) {
-      return 'note';
+    } else if (file.mimeType?.includes('text') || file.mimeType?.includes('markdown')) {
+      return 'description';
     } else {
       return 'insert-drive-file';
     }
@@ -215,6 +214,30 @@ export function FileCard({ file, onDelete, onView }: FileCardProps) {
     );
   };
 
+  // Render the file content preview
+  const renderPreview = () => {
+    return file.previewType === 'image' && file.thumbnailUri ? (
+      <FastImage
+        source={{ uri: file.thumbnailUri }}
+        style={styles.previewImage}
+        resizeMode={FastImage.resizeMode.cover}
+      />
+    ) : file.previewType === 'text' && file.previewText ? (
+      <View style={styles.textPreviewContainer}>
+        <Text style={styles.previewText} numberOfLines={3}>
+          {file.previewText}
+        </Text>
+      </View>
+    ) : (
+      <View style={styles.genericPreviewContainer}>
+        <MaterialIcons name={getIconName()} size={48} color={primaryColor} />
+        <ThemedText colorName="textSecondary" style={styles.genericPreviewText}>
+          {file.mimeType?.includes('image') ? 'Image' : 'Document'}
+        </ThemedText>
+      </View>
+    );
+  };
+
   return (
     <View style={styles.cardWrapper}>
       {/* Gradient border overlay */}
@@ -236,7 +259,7 @@ export function FileCard({ file, onDelete, onView }: FileCardProps) {
           <View style={styles.titleContainer}>
             <View style={[styles.fileIcon, { backgroundColor: Platform.OS === 'ios' ? 'rgba(159, 122, 234, 0.15)' : 'rgba(159, 122, 234, 0.1)' }]}>
               <MaterialIcons
-                name={getFileIcon(file.mimeType)}
+                name={getIconName()}
                 size={24}
                 color="rgb(159, 122, 234)"
               />
@@ -288,29 +311,7 @@ export function FileCard({ file, onDelete, onView }: FileCardProps) {
             </ThemedView>
           ) : (
             <View style={styles.previewContainer}>
-              {file.mimeType?.includes('image') && file.blobUrl ? (
-                <Image
-                  source={{ uri: file.blobUrl }}
-                  style={styles.imagePreview}
-                  resizeMode="cover"
-                />
-              ) : file.mimeType?.includes('pdf') && file.blobUrl ? (
-                <View style={styles.pdfPreviewContainer}>
-                  <MaterialIcons name="picture-as-pdf" size={48} color={primaryColor} />
-                  <ThemedText colorName="textSecondary" style={styles.pdfPreviewText}>PDF Document</ThemedText>
-                </View>
-              ) : file.extractedText ? (
-                <View style={styles.textPreviewContainer}>
-                  <ThemedText colorName="textSecondary" style={styles.previewText} numberOfLines={6}>
-                    {getContentPreview()}
-                  </ThemedText>
-                </View>
-              ) : (
-                <View style={styles.noPreviewContainer}>
-                  <MaterialIcons name="insert-drive-file" size={48} color={textSecondaryColor} />
-                  <ThemedText colorName="textSecondary" style={styles.noPreviewText}>No preview available</ThemedText>
-                </View>
-              )}
+              {renderPreview()}
             </View>
           )}
 
@@ -490,20 +491,10 @@ const styles = StyleSheet.create({
       },
     }),
   },
-  imagePreview: {
+  previewImage: {
     width: '100%',
     height: '100%',
     resizeMode: 'cover',
-  },
-  pdfPreviewContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 20,
-  },
-  pdfPreviewText: {
-    marginTop: 8,
-    fontSize: 14,
   },
   noPreviewContainer: {
     flex: 1,
@@ -609,5 +600,16 @@ const styles = StyleSheet.create({
   contentContainer: {
     flexDirection: 'row',
     marginBottom: 16,
+  },
+  genericPreviewContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.03)',
+    borderRadius: 8,
+  },
+  genericPreviewText: {
+    fontSize: 12,
+    marginTop: 8,
   },
 });

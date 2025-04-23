@@ -70,8 +70,6 @@ export default function HomeScreen() {
                 mimeType = "image/webp";
               } else if (fileExt === "gif") {
                 mimeType = "image/gif";
-              } else if (fileExt === "pdf") {
-                mimeType = "application/pdf";
               }
             }
 
@@ -273,7 +271,7 @@ export default function HomeScreen() {
   const pickDocument = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: ["application/pdf", "image/*"],
+        type: ["image/*"],
         multiple: true,
       });
 
@@ -390,6 +388,58 @@ export default function HomeScreen() {
     }
   };
 
+  // New function for Magic Diagram
+  const takeMagicDiagramPhoto = async () => {
+    try {
+      const { status: cameraStatus } =
+        await ImagePicker.requestCameraPermissionsAsync();
+      if (cameraStatus !== "granted") {
+        setStatus("error");
+        setUploadResults([
+          {
+            status: "error",
+            error: "Camera permission denied",
+            fileName: undefined,
+            mimeType: undefined,
+            text: undefined,
+            fileUrl: undefined,
+          },
+        ]);
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 0.8,
+      });
+
+      if (result.canceled) return;
+      if (result.assets && result.assets.length > 0) {
+        // Mark each asset with a processType property to indicate it's for magic diagram processing
+        const magicDiagramAssets = result.assets.map(asset => ({
+          ...asset,
+          processType: 'magic-diagram' // Add this property to signal the special processing
+        }));
+        
+        await uploadFiles(magicDiagramAssets);
+      }
+    } catch (error) {
+      console.error("Error taking magic diagram photo:", error);
+      setStatus("error");
+      setUploadResults([
+        {
+          status: "error",
+          error:
+            error instanceof Error ? error.message : "Failed to take magic diagram photo",
+          fileName: undefined,
+          mimeType: undefined,
+          text: undefined,
+          fileUrl: undefined,
+        },
+      ]);
+    }
+  };
+
   const handleRetry = () => {
     setStatus("idle");
     setUploadResults([]);
@@ -416,7 +466,7 @@ export default function HomeScreen() {
         type="label"
         style={styles.headerSubtitle}
       >
-        Extract text from your documents and images
+        Extract text from your images
       </ThemedText>
     </ThemedView>
   );
@@ -424,9 +474,9 @@ export default function HomeScreen() {
   const renderExplanation = () => (
     <View style={styles.explanationCard}>
       <MaterialIcons name="auto-awesome" size={24} color={primaryColor} />
-      <Text style={styles.explanationTitle}>Get OCR from any image or pdf</Text>
+      <Text style={styles.explanationTitle}>Get OCR from any image</Text>
       <Text style={styles.explanationText}>
-        Upload any image or pdf and get the text extracted. You can also use the
+        Upload any image and get the text extracted. You can also use the
         share sheet to upload from other apps.
       </Text>
     </View>
@@ -444,29 +494,25 @@ export default function HomeScreen() {
         <TouchableOpacity
           style={[
             styles.uploadButtonWrapper,
-            // [3] Only disable during the actual upload phase
             status === "uploading" && styles.uploadButtonDisabled,
           ]}
           onPress={pickDocument}
-          // [3] Only disable during the actual upload phase
           disabled={status === "uploading"}
         >
           <View style={styles.uploadButtonGradient}></View>
           <View style={styles.uploadButtonContent}>
             <MaterialIcons name="file-upload" size={32} color={primaryColor} />
             <Text style={styles.uploadButtonText}>Upload Files</Text>
-            <Text style={styles.uploadButtonSubtext}>PDFs or Images</Text>
+            <Text style={styles.uploadButtonSubtext}>Images</Text>
           </View>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[
             styles.uploadButtonWrapper,
-            // [3] Only disable during the actual upload phase
             status === "uploading" && styles.uploadButtonDisabled,
           ]}
           onPress={pickPhotos}
-          // [3] Only disable during the actual upload phase
           disabled={status === "uploading"}
         >
           <View style={styles.uploadButtonGradient}></View>
@@ -478,6 +524,30 @@ export default function HomeScreen() {
             />
             <Text style={styles.uploadButtonText}>Photo Library</Text>
             <Text style={styles.uploadButtonSubtext}>Choose Photos</Text>
+          </View>
+        </TouchableOpacity>
+      </View>
+      
+      {/* Add a second row with the Magic Diagram button */}
+      <View style={styles.uploadButtonRow}>
+        <TouchableOpacity
+          style={[
+            styles.uploadButtonWrapper,
+            styles.magicDiagramButton, // New style for distinction
+            status === "uploading" && styles.uploadButtonDisabled,
+          ]}
+          onPress={takeMagicDiagramPhoto}
+          disabled={status === "uploading"}
+        >
+          <View style={styles.uploadButtonGradient}></View>
+          <View style={styles.uploadButtonContent}>
+            <MaterialIcons
+              name="auto-awesome"
+              size={32}
+              color={primaryColor}
+            />
+            <Text style={styles.uploadButtonText}>Magic Diagram</Text>
+            <Text style={styles.uploadButtonSubtext}>Convert Sketches</Text>
           </View>
         </TouchableOpacity>
       </View>
@@ -726,5 +796,9 @@ const styles = StyleSheet.create({
   },
   usageStatusContainer: {
     marginBottom: 16,
+  },
+  magicDiagramButton: {
+    width: "100%", // Full width for the Magic Diagram button
+    backgroundColor: "rgba(138, 101, 237, 0.05)", // Subtle background tint
   },
 });

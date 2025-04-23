@@ -9,7 +9,6 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
-import Pdf from 'react-native-pdf';
 import { MaterialIcons } from '@expo/vector-icons';
 import { TextDocumentViewer } from './text-document-viewer';
 
@@ -40,7 +39,6 @@ export const FilePreview: React.FC<FilePreviewProps> = ({
     );
   }
 
-  const isPdf = mimeType?.toLowerCase().includes('pdf');
   const isImage = mimeType?.toLowerCase().includes('image');
   const isText = mimeType?.toLowerCase().includes('text') || mimeType?.toLowerCase().includes('markdown');
 
@@ -59,31 +57,7 @@ export const FilePreview: React.FC<FilePreviewProps> = ({
   };
 
   const renderPreview = () => {
-    if (isPdf) {
-      // PDF Preview
-      const source = { uri: fileUrl, cache: true };
-      
-      return (
-        <View style={styles.fileContainer}>
-          <Pdf
-            source={source}
-            onLoadComplete={handleLoadComplete}
-            onError={handleError}
-            style={[styles.pdfView, { width: previewWidth, height: previewHeight }]}
-            trustAllCerts={false}
-            renderActivityIndicator={() => <ActivityIndicator size="large" color="#007AFF" />}
-            enablePaging={true}
-            page={1}
-          />
-          {loading && (
-            <View style={[styles.loadingOverlay, { width: previewWidth, height: previewHeight }]}>
-              <ActivityIndicator size="large" color="rgb(159, 122, 234)" />
-              <Text style={styles.loadingText}>Loading PDF...</Text>
-            </View>
-          )}
-        </View>
-      );
-    } else if (isImage) {
+    if (isImage) {
       // Image Preview
       return (
         <View style={styles.fileContainer}>
@@ -147,19 +121,17 @@ export const FilePreview: React.FC<FilePreviewProps> = ({
           <View style={styles.previewHeader}>
             <MaterialIcons 
               name={
-                isPdf ? "picture-as-pdf" 
-                  : isImage ? "image" 
-                  : isText ? "description"
-                  : "insert-drive-file"
+                isImage ? "image" 
+                : isText ? "description"
+                : "insert-drive-file"
               } 
               size={24} 
               color="rgb(159, 122, 234)" 
             />
             <Text style={styles.previewHeaderText}>
-              {isPdf ? 'PDF Preview' 
-                : isImage ? 'Image Preview' 
-                : isText ? 'Text Preview'
-                : 'File Preview'}
+              {isImage ? 'Image Preview' 
+              : isText ? 'Text Preview'
+              : 'File Preview'}
             </Text>
           </View>
           {renderPreview()}
@@ -194,9 +166,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.08)',
-    backgroundColor: 'rgb(255, 250, 240)',
-  },
-  pdfView: {
     backgroundColor: 'rgb(255, 250, 240)',
   },
   imagePreview: {
@@ -251,8 +220,8 @@ const styles = StyleSheet.create({
   },
   noFileText: {
     fontSize: 16,
+    textAlign: 'center',
     marginTop: 16,
     color: '#8E8E93',
-    textAlign: 'center',
   },
 }); 

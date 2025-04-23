@@ -14,7 +14,6 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import Markdown from 'react-native-markdown-display';
-import Pdf from 'react-native-pdf';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { TextDocumentViewer } from '@/components/text-document-viewer';
 import { FilePreview } from '@/components/file-preview';
@@ -248,39 +247,46 @@ export default function FileViewerScreen() {
   };
 
   const renderDocumentView = () => {
-    if (params.mimeType?.includes('pdf')) {
+    // Check if content exists and render accordingly
+    if (params.content) {
+      // If there's content, display using TextDocumentViewer
       return (
-        <View style={styles.pdfContainer}>
-          <Pdf
-            source={{ uri: params.fileUrl, cache: true }}
-            style={styles.pdfView}
-            trustAllCerts={false}
-            enablePaging={true}
-            page={1}
+        <TextDocumentViewer
+          content={params.content}
+          fontSize={fontSize}
+          theme={theme}
+        />
+      );
+    } else if (params.fileUrl) {
+      // For non-text files with a URL, render the FilePreview component
+      if (params.mimeType?.startsWith('image/')) {
+        return (
+          <FilePreview
+            uri={params.fileUrl}
+            mimeType={params.mimeType}
+            fileName={params.fileName}
           />
+        );
+      } else {
+        // For other file types, show a generic message
+        return (
+          <View style={styles.noPreviewContainer}>
+            <MaterialIcons name="insert-drive-file" size={48} color="#999" />
+            <Text style={styles.noPreviewText}>
+              No preview available for this file type
+            </Text>
+          </View>
+        );
+      }
+    } else {
+      // If there's no content or URL, show a message
+      return (
+        <View style={styles.noPreviewContainer}>
+          <MaterialIcons name="error-outline" size={48} color="#999" />
+          <Text style={styles.noPreviewText}>No content available</Text>
         </View>
       );
     }
-
-    if (params.mimeType?.includes('image')) {
-      return (
-        <FilePreview
-          fileUrl={params.fileUrl}
-          mimeType={params.mimeType}
-          fileName={params.fileName}
-        />
-      );
-    }
-
-    return (
-      <TextDocumentViewer
-        content={params.content || ''}
-        title={params.fileName}
-        metadata={{
-          source: params.fileUrl,
-        }}
-      />
-    );
   };
 
   const renderMarkdownView = () => {
@@ -601,5 +607,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#007AFF',
+  },
+  noPreviewContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  noPreviewText: {
+    fontSize: 16,
+    color: '#999',
+    textAlign: 'center',
+    marginTop: 16,
   },
 }); 
