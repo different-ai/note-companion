@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, uploadedFiles, UploadedFile } from "@/drizzle/schema";
 import { eq, or } from "drizzle-orm";
-import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { createOpenAI } from "@ai-sdk/openai";
 import OpenAI, { toFile } from "openai";
@@ -10,6 +10,7 @@ import { z } from "zod";
 import fs from "fs";
 import path from "path";
 import os from "os";
+import crypto from "crypto";
 
 // --- OpenAI Client for Image Generation ---
 const openaiImageClient = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -20,9 +21,10 @@ const R2_ENDPOINT = process.env.R2_ENDPOINT;
 const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID;
 const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY;
 const R2_REGION = process.env.R2_REGION || "auto";
+const R2_PUBLIC_URL = process.env.R2_PUBLIC_URL;
 
-if (!R2_BUCKET || !R2_ENDPOINT || !R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY) {
-  console.error("Missing R2 environment variables for background worker!");
+if (!R2_BUCKET || !R2_ENDPOINT || !R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY || !R2_PUBLIC_URL) {
+  console.error("Missing R2 environment variables (including R2_PUBLIC_URL) for background worker!");
 }
 
 const r2Client = new S3Client({
@@ -33,7 +35,6 @@ const r2Client = new S3Client({
     secretAccessKey: R2_SECRET_ACCESS_KEY!,
   },
 });
-
 
 // Helper to download from R2 and return a Buffer
 async function downloadFromR2(key: string): Promise<Buffer> {
@@ -93,11 +94,31 @@ async function processImageWithGPT4o(
   }
 }
 
-// Function to process magic diagrams - Bringing back toFile with mimetype
+// Re-add uploadToR2 helper function
+async function uploadToR2(key: string, body: Buffer, contentType: string): Promise<void> {
+  console.log(`Uploading to R2: ${key} (${contentType})`);
+  const command = new PutObjectCommand({
+    Bucket: R2_BUCKET,
+    Key: key,
+    Body: body,
+    ContentType: contentType,
+    ACL: 'public-read', // Make generated images publicly accessible
+  });
+
+  try {
+    await r2Client.send(command);
+    console.log(`Successfully uploaded ${key} to R2.`);
+  } catch (error) {
+    console.error(`Error uploading ${key} to R2:`, error);
+    throw new Error(`Failed to upload file to R2: ${key}`);
+  }
+}
+
+// Function to process magic diagrams - Handling b64_json again
 async function processMagicDiagram(
   r2Key: string, // Use r2Key to fetch the actual image
-  originalFileName: string
-  // Remove userId parameter
+  originalFileName: string,
+  userId: string // Add userId back
 ): Promise<{ generatedImageUrl: string; tokensUsed: number; error?: string }> {
   let tempImagePath: string | null = null; // Track temporary file path
   try {
@@ -105,34 +126,31 @@ async function processMagicDiagram(
       `Processing Magic Diagram (Image Gen) for: ${originalFileName}`
     );
 
-    // 1. Download original image from R2 using the key
+    // 1. Download original image
     console.log(`Downloading original image from R2 key: ${r2Key}`);
     const originalImageBuffer = await downloadFromR2(r2Key);
     console.log(`Downloaded ${originalImageBuffer.length} bytes for ${originalFileName}`);
 
-    // 2. Create a temporary file path for the original image
+    // 2. Create temporary file path for original image
     const tempDir = os.tmpdir();
     const safeFileName = path.basename(originalFileName);
-    // Keep original extension if present, default to .png otherwise
     const extension = path.extname(safeFileName) || '.png';
     const tempOriginalFileName = `${Date.now()}-${path.basename(safeFileName, extension)}${extension}`;
     tempImagePath = path.join(tempDir, tempOriginalFileName);
     console.log(`Writing original image buffer to temporary path: ${tempImagePath}`);
 
-    // 3. Write the original buffer to the temporary file
+    // 3. Write original buffer to temporary file
     fs.writeFileSync(tempImagePath, originalImageBuffer as unknown as Uint8Array);
     console.log(`Successfully wrote original buffer to ${tempImagePath}`);
 
-    // 4. Prepare the generation prompt
+    // 4. Prepare generation prompt
     const generationPrompt = `Digitize this sketch image into a clean, well-rendered diagram suitable for digital files. Preserve the core elements and connections shown in the sketch. Original filename for context: ${originalFileName}.`;
     console.log(`Generating image with prompt: ${generationPrompt.substring(0, 150)}...`);
 
     // 5. Create read stream and determine mimetype
     console.log(`Creating read stream for temporary original image: ${tempImagePath}`);
     const imageStream = fs.createReadStream(tempImagePath);
-
-    // Determine mimetype based on temp file extension
-    let mimeType = 'image/png'; // Default
+    let mimeType = 'image/png';
     const fileExt = path.extname(tempImagePath).toLowerCase();
     if (fileExt === '.jpg' || fileExt === '.jpeg') {
         mimeType = 'image/jpeg';
@@ -141,44 +159,60 @@ async function processMagicDiagram(
     }
     console.log(`Determined mimetype: ${mimeType}`);
 
-    // 6. Prepare image file for OpenAI API using toFile with correct mimetype
+    // 6. Prepare image file using toFile
     const preparedImage = await toFile(imageStream, path.basename(tempImagePath), {
-        type: mimeType, // Pass the determined mimetype
+        type: mimeType,
     });
     console.log(`Prepared image for OpenAI API: ${preparedImage.name} with type ${mimeType}`);
 
-    // 7. Call the OpenAI API with the prepared image file
+    // 7. Call OpenAI API, requesting b64_json
     const response = await openaiImageClient.images.edit({
       model: "gpt-image-1",
-      image: preparedImage, // Pass the prepared file object from toFile
+      image: preparedImage,
       prompt: generationPrompt,
       n: 1,
       size: "1024x1024",
-      // response_format: "url", // Keep default (url)
     });
 
-    const generatedImageUrl = response.data[0]?.url;
-    console.log(`Received generated image URL: ${generatedImageUrl}`);
+    // 8. Extract base64 data
+    const imageBase64 = response.data[0]?.b64_json;
+    console.log(`Received image data (base64 length: ${imageBase64?.length ?? 0})`);
 
-    if (!generatedImageUrl) {
+    if (!imageBase64) {
       console.error("Image generation response data (check for errors):", response.data);
       throw new Error(
-        "Image generation failed, no URL returned in the response."
+        "Image generation failed, no b64_json returned in the response."
       );
     }
 
-    // 8. Estimate token usage (placeholder)
-    // TODO: Estimate token usage accurately based on OpenAI response if available
-    const tokensUsed = 5000; // Placeholder
+    // 9. Decode base64 image
+    const generatedImageBuffer = Buffer.from(imageBase64, "base64");
+    console.log(`Decoded generated image buffer size: ${generatedImageBuffer.length} bytes`);
 
-    // 9. Return the received URL directly
-    return { generatedImageUrl: generatedImageUrl, tokensUsed };
+    // 10. Generate unique R2 key for the *generated* image
+    const uniqueSuffix = crypto.randomBytes(4).toString('hex');
+    // Assume generated image is PNG, adjust if API indicates otherwise
+    const generatedFileExtension = '.png';
+    const generatedR2Key = `generated/${userId}/${Date.now()}-${uniqueSuffix}-${path.basename(originalFileName, extension)}${generatedFileExtension}`;
+    console.log(`Generated R2 key for new image: ${generatedR2Key}`);
+
+    // 11. Upload generated image buffer to R2
+    await uploadToR2(generatedR2Key, generatedImageBuffer, 'image/png'); // Assuming PNG output
+
+    // 12. Construct public URL
+    const generatedPublicUrl = `${R2_PUBLIC_URL}/${generatedR2Key}`;
+    console.log(`Generated public URL: ${generatedPublicUrl}`);
+
+    // Estimate token usage (placeholder)
+    const tokensUsed = 5000;
+
+    // 13. Return the new public URL
+    return { generatedImageUrl: generatedPublicUrl, tokensUsed };
 
   } catch (error: unknown) {
     console.error("Error in processMagicDiagram (image generation):", error);
     let errorMessage = "Unknown error generating diagram image";
 
-    // Keep the improved error handling structure
     interface OpenAIErrorDetail {
       message?: string;
     }
@@ -208,7 +242,7 @@ async function processMagicDiagram(
       error: `Error generating diagram: ${errorMessage}`,
     };
   } finally {
-    // 10. Clean up the temporary original image file
+    // 14. Clean up temporary original image file
     if (tempImagePath) {
       console.log(`Cleaning up temporary original image file: ${tempImagePath}`);
       try {
@@ -230,8 +264,7 @@ async function processSingleFileRecord(fileRecord: UploadedFile): Promise<{
   error: string | null;
 }> {
   const fileId = fileRecord.id;
-  // Remove userId fetch if only needed for R2 key generation
-  // const userId = fileRecord.userId;
+  const userId = fileRecord.userId;
   let textContent: string | null = null;
   let generatedImageUrl: string | null = null;
   let tokensUsed = 0;
@@ -288,8 +321,8 @@ async function processSingleFileRecord(fileRecord: UploadedFile): Promise<{
     if (processType === "magic-diagram" && fileType.startsWith("image/")) {
       // --- Magic Diagram Processing (Image Generation) ---
       console.log(`Processing Magic Diagram for ${fileId}`);
-      // Call without userId
-      const result = await processMagicDiagram(r2Key, fileRecord.originalName);
+      // Pass userId again
+      const result = await processMagicDiagram(r2Key, fileRecord.originalName, userId);
       if (result.error) {
         processingError = result.error;
         tokensUsed = 0;
