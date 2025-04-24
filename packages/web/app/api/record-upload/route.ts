@@ -11,11 +11,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { key, publicUrl, originalName, fileType } = (await request.json()) as {
+    const { key, publicUrl, originalName, fileType, processType } = (await request.json()) as {
       key: string;
       publicUrl: string;
       originalName: string;
       fileType: string;
+      processType?: string;
     };
 
     if (!key || !publicUrl || !originalName || !fileType) {
@@ -35,6 +36,7 @@ export async function POST(request: NextRequest) {
         originalName: originalName,
         fileType: fileType,
         status: "pending", // Initial status, waiting for background processing
+        processType: processType || "standard-ocr", // Use the provided processType or default
         // size can be added if sent from the client
         // embeddings will be generated later
       })
@@ -44,7 +46,7 @@ export async function POST(request: NextRequest) {
       throw new Error("Failed to insert upload record into database");
     }
 
-    console.log("Recorded new upload:", newRecord.id, key);
+    console.log("Recorded new upload:", newRecord.id, key, processType || "standard-ocr");
 
     return NextResponse.json({ success: true, fileId: newRecord.id }, { status: 201 });
 

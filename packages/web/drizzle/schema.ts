@@ -480,6 +480,8 @@ export const uploadedFiles = pgTable(
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
     error: text("error"),
+    processType: text("process_type").default("standard-ocr"),
+    generatedImageUrl: text("generated_image_url"),
   }
 );
 

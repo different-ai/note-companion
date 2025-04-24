@@ -8,7 +8,6 @@ import { useSemanticColor } from '@/hooks/useThemeColor';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import * as Haptics from 'expo-haptics';
-import FastImage from 'react-native-fast-image';
 
 // Content moderation check for displaying files
 const runContentModeration = async (text: string | undefined): Promise<{
@@ -85,25 +84,48 @@ export function FileCard({ file, onDelete, onView }: FileCardProps) {
   };
 
   // Get appropriate icon based on file type
-  const getIconName = () => {
-    if (file.mimeType?.includes('image')) {
+  const getFileIcon = (mimeType: string) => {
+    if (mimeType?.includes('image')) {
       return 'image';
-    } else if (file.mimeType?.includes('text') || file.mimeType?.includes('markdown')) {
-      return 'description';
+    } else if (mimeType?.includes('pdf')) {
+      return 'picture-as-pdf';
+    } else if (mimeType?.includes('text') || mimeType?.includes('markdown')) {
+      return 'note';
     } else {
       return 'insert-drive-file';
     }
   };
 
-  // Display a snippet of extracted text if available
-  const getContentPreview = () => {
+  // Display a snippet of extracted text or the generated image
+  const renderContentPreview = () => {
+    // If it's a magic diagram and has a generated image URL, show the image
+    if (file.processType === 'magic-diagram' && file.generatedImageUrl) {
+      return (
+        <Image 
+          source={{ uri: file.generatedImageUrl }}
+          style={styles.generatedImagePreview}
+          resizeMode="contain" // Or "cover" depending on desired look
+        />
+      );
+    }
+    
+    // Otherwise, show text preview
     if (file.extractedText) {
       const preview = file.extractedText.substring(0, 200); // Increased for more content
-      return preview.length < file.extractedText.length 
-        ? `${preview}...` 
-        : preview;
+      return (
+        <ThemedText colorName="textSecondary" style={styles.fileContentPreview}>
+          {preview.length < file.extractedText.length 
+            ? `${preview}...` 
+            : preview}
+        </ThemedText>
+      );
     }
-    return 'No preview available';
+    
+    return (
+      <ThemedText colorName="textSecondary" style={styles.fileContentPreview}>
+        No preview available
+      </ThemedText>
+    );
   };
 
   // Handle sharing the file with other apps
@@ -214,30 +236,6 @@ export function FileCard({ file, onDelete, onView }: FileCardProps) {
     );
   };
 
-  // Render the file content preview
-  const renderPreview = () => {
-    return file.previewType === 'image' && file.thumbnailUri ? (
-      <FastImage
-        source={{ uri: file.thumbnailUri }}
-        style={styles.previewImage}
-        resizeMode={FastImage.resizeMode.cover}
-      />
-    ) : file.previewType === 'text' && file.previewText ? (
-      <View style={styles.textPreviewContainer}>
-        <Text style={styles.previewText} numberOfLines={3}>
-          {file.previewText}
-        </Text>
-      </View>
-    ) : (
-      <View style={styles.genericPreviewContainer}>
-        <MaterialIcons name={getIconName()} size={48} color={primaryColor} />
-        <ThemedText colorName="textSecondary" style={styles.genericPreviewText}>
-          {file.mimeType?.includes('image') ? 'Image' : 'Document'}
-        </ThemedText>
-      </View>
-    );
-  };
-
   return (
     <View style={styles.cardWrapper}>
       {/* Gradient border overlay */}
@@ -259,7 +257,7 @@ export function FileCard({ file, onDelete, onView }: FileCardProps) {
           <View style={styles.titleContainer}>
             <View style={[styles.fileIcon, { backgroundColor: Platform.OS === 'ios' ? 'rgba(159, 122, 234, 0.15)' : 'rgba(159, 122, 234, 0.1)' }]}>
               <MaterialIcons
-                name={getIconName()}
+                name={getFileIcon(file.mimeType)}
                 size={24}
                 color="rgb(159, 122, 234)"
               />
@@ -311,7 +309,23 @@ export function FileCard({ file, onDelete, onView }: FileCardProps) {
             </ThemedView>
           ) : (
             <View style={styles.previewContainer}>
-              {renderPreview()}
+              {file.mimeType?.includes('image') && file.blobUrl ? (
+                <Image
+                  source={{ uri: file.blobUrl }}
+                  style={styles.imagePreview}
+                  resizeMode="cover"
+                />
+              ) : file.mimeType?.includes('pdf') && file.blobUrl ? (
+                <View style={styles.pdfPreviewContainer}>
+                  <MaterialIcons name="picture-as-pdf" size={48} color={primaryColor} />
+                  <ThemedText colorName="textSecondary" style={styles.pdfPreviewText}>PDF Document</ThemedText>
+                </View>
+              ) : (
+                <View style={styles.noPreviewContainer}>
+                  <MaterialIcons name="insert-drive-file" size={48} color={textSecondaryColor} />
+                  <ThemedText colorName="textSecondary" style={styles.noPreviewText}>No preview available</ThemedText>
+                </View>
+              )}
             </View>
           )}
 
@@ -347,6 +361,21 @@ export function FileCard({ file, onDelete, onView }: FileCardProps) {
               </ThemedText>
             </View>
           </View>
+        </View>
+
+        {/* Moderation Warning */}        
+        {!moderation.isAppropriate && (
+          <View style={styles.moderationWarning}>
+            <MaterialIcons name="warning" size={16} color={warningColor} />
+            <ThemedText style={styles.moderationText} colorName="warning">
+              Content Warning: {moderation.contentFlags?.join(', ') || 'Potentially inappropriate'}
+            </ThemedText>
+          </View>
+        )}
+
+        {/* Content Preview Section - Use the new render function */} 
+        <View style={styles.contentPreviewContainer}>
+           {renderContentPreview()} 
         </View>
 
         <View style={styles.actionButtons}>
@@ -491,10 +520,20 @@ const styles = StyleSheet.create({
       },
     }),
   },
-  previewImage: {
+  imagePreview: {
     width: '100%',
     height: '100%',
     resizeMode: 'cover',
+  },
+  pdfPreviewContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 20,
+  },
+  pdfPreviewText: {
+    marginTop: 8,
+    fontSize: 14,
   },
   noPreviewContainer: {
     flex: 1,
@@ -601,15 +640,35 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginBottom: 16,
   },
-  genericPreviewContainer: {
-    flex: 1,
+  generatedImagePreview: {
+    width: '100%',
+    height: 150, // Adjust height as needed
+    borderRadius: 8,
+    marginVertical: 8,
+    backgroundColor: '#e0e0e0', // Placeholder background
+  },
+  contentPreviewContainer: {
+    marginTop: 12,
+    marginBottom: 12,
+  },
+  moderationWarning: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.03)',
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#F6E05E',
     borderRadius: 8,
   },
-  genericPreviewText: {
-    fontSize: 12,
-    marginTop: 8,
+  moderationText: {
+    marginLeft: 8,
+    fontSize: 14,
+    fontWeight: '500',
+    lineHeight: 18, // Slightly increased line height
+  },
+  fileContentPreview: {
+    fontSize: 14,
+    lineHeight: 20,
+    padding: 12,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
   },
 });

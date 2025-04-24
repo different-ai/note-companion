@@ -9,6 +9,7 @@ export interface SharedFile {
   mimeType?: string;
   name?: string;
   text?: string;
+  processType?: string; // Add processType field to distinguish between 'magic-diagram' or regular OCR
 }
 
 export interface UploadResult {
@@ -225,7 +226,13 @@ export const uploadFile = async (
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
       },
-      body: JSON.stringify({ key, publicUrl, originalName: fileName, fileType: mimeType }),
+      body: JSON.stringify({ 
+        key, 
+        publicUrl, 
+        originalName: fileName, 
+        fileType: mimeType,
+        processType: file.processType || 'standard-ocr' // Pass the processType or default to standard-ocr
+      }),
     });
 
     if (!recordUploadResponse.ok) {
@@ -416,40 +423,46 @@ export const handleFileProcess = async (
       fileName: uploadData.fileName
     });
 
-    // Determine if it was a direct text upload (which is already completed)
-    const isDirectTextUploadComplete = (uploadData.mimeType?.startsWith('text/') ?? false) && uploadData.status === 'completed';
+    // Determine if it was a direct text upload (this logic might need review if text files can be processed)
+    // For now, assume only non-text files need explicit triggering/polling
+    const needsProcessingTrigger = !((uploadData.mimeType?.startsWith('text/') ?? false) && uploadData.status === 'completed');
 
-    if (!isDirectTextUploadComplete) {
-      // --- Trigger Backend Processing ---
-      console.log(`Triggering backend processing for file ID: ${uploadData.fileId}`);
+    if (needsProcessingTrigger) {
+      // --- Trigger Generic Background Processing --- 
+      // Remove the call to /api/process-file
+      // Instead, directly trigger the background worker via /api/trigger-processing
+      console.log(`Upload successful for ${uploadData.fileId}, triggering background processing...`);
       try {
-        const processResponse = await fetch(`${API_URL}/api/process-file`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`, // Reuse token
-          },
-          body: JSON.stringify({ fileId: uploadData.fileId }),
-        });
+         const triggerResponse = await fetch(`${API_URL}/api/trigger-processing`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            }
+         });
 
-        if (!processResponse.ok) {
-          // Log error, but continue to polling as backend might recover or finish anyway
-          const errorText = await processResponse.text();
-          console.error(`Attempt to trigger /api/process-file for ${uploadData.fileId} failed: ${processResponse.status} - ${errorText}`);
-        } else {
-          const processResult = await processResponse.json();
-          console.log(`Successfully triggered processing via /api/process-file for ${uploadData.fileId}. Initial Response:`, processResult);
-          // Optional: Check processResult here if needed, e.g., if it returns immediate success/failure
-        }
+         if (triggerResponse.ok) {
+            console.log('Successfully triggered background processing job.');
+         } else {
+            const errorText = await triggerResponse.text();
+            console.warn(`Background processing trigger failed (${triggerResponse.status}): ${errorText}`);
+            // Continue to polling anyway, the cron job should pick it up eventually
+         }
       } catch (triggerError) {
-        console.error(`Error calling /api/process-file for ${uploadData.fileId}:`, triggerError);
-        // Continue to polling even if triggering fails
+         console.error('Error explicitly triggering background processing:', triggerError);
+         // Continue to polling anyway
       }
       // --- End Trigger Block ---
     }
 
     // Always poll for results, unless it was a direct text upload already completed
-    if (isDirectTextUploadComplete) {
+    if (needsProcessingTrigger) {
+        console.log(`Polling for final results for fileId: ${uploadData.fileId}`);
+        // Pass isTextFile=false, polling is needed for all triggered types
+        result = await pollForResults(uploadData.fileId, token, false);
+    } else {
+        // This case might not be reachable anymore if text files are also processed
+        // Keeping it for safety, assuming direct text uploads don't need polling.
         console.log("Direct text upload completed, creating final result object.");
         result = {
             status: 'completed',
@@ -459,10 +472,6 @@ export const handleFileProcess = async (
             mimeType: uploadData.mimeType,
             fileName: uploadData.fileName,
         };
-    } else {
-        console.log(`Polling for final results for fileId: ${uploadData.fileId}`);
-        // Pass isTextFile=false because /api/process-file handles all types now
-        result = await pollForResults(uploadData.fileId, token, false);
     }
 
     // Add details from uploadData if missing in poll result
@@ -757,7 +766,6 @@ export const processSyncQueue = async (token: string): Promise<boolean> => {
         // Move to the end of the queue on error
         queue.push(queue.shift()!); // Move failed item to the end
         await FileSystem.writeAsStringAsync(SYNC_QUEUE_FILE, JSON.stringify(queue));
-        console.log(`Error processing queued file ${localId}, moved to end of queue:`, result.error);
       }
       // else: still processing, leave it in the queue
 
