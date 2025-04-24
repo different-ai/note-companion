@@ -4,9 +4,12 @@ import { eq, or } from "drizzle-orm";
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { createOpenAI } from "@ai-sdk/openai";
-import { OpenAI } from "openai";
+import OpenAI, { toFile } from "openai";
 import { generateObject } from "ai";
 import { z } from "zod";
+import fs from "fs";
+import path from "path";
+import os from "os";
 
 // --- OpenAI Client for Image Generation ---
 const openaiImageClient = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -31,11 +34,6 @@ const r2Client = new S3Client({
   },
 });
 
-interface OCRImage {
-  url?: string;
-  data?: string;
-  type?: string;
-}
 
 // Helper to download from R2 and return a Buffer
 async function downloadFromR2(key: string): Promise<Buffer> {
@@ -87,81 +85,193 @@ async function processImageWithGPT4o(
   } catch (error) {
     console.error("Error processing image with gpt-4.1 OCR:", error);
     return {
-      textContent: `Error processing image OCR: ${error instanceof Error ? error.message : String(error)}`,
+      textContent: `Error processing image OCR: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
       tokensUsed: 0,
     };
   }
 }
 
-// Function to process magic diagrams - NOW USES IMAGE GENERATION
+// Function to process magic diagrams - Bringing back toFile with mimetype
 async function processMagicDiagram(
-  imageUrl: string, // Original sketch URL for context
+  r2Key: string, // Use r2Key to fetch the actual image
   originalFileName: string
+  // Remove userId parameter
 ): Promise<{ generatedImageUrl: string; tokensUsed: number; error?: string }> {
+  let tempImagePath: string | null = null; // Track temporary file path
   try {
-    console.log(`Processing Magic Diagram (Image Gen) for: ${originalFileName}`);
+    console.log(
+      `Processing Magic Diagram (Image Gen) for: ${originalFileName}`
+    );
 
-    const generationPrompt = `Digitize this sketch image into a clean, well-rendered diagram suitable for digital files. Preserve the core elements and connections shown in the sketch. Original sketch URL for context: ${imageUrl}. Original filename: ${originalFileName}.`;
+    // 1. Download original image from R2 using the key
+    console.log(`Downloading original image from R2 key: ${r2Key}`);
+    const originalImageBuffer = await downloadFromR2(r2Key);
+    console.log(`Downloaded ${originalImageBuffer.length} bytes for ${originalFileName}`);
 
+    // 2. Create a temporary file path for the original image
+    const tempDir = os.tmpdir();
+    const safeFileName = path.basename(originalFileName);
+    // Keep original extension if present, default to .png otherwise
+    const extension = path.extname(safeFileName) || '.png';
+    const tempOriginalFileName = `${Date.now()}-${path.basename(safeFileName, extension)}${extension}`;
+    tempImagePath = path.join(tempDir, tempOriginalFileName);
+    console.log(`Writing original image buffer to temporary path: ${tempImagePath}`);
+
+    // 3. Write the original buffer to the temporary file
+    fs.writeFileSync(tempImagePath, originalImageBuffer as unknown as Uint8Array);
+    console.log(`Successfully wrote original buffer to ${tempImagePath}`);
+
+    // 4. Prepare the generation prompt
+    const generationPrompt = `Digitize this sketch image into a clean, well-rendered diagram suitable for digital files. Preserve the core elements and connections shown in the sketch. Original filename for context: ${originalFileName}.`;
     console.log(`Generating image with prompt: ${generationPrompt.substring(0, 150)}...`);
 
-    const response = await openaiImageClient.images.generate({
-      model: "dall-e-3",
+    // 5. Create read stream and determine mimetype
+    console.log(`Creating read stream for temporary original image: ${tempImagePath}`);
+    const imageStream = fs.createReadStream(tempImagePath);
+
+    // Determine mimetype based on temp file extension
+    let mimeType = 'image/png'; // Default
+    const fileExt = path.extname(tempImagePath).toLowerCase();
+    if (fileExt === '.jpg' || fileExt === '.jpeg') {
+        mimeType = 'image/jpeg';
+    } else if (fileExt === '.webp') {
+        mimeType = 'image/webp';
+    }
+    console.log(`Determined mimetype: ${mimeType}`);
+
+    // 6. Prepare image file for OpenAI API using toFile with correct mimetype
+    const preparedImage = await toFile(imageStream, path.basename(tempImagePath), {
+        type: mimeType, // Pass the determined mimetype
+    });
+    console.log(`Prepared image for OpenAI API: ${preparedImage.name} with type ${mimeType}`);
+
+    // 7. Call the OpenAI API with the prepared image file
+    const response = await openaiImageClient.images.edit({
+      model: "gpt-image-1",
+      image: preparedImage, // Pass the prepared file object from toFile
       prompt: generationPrompt,
       n: 1,
       size: "1024x1024",
-      response_format: "url",
-      quality: "standard",
+      // response_format: "url", // Keep default (url)
     });
 
     const generatedImageUrl = response.data[0]?.url;
-    console.log(`Generated image URL: ${generatedImageUrl}`);
+    console.log(`Received generated image URL: ${generatedImageUrl}`);
 
     if (!generatedImageUrl) {
-      console.error("Image generation response data:", response.data);
-      throw new Error("Image generation failed, no URL returned in the response.");
+      console.error("Image generation response data (check for errors):", response.data);
+      throw new Error(
+        "Image generation failed, no URL returned in the response."
+      );
     }
 
-    console.log(`Magic diagram generated image URL: ${generatedImageUrl}`);
+    // 8. Estimate token usage (placeholder)
+    // TODO: Estimate token usage accurately based on OpenAI response if available
+    const tokensUsed = 5000; // Placeholder
 
-    // Estimate token usage based on DALL-E 3 pricing (per image)
-    // This is a placeholder; actual billing is per image.
-    // We track it as 'tokens' for consistency in the usage table.
-    const tokensUsed = 5000; // Placeholder for DALL-E 3 1024x1024 standard
+    // 9. Return the received URL directly
+    return { generatedImageUrl: generatedImageUrl, tokensUsed };
 
-    return { generatedImageUrl, tokensUsed };
   } catch (error: unknown) {
     console.error("Error in processMagicDiagram (image generation):", error);
-    // Check if it's an OpenAI API error for more details
     let errorMessage = "Unknown error generating diagram image";
-    if (error && typeof error === 'object' && 'message' in error) {
-        errorMessage = String(error.message);
+
+    // Keep the improved error handling structure
+    interface OpenAIErrorDetail {
+      message?: string;
     }
-    // Log the full error if possible
-    console.error("Full error object:", error);
+    interface OpenAIErrorWrapper {
+      error?: OpenAIErrorDetail;
+      message?: string;
+    }
+
+    if (error && typeof error === 'object' && 'message' in error && !(error instanceof Error)) {
+      errorMessage = String(error.message);
+    } else if (error instanceof Error) {
+      errorMessage = error.message;
+    } else if (error && typeof error === 'object') {
+      const potentialError = error as OpenAIErrorWrapper;
+      const nestedError = potentialError?.error;
+      if (nestedError?.message) {
+        errorMessage = String(nestedError.message);
+      } else if (potentialError?.message) {
+        errorMessage = String(potentialError.message);
+      }
+    }
+
+    console.error("Full error object:", error); // Log the full error object for debugging
     return {
       generatedImageUrl: "",
       tokensUsed: 0,
       error: `Error generating diagram: ${errorMessage}`,
     };
+  } finally {
+    // 10. Clean up the temporary original image file
+    if (tempImagePath) {
+      console.log(`Cleaning up temporary original image file: ${tempImagePath}`);
+      try {
+        fs.unlinkSync(tempImagePath);
+        console.log(`Successfully deleted ${tempImagePath}`);
+      } catch (cleanupError) {
+        console.error(`Failed to delete temporary file ${tempImagePath}:`, cleanupError);
+      }
+    }
   }
 }
 
 // --- Reusable Processing Function ---
-async function processSingleFileRecord(
-  fileRecord: UploadedFile
-): Promise<{
+async function processSingleFileRecord(fileRecord: UploadedFile): Promise<{
   status: "completed" | "error";
-  textContent: string | null; // Keep for standard OCR
-  generatedImageUrl: string | null; // Keep for magic diagram
+  textContent: string | null;
+  generatedImageUrl: string | null;
   tokensUsed: number;
   error: string | null;
 }> {
   const fileId = fileRecord.id;
+  // Remove userId fetch if only needed for R2 key generation
+  // const userId = fileRecord.userId;
   let textContent: string | null = null;
   let generatedImageUrl: string | null = null;
   let tokensUsed = 0;
   let processingError: string | null = null;
+
+  // Define r2Key determination logic once at the beginning
+  let r2Key = fileRecord.r2Key;
+  if (!r2Key) {
+    const urlParts = fileRecord.blobUrl.split("/");
+    const uploadSegmentIndex = urlParts.findIndex((part) => part === "uploads");
+    if (uploadSegmentIndex !== -1 && uploadSegmentIndex < urlParts.length - 1) {
+      r2Key = urlParts.slice(uploadSegmentIndex).join("/");
+      console.log(`[File ${fileId}] Derived R2 key from blobUrl: ${r2Key}`);
+    } else {
+      console.error(`[File ${fileId}] Could not determine R2 key from blobUrl: ${fileRecord.blobUrl}`);
+      // Set error and return immediately if r2Key is essential and cannot be derived
+      return {
+        status: "error",
+        textContent: null,
+        generatedImageUrl: null,
+        tokensUsed: 0,
+        error: `Could not determine R2 key from blobUrl: ${fileRecord.blobUrl}`,
+      };
+    }
+  }
+  if (!r2Key) {
+     // This check might be redundant if the above block handles the error case,
+     // but serves as a safeguard.
+     console.error(`[File ${fileId}] Missing R2 key after derivation attempt.`);
+     return {
+        status: "error",
+        textContent: null,
+        generatedImageUrl: null,
+        tokensUsed: 0,
+        error: `Missing R2 key for file ID ${fileId}`,
+     };
+  }
+   // Log the final R2 key being used
+  console.log(`[File ${fileId}] Using R2 key: ${r2Key}`);
+
 
   try {
     console.log(`Starting single file processing for ID: ${fileId}`);
@@ -169,101 +279,90 @@ async function processSingleFileRecord(
     const fileType = fileRecord.fileType.toLowerCase();
     console.log(`Processing type: ${processType}, File type: ${fileType}`);
 
-    // --- DETAILED LOGGING --- 
-    console.log(`[File ${fileId}] Checking conditions: processType='${processType}', fileType='${fileType}', fileType.startsWith('image/')=${fileType.startsWith('image/')}`);
-    // --- END LOGGING --- 
 
-    // Determine R2 key
-    let r2Key = fileRecord.r2Key;
-    if (!r2Key) {
-      // Basic parsing - assumes URL structure like .../uploads/userId/uuid-filename
-      const urlParts = fileRecord.blobUrl.split("/");
-      // Find the 'uploads' segment and take everything after it
-      const uploadSegmentIndex = urlParts.findIndex(
-        (part) => part === "uploads"
-      );
-      if (
-        uploadSegmentIndex !== -1 &&
-        uploadSegmentIndex < urlParts.length - 1
-      ) {
-        r2Key = urlParts.slice(uploadSegmentIndex).join("/");
-        console.log(`Derived R2 key from blobUrl: ${r2Key}`);
-      } else {
-        throw new Error(
-          `Could not determine R2 key from blobUrl: ${fileRecord.blobUrl}`
-        );
-      }
-    }
-    if (!r2Key) {
-      throw new Error(`Missing R2 key for file ID ${fileId}`);
-    }
-
-    // Download file from R2
-    const buffer = await downloadFromR2(r2Key);
+    // Download is now only needed for magic-diagram before calling its function.
+    // processImageWithGPT4o uses the blobUrl directly.
 
     // --- Processing Logic ---
     console.log(`Processing file ${fileId} with processType: ${processType}`);
     if (processType === "magic-diagram" && fileType.startsWith("image/")) {
-        // --- Magic Diagram Processing (Image Generation) ---
-        console.log(`Processing Magic Diagram for ${fileId}`);
-        const result = await processMagicDiagram(fileRecord.blobUrl, fileRecord.originalName);
-        if (result.error) {
-            processingError = result.error;
+      // --- Magic Diagram Processing (Image Generation) ---
+      console.log(`Processing Magic Diagram for ${fileId}`);
+      // Call without userId
+      const result = await processMagicDiagram(r2Key, fileRecord.originalName);
+      if (result.error) {
+        processingError = result.error;
+        tokensUsed = 0;
+        generatedImageUrl = null;
+        textContent = `[Error generating diagram: ${result.error}]`;
+      } else {
+        generatedImageUrl = result.generatedImageUrl;
+        tokensUsed = result.tokensUsed;
+        textContent = `[Generated Diagram Image](${generatedImageUrl})`;
+      }
+    } else if (
+      processType === "standard-ocr" &&
+      fileType.startsWith("image/")
+    ) {
+      // --- Standard OCR Processing ---
+      // Standard OCR uses the public blobUrl
+      if (!fileRecord.blobUrl) {
+           throw new Error(`Missing blobUrl for OCR processing of file ID ${fileId}`);
+       }
+      console.log(`Processing Standard OCR for ${fileId} using blobUrl: ${fileRecord.blobUrl}`);
+      const result = await processImageWithGPT4o(fileRecord.blobUrl);
+      textContent = result.textContent;
+      tokensUsed = result.tokensUsed;
+      if (textContent?.startsWith("Error processing image OCR")) {
+        processingError = textContent;
+        textContent = null;
+      } else if (
+        !processingError &&
+        (!textContent || textContent.trim() === "")
+      ) {
+        console.warn(`No text content extracted for file ${fileId}`);
+        textContent = "[OCR completed, but no text extracted]";
+      }
+      generatedImageUrl = null; // Ensure generated URL is null for OCR
+    } else if (fileType === "application/pdf" || fileType.includes("pdf")) {
+      processingError = "PDF processing not yet implemented.";
+      textContent = "[PDF Content - Processing Pending Implementation]";
+      tokensUsed = 0;
+      generatedImageUrl = null;
+    } else {
+        // Handle text files explicitly if needed
+         if (fileType === 'text/plain' || fileType === 'text/markdown') {
+             console.log(`Handling plain text/markdown file ${fileId}. Downloading content...`);
+              // Download content for text files
+             const buffer = await downloadFromR2(r2Key);
+             textContent = buffer.toString('utf-8');
+             tokensUsed = 0; // No LLM processing cost for plain text
+             console.log(`Extracted ${textContent.length} chars from text file ${fileId}`);
+             generatedImageUrl = null;
+         } else {
+            processingError = `Unsupported file type/processType: ${fileType} / ${processType}`;
+            textContent = `[Unsupported: ${fileType}]`;
             tokensUsed = 0;
             generatedImageUrl = null;
-            textContent = null; // Ensure text is null on error too
-        } else {
-            generatedImageUrl = result.generatedImageUrl;
-            tokensUsed = result.tokensUsed;
-            // Provide placeholder text or description indicating generation
-            textContent = `[Generated Diagram: ${generatedImageUrl}]`;
-        }
-        // --- End Magic Diagram ---
-
-    } else if (processType === "standard-ocr" && fileType.startsWith("image/")) {
-        // --- Standard OCR Processing ---
-        const result = await processImageWithGPT4o(fileRecord.blobUrl);
-        textContent = result.textContent;
-        tokensUsed = result.tokensUsed;
-        if (textContent.startsWith("Error processing image OCR")) { // Check specific error message
-          processingError = textContent;
-          textContent = null;
-        } else if (!processingError && (!textContent || textContent.trim() === "")) {
-          console.warn(`No text content extracted for file ${fileId}`);
-          textContent = "[OCR completed, but no text extracted]";
-        }
-        generatedImageUrl = null; // Ensure generated URL is null for OCR
-        // --- End Standard OCR ---
-
-    } else if (fileType === "application/pdf" || fileType.includes("pdf")) {
-        processingError = "PDF processing not yet implemented.";
-        textContent = "[PDF Content - Processing Pending Implementation]";
-        tokensUsed = 0;
-        generatedImageUrl = null;
-
-    } else {
-        processingError = `Unsupported file type/processType: ${fileType} / ${processType}`;
-        textContent = `[Unsupported: ${fileType}]`;
-        tokensUsed = 0;
-        generatedImageUrl = null;
+         }
     }
     // --- End Processing Logic ---
-
   } catch (error: unknown) {
     console.error(`Error during single file processing ${fileId}:`, error);
-    processingError = error instanceof Error ? error.message : "Unknown processing error";
-    textContent = null;
-    generatedImageUrl = null;
+    processingError =
+      error instanceof Error ? error.message : "Unknown processing error";
+    textContent = null; // Ensure null on error
+    generatedImageUrl = null; // Ensure null on error
     tokensUsed = 0;
   }
 
   const finalStatus = processingError ? "error" : "completed";
   console.log(
-    `Single file processing result for ${fileId}: Status=${finalStatus}, Error=${processingError}`
+    `Single file processing result for ${fileId}: Status=${finalStatus}, Error=${processingError}, Tokens=${tokensUsed}`
   );
   return {
     status: finalStatus,
-    textContent: textContent,
+    textContent: processingError ? `[Processing Error: ${processingError}]` : textContent,
     generatedImageUrl: generatedImageUrl,
     tokensUsed: tokensUsed,
     error: processingError,
@@ -277,18 +376,24 @@ export async function GET(request: NextRequest) {
   console.log("[/api/process-pending-uploads] Worker starting..."); // Log worker start
   const cronSecret = request.headers.get("authorization")?.split(" ")[1];
   if (cronSecret !== process.env.CRON_SECRET) {
-    console.warn("[/api/process-pending-uploads] Unauthorized cron job attempt");
+    console.warn(
+      "[/api/process-pending-uploads] Unauthorized cron job attempt"
+    );
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   console.log("[/api/process-pending-uploads] Authorized.");
 
-  console.log("[/api/process-pending-uploads] Starting background processing job...");
+  console.log(
+    "[/api/process-pending-uploads] Starting background processing job..."
+  );
   let processedCount = 0;
   let errorCount = 0;
 
   try {
     // 2. Fetch pending files (limit batch size)
-    console.log("[/api/process-pending-uploads] Fetching pending files from DB...");
+    console.log(
+      "[/api/process-pending-uploads] Fetching pending files from DB..."
+    );
     const pendingFiles = await db
       .select()
       .from(uploadedFiles)
@@ -300,18 +405,27 @@ export async function GET(request: NextRequest) {
         )
       )
       .limit(10); // Process up to 10 files per run
-    
-    // --- LOG THE FETCHED FILES --- 
-    console.log(`[/api/process-pending-uploads] Found ${pendingFiles.length} files to process.`);
+
+    // --- LOG THE FETCHED FILES ---
+    console.log(
+      `[/api/process-pending-uploads] Found ${pendingFiles.length} files to process.`
+    );
     if (pendingFiles.length > 0) {
-      console.log("[/api/process-pending-uploads] Pending file IDs and types:", 
-        pendingFiles.map(f => ({ id: f.id, status: f.status, processType: f.processType }))
+      console.log(
+        "[/api/process-pending-uploads] Pending file IDs and types:",
+        pendingFiles.map((f) => ({
+          id: f.id,
+          status: f.status,
+          processType: f.processType,
+        }))
       );
     }
-    // --- END LOGGING --- 
+    // --- END LOGGING ---
 
     if (pendingFiles.length === 0) {
-      console.log("[/api/process-pending-uploads] No pending files to process.");
+      console.log(
+        "[/api/process-pending-uploads] No pending files to process."
+      );
       return NextResponse.json({ message: "No pending files" });
     }
 
@@ -423,4 +537,3 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-

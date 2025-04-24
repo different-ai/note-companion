@@ -44,7 +44,7 @@ export const ProcessingStatus: React.FC<ProcessingStatusProps> = ({
         <View style={styles.statusContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
           <Text style={styles.statusText}>
-            "Uploading your file..."
+            Uploading your file...
           </Text>
           {showDetails && (
             <Text style={styles.statusSubtext}>
