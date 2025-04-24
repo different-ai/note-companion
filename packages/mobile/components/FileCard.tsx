@@ -9,6 +9,17 @@ import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import * as Haptics from 'expo-haptics';
 
+// Extend UploadedFile type locally for component props if necessary
+// Ensure status, processType, generatedImageUrl, textContent are included if used
+interface ExtendedUploadedFile extends UploadedFile {
+    status?: 'pending' | 'processing' | 'completed' | 'error'; // Assuming base allows only these or undefined
+    processType?: string;
+    generatedImageUrl?: string;
+    textContent?: string;
+    featured?: boolean; // Add back featured flag
+    // Add other potentially missing fields used in the component if needed
+}
+
 // Content moderation check for displaying files
 const runContentModeration = async (text: string | undefined): Promise<{
   isAppropriate: boolean;
@@ -38,11 +49,9 @@ const runContentModeration = async (text: string | undefined): Promise<{
 };
 
 interface FileCardProps {
-  file: UploadedFile & {
-    featured?: boolean; // Optional flag to mark a file as featured
-  };
+  file: ExtendedUploadedFile;
   onDelete: (id: number) => void;
-  onView: (file: UploadedFile) => void;
+  onView: (file: ExtendedUploadedFile) => void;
 }
 
 export function FileCard({ file, onDelete, onView }: FileCardProps) {
@@ -84,16 +93,14 @@ export function FileCard({ file, onDelete, onView }: FileCardProps) {
   };
 
   // Get appropriate icon based on file type
-  const getFileIcon = (mimeType: string) => {
-    if (mimeType?.includes('image')) {
-      return 'image';
-    } else if (mimeType?.includes('pdf')) {
-      return 'picture-as-pdf';
-    } else if (mimeType?.includes('text') || mimeType?.includes('markdown')) {
-      return 'note';
-    } else {
-      return 'insert-drive-file';
-    }
+  const getFileIcon = (mimeType: string | null) => {
+    if (!mimeType) return 'insert-drive-file';
+    if (mimeType.startsWith('image/')) return 'image';
+    if (mimeType.includes('pdf')) return 'picture-as-pdf';
+    if (mimeType.startsWith('audio/')) return 'audiotrack';
+    if (mimeType.startsWith('video/')) return 'videocam';
+    if (mimeType.startsWith('text/')) return 'article';
+    return 'insert-drive-file';
   };
 
   // Display a snippet of extracted text or the generated image
@@ -135,57 +142,129 @@ export function FileCard({ file, onDelete, onView }: FileCardProps) {
         Alert.alert('Note Not Ready', 'Please wait until processing is complete before sharing.');
         return;
       }
-      
-      // Add haptic feedback on iOS
+
       if (Platform.OS === 'ios') {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       }
-      
-      // Determine if we have content to share
-      const hasContent = file.extractedText && file.extractedText.trim().length > 0;
-      
-      if (hasContent) {
-        // For markdown or text files, share the content directly
-        await Share.share({
-          title: file.name,
-          message: file.extractedText as string,
-        });
-      } else if (file.blobUrl) {
-        // For binary files like PDFs, attempt to share the URL
-        // This works best for publicly accessible URLs
+
+      // --- PRIORITY: MAGIC DIAGRAM HANDLING ---
+      if (file.processType === 'magic-diagram' && file.generatedImageUrl) {
+        console.log(`Sharing magic diagram: ${file.generatedImageUrl}`);
+        const baseName = file.name?.split('.')[0] || 'diagram';
+        const tempFileName = `${Date.now()}-${baseName}.png`;
+        const localUri = (FileSystem.cacheDirectory || FileSystem.documentDirectory) + tempFileName;
+
         try {
-          // Download the file locally first if it's a remote URL
-          const localUri = `${FileSystem.documentDirectory}${file.name}`;
+          console.log(`Downloading generated image to: ${localUri}`);
+          const downloadResult = await FileSystem.downloadAsync(
+            file.generatedImageUrl,
+            localUri
+          );
+          console.log('Download complete:', downloadResult);
+
+          if (downloadResult?.uri) {
+            // Share the downloaded image file
+            await Share.share({
+              title: file.name || 'Shared Diagram',
+              url: downloadResult.uri, // Use URL for local file URI
+            });
+            console.log('Magic diagram image shared successfully.');
+          } else {
+            throw new Error('Failed to download generated image for sharing (no URI received)');
+          }
+        } catch (error: unknown) {
+          console.error('Error preparing generated image for sharing:', error);
+          const message = error instanceof Error ? error.message : String(error);
+          Alert.alert('Share Failed', `Could not prepare the generated image for sharing: ${message}`);
+          // Stop here if image sharing failed
+          return;
+        }
+        // Successfully shared image or handled error, stop processing.
+        return;
+      }
+      // --- END MAGIC DIAGRAM HANDLING ---
+
+      // --- ELSE IF: TEXT CONTENT HANDLING (Not a magic diagram) ---
+      // Use optional chaining for safety
+      const hasTextContent = file.textContent && file.textContent.trim().length > 0;
+      if (hasTextContent) {
+        console.log('Sharing extracted text content.');
+        await Share.share({
+          title: file.name || 'Shared Note',
+          message: file.textContent as string, // Share text via message
+        });
+        return; // Stop after sharing text
+      }
+      // --- END TEXT CONTENT HANDLING ---
+
+      // --- ELSE IF: OTHER FILE TYPE HANDLING (e.g., Original PDF, image) ---
+      if (file.blobUrl) {
+        console.log(`Sharing original file blob URL: ${file.blobUrl}`);
+        try {
+          const originalFileName = file.name || `sharedfile-${Date.now()}`;
+          const localUri = (FileSystem.cacheDirectory || FileSystem.documentDirectory) + originalFileName;
+          console.log(`Attempting to download original file to: ${localUri}`);
           const downloadResumable = FileSystem.createDownloadResumable(
             file.blobUrl,
             localUri
           );
-          
           const downloadResult = await downloadResumable.downloadAsync();
-          
-          if (downloadResult && downloadResult.uri) {
+
+          if (downloadResult?.uri) {
+             console.log('Original file downloaded, sharing local URI:', downloadResult.uri);
             await Share.share({
-              title: file.name,
-              url: downloadResult.uri, // iOS only
+              title: file.name || 'Shared File',
+              url: downloadResult.uri, // Share original file via URL
             });
           } else {
-            throw new Error('Failed to download file for sharing');
+            throw new Error('Failed to download original file for sharing');
           }
-        } catch (error) {
-          console.error('Error preparing file for sharing:', error);
-          
-          // Fallback to just sharing the URL if download fails
+        } catch (error: unknown) {
+          console.error('Error preparing original file for sharing:', error);
+          const fallbackMessage = `View my note: ${file.blobUrl}`;
+          const message = error instanceof Error ? error.message : String(error);
+          console.log('Download failed, falling back to sharing URL string as message.', message);
+          // Fallback: Share the blob URL as text message
           await Share.share({
-            title: file.name,
-            message: `View my note: ${file.blobUrl}`,
+            title: file.name || 'Shared File Link',
+            message: fallbackMessage,
           });
         }
-      } else {
-        Alert.alert('Cannot Share', 'This note has no content available for sharing.');
+        return; // Stop after attempting to share original file
       }
-    } catch (error) {
-      console.error('Error sharing file:', error);
-      Alert.alert('Share Failed', 'There was a problem sharing this note.');
+      // --- END OTHER FILE TYPE HANDLING ---
+
+      // --- ELSE: NO SHAREABLE CONTENT ---
+      console.log('No shareable content found for this file.');
+      Alert.alert('Cannot Share', 'This note has no content available for sharing.');
+
+    } catch (error: unknown) { // Catch errors from Share.share itself
+      console.error('Error during Share.share call:', error);
+      let message = 'There was a problem sharing this note.';
+      let isCancellation = false;
+
+      // Define a type for errors that might have a code property
+      interface ErrorWithCode extends Error {
+        code?: string | number;
+      }
+
+      if (error instanceof Error) {
+          message = error.message;
+          // Check for common cancellation patterns (might vary slightly by platform/version)
+          // Also check for a potential 'code' property
+          const potentialCode = (error as ErrorWithCode).code;
+          if (message?.includes('cancelled') || message?.includes('Cancel') || potentialCode === 'USER_CANCELED') {
+              isCancellation = true;
+          }
+      } else {
+          message = String(error);
+      }
+
+      if (isCancellation) {
+          console.log('Share action cancelled by user.');
+      } else {
+          Alert.alert('Share Failed', `There was a problem sharing this note: ${message}`);
+      }
     }
   };
 
@@ -372,11 +451,6 @@ export function FileCard({ file, onDelete, onView }: FileCardProps) {
             </ThemedText>
           </View>
         )}
-
-        {/* Content Preview Section - Use the new render function */} 
-        <View style={styles.contentPreviewContainer}>
-           {renderContentPreview()} 
-        </View>
 
         <View style={styles.actionButtons}>
           <TouchableOpacity
