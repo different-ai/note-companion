@@ -60,8 +60,11 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     const base64 = Buffer.from(arrayBuffer).toString("base64");
 
-    // Process with Claude
-    const model = getModel(process.env.MODEL_NAME || "gpt-4o");
+    // Process with appropriate model
+    const modelName = process.env.MODEL_NAME || "gpt-4.1-mini";
+    console.log(`OCR processing using model: ${modelName}`);
+    const model = getModel(modelName);
+    
     const aiResponse = await generateText({
       model,
       messages: [
@@ -84,6 +87,8 @@ export async function POST(request: NextRequest) {
         },
       ],
     });
+    
+    console.log(`OCR processing completed with ${aiResponse.usage.totalTokens} tokens`);
 
     // Update database with results
     await db

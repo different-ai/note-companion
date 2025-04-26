@@ -46,13 +46,16 @@ export async function POST(req: NextRequest) {
 
     Remember, the goal is to create titles that are instantly informative and distinguishable from other documents.`;
 
+    const modelName = process.env.MODEL_NAME || 'gpt-4.1-mini';
+    console.log(`Title generation using model: ${modelName}`);
+    
     const result = await streamObject({
-      model: getModel(process.env.MODEL_NAME || 'gpt-4o-2024-08-06'),
+      model: getModel(modelName),
       
       schema: titleSchema,
       prompt,
       onFinish: async ({ usage }) => {
-        console.log("Token usage:", usage);
+        console.log(`Title generation completed with ${usage.totalTokens} tokens`);
         await incrementAndLogTokenUsage(userId, usage.totalTokens);
       },
     });

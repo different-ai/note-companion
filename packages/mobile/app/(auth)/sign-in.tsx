@@ -185,7 +185,9 @@ export default function SignInScreen() {
             style={[styles.button, styles.appleButton]}
             onPress={onSignInWithApple}
           >
-            <Ionicons name="logo-apple" size={24} color="#000" />
+            <View style={styles.appleLogoContainer}>
+              <Ionicons name="logo-apple" size={24} color="#FFFFFF" />
+            </View>
             <Text style={[styles.buttonText, styles.appleButtonText]}>
               Continue with Apple
             </Text>
@@ -306,6 +308,10 @@ const styles = StyleSheet.create({
   appleButton: {
     backgroundColor: '#000',
     borderColor: '#000',
+  },
+  appleLogoContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   buttonText: {
     fontSize: 16,

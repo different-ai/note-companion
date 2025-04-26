@@ -13,34 +13,37 @@ import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system";
 // TODO: Uncomment to re-enable share intent functionality
-// import { useShareIntent } from "expo-share-intent";
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useShareIntent } from "expo-share-intent";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { ProcessingStatus } from "@/components/processing-status";
-import { 
-  SharedFile, 
-  UploadStatus, 
-  UploadResult, 
-  handleFileProcess 
+import {
+  SharedFile,
+  UploadStatus,
+  UploadResult,
+  handleFileProcess,
 } from "@/utils/file-handler";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { useSemanticColor } from "@/hooks/useThemeColor";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { UsageStatus } from "@/components/usage-status";
 
 export default function HomeScreen() {
   const { getToken } = useAuth();
   const router = useRouter();
-  const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
+  const [uploadResults, setUploadResults] = useState<(UploadResult | null)[]>(
+    []
+  );
   const [status, setStatus] = useState<UploadStatus>("idle");
-  const params = useLocalSearchParams<{ sharedFile?: string }>();
+  const params = useLocalSearchParams<{
+    sharedFile?: string;
+    capturedPhoto?: string;
+  }>();
   // TODO: Uncomment to re-enable share intent functionality
-  // const { shareIntent } = useShareIntent();
-  const primaryColor = useSemanticColor('primary');
+  const { shareIntent } = useShareIntent();
+  const primaryColor = useSemanticColor("primary");
   const insets = useSafeAreaInsets();
 
   // TODO: Uncomment this useEffect block to re-enable share intent functionality
-  /*
   useEffect(() => {
     // Handle shared content
     const handleSharedContent = async () => {
@@ -49,75 +52,93 @@ export default function HomeScreen() {
           if (shareIntent.files && shareIntent.files.length > 0) {
             // Handle shared files
             const file = shareIntent.files[0];
-            
+
             // Improved mime type detection for images
             let mimeType = file.mimeType;
-            const fileExt = file.path.split('.').pop()?.toLowerCase();
-            
+            const fileExt = file.path.split(".").pop()?.toLowerCase();
+
             // Fix missing or incorrect mime types from device
-            if (fileExt && (!mimeType || !mimeType.startsWith('image/'))) {
-              if (['jpg', 'jpeg'].includes(fileExt)) {
-                mimeType = 'image/jpeg';
-              } else if (fileExt === 'png') {
-                mimeType = 'image/png';
-              } else if (fileExt === 'heic') {
-                mimeType = 'image/heic';
-              } else if (fileExt === 'webp') {
-                mimeType = 'image/webp';
-              } else if (fileExt === 'gif') {
-                mimeType = 'image/gif';
-              } else if (fileExt === 'pdf') {
-                mimeType = 'application/pdf';
+            if (fileExt && (!mimeType || !mimeType.startsWith("image/"))) {
+              if (["jpg", "jpeg"].includes(fileExt)) {
+                mimeType = "image/jpeg";
+              } else if (fileExt === "png") {
+                mimeType = "image/png";
+              } else if (fileExt === "heic") {
+                mimeType = "image/heic";
+              } else if (fileExt === "webp") {
+                mimeType = "image/webp";
+              } else if (fileExt === "gif") {
+                mimeType = "image/gif";
               }
             }
-            
-            console.log(`ShareIntent: Processing file with path=${file.path}, mimeType=${mimeType}, fileName=${file.fileName}`);
-            
-            await uploadFile({
-              uri: file.path,
-              mimeType: mimeType,
-              name: file.fileName,
-            });
+
+            console.log(
+              `ShareIntent: Processing file with path=${file.path}, mimeType=${mimeType}, fileName=${file.fileName}`
+            );
+
+            await uploadFiles([
+              {
+                uri: file.path,
+                mimeType: mimeType,
+                name: file.fileName,
+              },
+            ]);
           } else if (shareIntent.text) {
             // Handle shared text (could save as markdown or process differently)
             const textFile = {
               uri: `${FileSystem.cacheDirectory}shared-text-${Date.now()}.md`,
-              mimeType: 'text/markdown',
-              name: 'shared-text.md',
-              text: shareIntent.text
+              mimeType: "text/markdown",
+              name: "shared-text.md",
+              text: shareIntent.text,
             };
-            
-            await uploadFile(textFile);
+
+            await uploadFiles([textFile]);
           }
         } catch (error) {
-          console.error('Error handling shared content:', error);
-          setUploadResult({
-            status: 'error',
-            error: error instanceof Error ? error.message : 'Failed to process shared content'
-          });
-          setStatus('error');
+          console.error("Error handling shared content:", error);
+          setUploadResults([
+            {
+              status: "error",
+              error:
+                error instanceof Error
+                  ? error.message
+                  : "Failed to process shared content",
+            },
+          ]);
+          setStatus("error");
         }
       }
     };
 
     handleSharedContent();
   }, [shareIntent]);
-  */
 
   useEffect(() => {
     // Handle shared file if present
     const handleSharedFile = async () => {
       if (params.sharedFile) {
         try {
+          console.log("Handling shared file:", params.sharedFile);
           const fileData = JSON.parse(params.sharedFile);
-          await uploadFile(fileData);
+          await uploadFiles([fileData]);
+          // Clear the param after processing
+          // router.setParams({ sharedFile: undefined });
         } catch (error) {
-          console.error('Error handling shared file:', error);
-          setUploadResult({
-            status: 'error',
-            error: error instanceof Error ? error.message : 'Failed to process shared file'
-          });
-          setStatus('error');
+          console.error("Error handling shared file:", error);
+          setUploadResults([
+            {
+              status: "error",
+              error:
+                error instanceof Error
+                  ? error.message
+                  : "Failed to process shared file",
+              fileName: undefined,
+              mimeType: undefined,
+              text: undefined,
+              fileUrl: undefined,
+            },
+          ]);
+          setStatus("error");
         }
       }
     };
@@ -125,52 +146,153 @@ export default function HomeScreen() {
     handleSharedFile();
   }, [params.sharedFile]);
 
-  const uploadFile = async (file: SharedFile) => {
-    try {
-      // Reset state
-      setStatus("idle");
-      setUploadResult(null);
-
-      const token = await getToken();
-      if (!token) {
-        throw new Error("Authentication required");
+  // NEW useEffect to handle captured photo
+  useEffect(() => {
+    const handleCapturedPhoto = async () => {
+      if (params.capturedPhoto) {
+        try {
+          console.log("Handling captured photo:", params.capturedPhoto);
+          const fileData = JSON.parse(params.capturedPhoto);
+          await uploadFiles([fileData]);
+          // Clear the param after processing
+          // router.setParams({ capturedPhoto: undefined });
+        } catch (error) {
+          console.error("Error handling captured photo:", error);
+          setUploadResults([
+            {
+              status: "error",
+              error:
+                error instanceof Error
+                  ? error.message
+                  : "Failed to process captured photo",
+              fileName: undefined,
+              mimeType: undefined,
+              text: undefined,
+              fileUrl: undefined,
+            },
+          ]);
+          setStatus("error");
+        }
       }
+    };
 
-      // Process the file using our shared utility
-      const result = await handleFileProcess(
-        file,
-        token,
-        (newStatus) => setStatus(newStatus)
-      );
+    handleCapturedPhoto();
+  }, [params.capturedPhoto]); // Add dependency on capturedPhoto
 
-      // Update state with the result
-      setUploadResult(result);
-      setStatus(result.status);
-    } catch (error) {
-      console.error("Upload error:", error);
-      setUploadResult({
-        status: "error",
-        error: error instanceof Error ? error.message : "Upload failed",
-      });
+  const uploadFiles = async (files: SharedFile[]) => {
+    setStatus("uploading");
+    setUploadResults(
+      files.map((file) => ({
+        fileName: file.name,
+        mimeType: file.mimeType,
+        status: "uploading",
+        text: undefined,
+        fileUrl: undefined,
+        error: undefined,
+      }))
+    );
+
+    const token = await getToken();
+    if (!token) {
       setStatus("error");
+      setUploadResults(
+        files.map((file) => ({
+          fileName: file.name,
+          mimeType: file.mimeType,
+          status: "error",
+          error: "Authentication required",
+          text: undefined,
+          fileUrl: undefined,
+        }))
+      );
+      console.error("Authentication required");
+      return;
     }
+
+    let processedCount = 0;
+    let errorCount = 0;
+    const totalFiles = files.length;
+
+    files.forEach((file, index) => {
+      handleFileProcess(file, token, (s) => {
+        // Optional: Update individual file status if needed in uploadResults
+        // console.log(`Intermediate status for ${file.name}: ${s}`);
+      })
+        .then((result) => {
+          processedCount++;
+          console.log(`Processing finished for ${file.name}:`, result.status);
+          // Update the specific file's result in state
+          setUploadResults((prev) =>
+            prev.map((r, i) =>
+              i === index ? { ...r, ...result, status: result.status } : r
+            )
+          );
+
+          // Check if all files are done
+          if (processedCount + errorCount === totalFiles) {
+            // Add auto-jump logic for magic diagrams
+            // If all processed successfully (errorCount is still 0), set completed
+            if (errorCount === 0) {
+              setStatus("completed");
+            } else {
+              // Otherwise, some failed, set error
+              setStatus("error");
+            }
+          }
+        })
+        .catch((error) => {
+          errorCount++;
+          console.error(`Error processing file ${file.name}:`, error);
+          setUploadResults((prev) =>
+            prev.map((r, i) =>
+              i === index
+                ? {
+                    ...r,
+                    status: "error",
+                    error:
+                      error instanceof Error
+                        ? error.message
+                        : "Failed to process file",
+                  }
+                : r
+            )
+          );
+
+          // Check if all files are done (even if this one failed)
+          if (processedCount + errorCount === totalFiles) {
+            setStatus("error"); // Set final status to error
+          }
+          // Note: We don't set the *overall* status to error immediately on first failure,
+          // we wait for all promises to settle. Individual files will show their error state.
+        });
+    });
   };
 
   const pickDocument = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: ["application/pdf", "image/*"],
+        type: ["image/*"],
+        multiple: true,
       });
 
       if (result.canceled) return;
-      await uploadFile(result.assets[0]);
+      if (result.assets && result.assets.length > 0) {
+        await uploadFiles(result.assets);
+      }
     } catch (error) {
       console.error("Error picking document:", error);
-      setUploadResult({ 
-        status: "error", 
-        error: error instanceof Error ? error.message : "Failed to pick document" 
-      });
       setStatus("error");
+      setUploadResults([
+        {
+          status: "error",
+          error:
+            error instanceof Error ? error.message : "Failed to pick document",
+          fileName: undefined,
+          mimeType: undefined,
+          text: undefined,
+          fileUrl: undefined,
+        },
+      ]);
     }
   };
 
@@ -179,11 +301,17 @@ export default function HomeScreen() {
       const { status: permissionStatus } =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (permissionStatus !== "granted") {
-        setUploadResult({
-          status: "error",
-          error: "Gallery permission denied",
-        });
         setStatus("error");
+        setUploadResults([
+          {
+            status: "error",
+            error: "Gallery permission denied",
+            fileName: undefined,
+            mimeType: undefined,
+            text: undefined,
+            fileUrl: undefined,
+          },
+        ]);
         return;
       }
 
@@ -195,18 +323,23 @@ export default function HomeScreen() {
 
       if (result.canceled) return;
 
-      // Upload the first selected photo for now
-      // TODO: Add support for multiple file uploads
-      if (result.assets.length > 0) {
-        await uploadFile(result.assets[0]);
+      if (result.assets && result.assets.length > 0) {
+        await uploadFiles(result.assets);
       }
     } catch (error) {
       console.error("Error picking photos:", error);
-      setUploadResult({ 
-        status: "error", 
-        error: error instanceof Error ? error.message : "Failed to pick photos" 
-      });
       setStatus("error");
+      setUploadResults([
+        {
+          status: "error",
+          error:
+            error instanceof Error ? error.message : "Failed to pick photos",
+          fileName: undefined,
+          mimeType: undefined,
+          text: undefined,
+          fileUrl: undefined,
+        },
+      ]);
     }
   };
 
@@ -215,11 +348,17 @@ export default function HomeScreen() {
       const { status: cameraStatus } =
         await ImagePicker.requestCameraPermissionsAsync();
       if (cameraStatus !== "granted") {
-        setUploadResult({ 
-          status: "error", 
-          error: "Camera permission denied" 
-        });
         setStatus("error");
+        setUploadResults([
+          {
+            status: "error",
+            error: "Camera permission denied",
+            fileName: undefined,
+            mimeType: undefined,
+            text: undefined,
+            fileUrl: undefined,
+          },
+        ]);
         return;
       }
 
@@ -229,30 +368,107 @@ export default function HomeScreen() {
       });
 
       if (result.canceled) return;
-      await uploadFile(result.assets[0]);
+      if (result.assets && result.assets.length > 0) {
+        await uploadFiles(result.assets);
+      }
     } catch (error) {
       console.error("Error taking photo:", error);
-      setUploadResult({ 
-        status: "error", 
-        error: error instanceof Error ? error.message : "Failed to take photo" 
-      });
       setStatus("error");
+      setUploadResults([
+        {
+          status: "error",
+          error:
+            error instanceof Error ? error.message : "Failed to take photo",
+          fileName: undefined,
+          mimeType: undefined,
+          text: undefined,
+          fileUrl: undefined,
+        },
+      ]);
+    }
+  };
+
+  // New function for Magic Diagram
+  const takeMagicDiagramPhoto = async () => {
+    try {
+      const { status: cameraStatus } =
+        await ImagePicker.requestCameraPermissionsAsync();
+      if (cameraStatus !== "granted") {
+        setStatus("error");
+        setUploadResults([
+          {
+            status: "error",
+            error: "Camera permission denied",
+            fileName: undefined,
+            mimeType: undefined,
+            text: undefined,
+            fileUrl: undefined,
+          },
+        ]);
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 0.8,
+      });
+
+      if (result.canceled) return;
+      if (result.assets && result.assets.length > 0) {
+        // Mark each asset with a processType property to indicate it's for magic diagram processing
+        const magicDiagramAssets = result.assets.map((asset) => ({
+          ...asset,
+          processType: "magic-diagram", // Add this property to signal the special processing
+        }));
+
+        await uploadFiles(magicDiagramAssets);
+      }
+    } catch (error) {
+      console.error("Error taking magic diagram photo:", error);
+      setStatus("error");
+      setUploadResults([
+        {
+          status: "error",
+          error:
+            error instanceof Error
+              ? error.message
+              : "Failed to take magic diagram photo",
+          fileName: undefined,
+          mimeType: undefined,
+          text: undefined,
+          fileUrl: undefined,
+        },
+      ]);
     }
   };
 
   const handleRetry = () => {
     setStatus("idle");
-    setUploadResult(null);
+    setUploadResults([]);
   };
 
   const renderHeader = () => (
-    <ThemedView variant="elevated" style={[styles.header, { paddingTop: Math.max(20, insets.top) }]}>
+    <ThemedView
+      variant="elevated"
+      style={[styles.header, { paddingTop: Math.max(20, insets.top) }]}
+    >
       <View style={styles.titleContainer}>
-        <MaterialIcons name="home" size={28} color={primaryColor} style={styles.icon} />
-        <ThemedText type="heading" style={styles.headerTitle}>Home</ThemedText>
+        <MaterialIcons
+          name="home"
+          size={28}
+          color={primaryColor}
+          style={styles.icon}
+        />
+        <ThemedText type="heading" style={styles.headerTitle}>
+          Home
+        </ThemedText>
       </View>
-      <ThemedText colorName="textSecondary" type="label" style={styles.headerSubtitle}>
-        Extract text from your documents and images
+      <ThemedText
+        colorName="textSecondary"
+        type="label"
+        style={styles.headerSubtitle}
+      >
+        Extract text from your images
       </ThemedText>
     </ThemedView>
   );
@@ -260,19 +476,11 @@ export default function HomeScreen() {
   const renderExplanation = () => (
     <View style={styles.explanationCard}>
       <MaterialIcons name="auto-awesome" size={24} color={primaryColor} />
-      <Text style={styles.explanationTitle}>
-        Get OCR from any image or pdf
-      </Text>
+      <Text style={styles.explanationTitle}>Get OCR from any image</Text>
       <Text style={styles.explanationText}>
-        Upload any image or pdf and get the text extracted. You can also use
-        the share sheet to upload from other apps.
+        Upload any image and get the text extracted. You can also use the share
+        sheet to upload from other apps.
       </Text>
-    </View>
-  );
-
-  const renderUsageStatus = () => (
-    <View style={styles.usageStatusContainer}>
-      <UsageStatus compact={true} />
     </View>
   );
 
@@ -282,89 +490,81 @@ export default function HomeScreen() {
         <TouchableOpacity
           style={[
             styles.uploadButtonWrapper,
-            (status !== "idle" && status !== "completed" && status !== "error") && styles.uploadButtonDisabled,
+            status === "uploading" && styles.uploadButtonDisabled,
           ]}
           onPress={pickDocument}
-          disabled={status !== "idle" && status !== "completed" && status !== "error"}
+          disabled={status === "uploading"}
         >
           <View style={styles.uploadButtonGradient}></View>
           <View style={styles.uploadButtonContent}>
             <MaterialIcons name="file-upload" size={32} color={primaryColor} />
-            <Text style={styles.uploadButtonText}>Upload File</Text>
-            <Text style={styles.uploadButtonSubtext}>PDF or Image</Text>
+            <Text style={styles.uploadButtonText}>Upload Files</Text>
+            <Text style={styles.uploadButtonSubtext}>Images</Text>
           </View>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[
             styles.uploadButtonWrapper,
-            (status !== "idle" && status !== "completed" && status !== "error") && styles.uploadButtonDisabled,
+            status === "uploading" && styles.uploadButtonDisabled,
           ]}
           onPress={pickPhotos}
-          disabled={status !== "idle" && status !== "completed" && status !== "error"}
+          disabled={status === "uploading"}
         >
           <View style={styles.uploadButtonGradient}></View>
           <View style={styles.uploadButtonContent}>
-            <MaterialIcons name="photo-library" size={32} color={primaryColor} />
+            <MaterialIcons
+              name="photo-library"
+              size={32}
+              color={primaryColor}
+            />
             <Text style={styles.uploadButtonText}>Photo Library</Text>
             <Text style={styles.uploadButtonSubtext}>Choose Photos</Text>
           </View>
         </TouchableOpacity>
       </View>
 
+      {/* Add a second row with the Magic Diagram button */}
       <View style={styles.uploadButtonRow}>
         <TouchableOpacity
           style={[
             styles.uploadButtonWrapper,
-            (status !== "idle" && status !== "completed" && status !== "error") && styles.uploadButtonDisabled,
+            styles.magicDiagramButton, // New style for distinction
+            status === "uploading" && styles.uploadButtonDisabled,
           ]}
-          onPress={takePhoto}
-          disabled={status !== "idle" && status !== "completed" && status !== "error"}
+          onPress={takeMagicDiagramPhoto}
+          disabled={status === "uploading"}
         >
           <View style={styles.uploadButtonGradient}></View>
           <View style={styles.uploadButtonContent}>
-            <MaterialIcons name="camera-alt" size={32} color={primaryColor} />
-            <Text style={styles.uploadButtonText}>Take Photo</Text>
-            <Text style={styles.uploadButtonSubtext}>Document or Note</Text>
+            <MaterialIcons name="auto-awesome" size={32} color={primaryColor} />
+            <Text style={styles.uploadButtonText}>Magic Diagram</Text>
+            <Text style={styles.uploadButtonSubtext}>Convert Sketches</Text>
           </View>
         </TouchableOpacity>
-        
-        {/* Empty placeholder to maintain grid layout */}
-        <View style={styles.uploadButtonWrapper} />
       </View>
     </View>
-  );
-
-  const renderHelpLink = () => (
-    <TouchableOpacity
-      style={styles.helpLink}
-      onPress={() => router.push('/help')}
-    >
-      <MaterialIcons name="help-outline" size={18} color="#007AFF" />
-      <Text style={styles.helpLinkText}>Need help with sharing?</Text>
-    </TouchableOpacity>
   );
 
   return (
     <ThemedView style={styles.container}>
       {renderHeader()}
+      <ProcessingStatus
+        status={status}
+        result={uploadResults[0]?.text as any} // Keep existing 'any' for now
+        fileUrl={uploadResults[0]?.url}
+        mimeType={uploadResults[0]?.mimeType}
+        fileName={uploadResults[0]?.fileName}
+        // Add processType prop - Need to get this from uploadResults too
+        // Assuming UploadResult has processType, which might need adding
+        // For now, let's try accessing it, will need adjustment if not present
+        processType={(uploadResults[0] as any)?.processType} // Add processType, may need type update
+        showDetails={false}
+      />
       <ScrollView style={styles.scrollView}>
         <View style={styles.mainSection}>
           {renderExplanation()}
-          {renderUsageStatus()}
           {renderUploadButtons()}
-          
-          <ProcessingStatus
-            status={status}
-            result={uploadResult?.text !== undefined ? uploadResult.text : uploadResult?.error}
-            fileUrl={uploadResult?.fileUrl}
-            mimeType={uploadResult?.mimeType}
-            fileName={uploadResult?.fileName}
-            onRetry={handleRetry}
-            showDetails={true}
-          />
-
-          {renderHelpLink()}
         </View>
       </ScrollView>
     </ThemedView>
@@ -394,15 +594,15 @@ const styles = StyleSheet.create({
     }),
   },
   titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 8,
   },
   icon: {
     marginRight: 8,
   },
   headerTitle: {
-    fontWeight: '700',
+    fontWeight: "700",
   },
   headerSubtitle: {
     marginBottom: 8,
@@ -443,29 +643,29 @@ const styles = StyleSheet.create({
     width: "48%",
     minHeight: 140,
     borderRadius: 16,
-    overflow: 'hidden',
-    position: 'relative',
+    overflow: "hidden",
+    position: "relative",
   },
   uploadButtonGradient: {
-    position: 'absolute',
+    position: "absolute",
     left: 0,
     right: 0,
     top: 0,
     bottom: 0,
     borderWidth: 1,
-    borderColor: '#e5e5e5',
+    borderColor: "#e5e5e5",
     borderRadius: 16,
   },
   uploadButtonContent: {
     flex: 1,
-    position: 'relative',
+    position: "relative",
     alignItems: "center",
     justifyContent: "center",
     padding: 16,
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
     margin: 2,
     borderRadius: 14,
-    height: '100%',
+    height: "100%",
   },
   uploadButtonDisabled: {
     opacity: 0.5,
@@ -484,19 +684,20 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   helpLink: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     marginTop: 24,
     padding: 12,
   },
   helpLinkText: {
     fontSize: 14,
-    color: '#007AFF',
+    color: "#007AFF",
     marginLeft: 6,
-    fontWeight: '500',
+    fontWeight: "500",
   },
-  usageStatusContainer: {
-    marginBottom: 16,
+  magicDiagramButton: {
+    width: "100%", // Full width for the Magic Diagram button
+    backgroundColor: "rgba(138, 101, 237, 0.05)", // Subtle background tint
   },
 });

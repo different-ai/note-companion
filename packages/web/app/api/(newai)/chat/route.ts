@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
           deepSearch = false,
         } = await req.json();
 
-        let chosenModelName = "gpt-4o";
+        let chosenModelName = "gpt-4.1-mini";
 
         const contextString =
           newUnifiedContext ||
@@ -44,10 +44,11 @@ export async function POST(req: NextRequest) {
 
         if (enableSearchGrounding) {
           console.log("Enabling search grounding with Responses API");
-          chosenModelName = "gpt-4o"; // Using standard gpt-4o with the Responses API
+          chosenModelName = "gpt-4.1-mini"; // Using standard model with the Responses API
+          console.log(`Using model for search: ${chosenModelName}`);
 
           const result = await streamText({
-            model: openai.responses("gpt-4o"),
+            model: openai.responses("gpt-4.1-mini"),
             system: getChatSystemPrompt(
               contextString,
               enableScreenpipe,
@@ -93,7 +94,7 @@ export async function POST(req: NextRequest) {
 
           result.mergeIntoDataStream(dataStream);
         } else {
-          console.log("Chat using standard model:", chosenModelName);
+          console.log(`Chat using model: ${chosenModelName}`);
           const model = getModel(chosenModelName);
 
           const result = await streamText({
@@ -107,7 +108,8 @@ export async function POST(req: NextRequest) {
             messages: messages,
             tools: chatTools,
             onFinish: async ({ usage, sources }) => {
-              console.log("Token usage:", sources);
+              console.log("Token usage:", usage);
+              console.log("Sources:", sources);
               const citations = sources?.map((source) => ({
                 url: source.url,
                 title: source.title || source.url,
@@ -115,7 +117,7 @@ export async function POST(req: NextRequest) {
                 startIndex: 0,
                 endIndex: 0,
               }));
-              console.log("Sources:", citations);
+              console.log("Citations:", citations);
 
               if (citations?.length > 0) {
                 dataStream.writeMessageAnnotation({

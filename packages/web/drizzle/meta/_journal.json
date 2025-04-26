@@ -134,6 +134,20 @@
       "when": 1742757975927,
       "tag": "0018_previous_catseye",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1745450495354,
+      "tag": "0020_silent_baron_zemo",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1745452298941,
+      "tag": "0021_bouncy_shotgun",
+      "breakpoints": true
     }
   ]
 }

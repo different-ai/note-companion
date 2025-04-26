@@ -105,8 +105,8 @@ export const vercelTokens = pgTable('vercel_tokens', {
   updatedAt: timestamp("updated_at").defaultNow(),
   lastDeployment: timestamp("last_deployment"),
   modelProvider: text("model_provider").default('openai'),
-  modelName: text("model_name").default('gpt-4o'),
-  visionModelName: text("vision_model_name").default('gpt-4o'),
+  modelName: text("model_name").default('gpt-4.1-mini'),
+  visionModelName: text("vision_model_name").default('gpt-4.1-mini'),
   lastApiKeyUpdate: timestamp("last_api_key_update"),
 });
 
@@ -471,14 +471,17 @@ export const uploadedFiles = pgTable(
     id: serial("id").primaryKey(),
     userId: text("user_id").notNull(),
     blobUrl: text("blob_url").notNull(),
-    fileType: text("file_type").notNull(), // "pdf" or "image"
+    r2Key: text("r2_key"),
+    fileType: text("file_type").notNull(),
     originalName: text("original_name").notNull(),
-    status: text("status").notNull().default("pending"), // pending, processing, completed, error
-    textContent: text("text_content"), // extracted text content
-    tokensUsed: integer("tokens_used"), // tokens used for processing
+    status: text("status").notNull().default("pending"),
+    textContent: text("text_content"),
+    tokensUsed: integer("tokens_used"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
-    error: text("error"), // error message if processing failed
+    error: text("error"),
+    processType: text("process_type").default("standard-ocr"),
+    generatedImageUrl: text("generated_image_url"),
   }
 );
 

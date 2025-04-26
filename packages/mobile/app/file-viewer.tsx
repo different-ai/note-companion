@@ -14,7 +14,6 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import Markdown from 'react-native-markdown-display';
-import Pdf from 'react-native-pdf';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { TextDocumentViewer } from '@/components/text-document-viewer';
 import { FilePreview } from '@/components/file-preview';

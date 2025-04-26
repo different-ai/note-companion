@@ -4,7 +4,7 @@ import { usePlugin } from '../provider';
 
 // Add a mapping for display names
 const MODEL_DISPLAY_NAMES: Record<ModelType, string> = {
-  'gpt-4o': 'Cloud',
+  'gpt-4.1-mini': 'Cloud',
   'custom': 'Ollama Model'
 } as const;
 
@@ -33,7 +33,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
       return;
     }
     onModelSelect(model);
-    if (model === "gpt-4o" || model === "llama3.2") {
+    if (model === "gpt-4.1-mini" || model === "llama3.2") {
       plugin.settings.selectedModel = model;
     }
     await plugin.saveSettings();
@@ -42,7 +42,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
 
   const handleCustomModelSave = async () => {
     plugin.settings.customModelName = customModel;
-    plugin.settings.selectedModel = customModel as "gpt-4o" | "llama3.2";
+    plugin.settings.selectedModel = customModel as "gpt-4.1-mini" | "llama3.2";
     await plugin.saveSettings();
     onModelSelect(customModel);
     setIsCustomizing(false);
@@ -78,10 +78,10 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
           <div className="absolute bottom-full right-0 mb-1 bg-[--background-primary] border border-[--background-modifier-border] rounded shadow-lg">
             <div className="py-1">
               <div
-                onClick={() => handleModelSelect("gpt-4o")}
+                onClick={() => handleModelSelect("gpt-4.1-mini")}
                 className="cursor-pointer block w-full text-left px-4 py-2 text-sm text-[--text-normal] hover:bg-[--background-modifier-hover]"
               >
-                {getDisplayName("gpt-4o")}
+                {getDisplayName("gpt-4.1-mini")}
               </div>
 
               {isCustomizing ? (

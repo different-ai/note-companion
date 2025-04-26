@@ -27,7 +27,7 @@ const groqBaseURL = getBaseUrl("GROQ");
 const anthropicBaseURL = getBaseUrl("ANTHROPIC");
 const googleBaseURL = getBaseUrl("GOOGLE");
 const deepseekBaseURL = getBaseUrl("DEEPSEEK");
-const DEFAULT_MODEL = "gpt-4o";
+const DEFAULT_MODEL = "gpt-4.1-mini";
 
 const createBedrockConfig = () => ({
   region: process.env.AWS_REGION || "us-west-2",
@@ -36,6 +36,14 @@ const createBedrockConfig = () => ({
 });
 
 const models = {
+  "gpt-4.1": createOpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+    baseURL,
+  })("gpt-4.1"),
+  "gpt-4.1-mini": createOpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+    baseURL,
+  })("gpt-4.1-mini"),
   "gpt-4o": createOpenAI({
     apiKey: process.env.OPENAI_API_KEY,
     baseURL,
@@ -123,7 +131,7 @@ export const getModel = (name: string) => {
     console.log(`Defaulting to ${DEFAULT_MODEL}`);
     return models[DEFAULT_MODEL];
   }
-  console.log(`Using model ${name}`);
+  console.log(`Using model: ${name}`);
 
   return models[name];
 };

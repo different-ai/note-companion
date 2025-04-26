@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Share, Alert, Image, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Share, Alert, Image, Platform, ActivityIndicator } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { UploadedFile } from '@/utils/api';
 import * as FileSystem from 'expo-file-system';
@@ -85,26 +85,42 @@ export function FileCard({ file, onDelete, onView }: FileCardProps) {
 
   // Get appropriate icon based on file type
   const getFileIcon = (mimeType: string) => {
-    if (mimeType?.includes('image')) {
-      return 'image';
-    } else if (mimeType?.includes('pdf')) {
-      return 'picture-as-pdf';
-    } else if (mimeType?.includes('text') || mimeType?.includes('markdown')) {
-      return 'note';
-    } else {
-      return 'insert-drive-file';
-    }
+    if (mimeType.startsWith("image/")) return "image";
+    if (mimeType.includes("pdf")) return "picture-as-pdf";
+    if (mimeType.startsWith("text/")) return "article";
+    return "insert-drive-file";
   };
 
-  // Display a snippet of extracted text if available
-  const getContentPreview = () => {
+  // Display a snippet of extracted text or the generated image
+  const renderContentPreview = () => {
+    // If it's a magic diagram and has a generated image URL, show the image
+    if (file.processType === 'magic-diagram' && file.generatedImageUrl) {
+      return (
+        <Image 
+          source={{ uri: file.generatedImageUrl }}
+          style={styles.generatedImagePreview}
+          resizeMode="contain" // Or "cover" depending on desired look
+        />
+      );
+    }
+    
+    // Otherwise, show text preview
     if (file.extractedText) {
       const preview = file.extractedText.substring(0, 200); // Increased for more content
-      return preview.length < file.extractedText.length 
-        ? `${preview}...` 
-        : preview;
+      return (
+        <ThemedText colorName="textSecondary" style={styles.fileContentPreview}>
+          {preview.length < file.extractedText.length 
+            ? `${preview}...` 
+            : preview}
+        </ThemedText>
+      );
     }
-    return 'No preview available';
+    
+    return (
+      <ThemedText colorName="textSecondary" style={styles.fileContentPreview}>
+        No preview available
+      </ThemedText>
+    );
   };
 
   // Handle sharing the file with other apps
@@ -216,166 +232,195 @@ export function FileCard({ file, onDelete, onView }: FileCardProps) {
   };
 
   return (
-    <View style={styles.cardWrapper}>
-      {/* Gradient border overlay */}
-      <View style={styles.gradientBorder} />
-      
-      {/* Card content */}
-      <ThemedView 
-        variant="card" 
-        style={styles.card}
-      >
-        {/* Popular ribbon - can be conditionally rendered */}
-        {file.featured && (
-          <View style={styles.ribbon}>
-            <ThemedText style={styles.ribbonText} colorName="background">Most Popular</ThemedText>
-          </View>
-        )}
+    <View style={[styles.cardContainer, { backgroundColor }]}>
+      {/* Processing Badge */}
+      {(file.status === "pending" || file.status === "processing") && (
+        <View style={styles.processingOverlay}>
+          <ActivityIndicator size="small" color="#fff" />
+          <Text style={styles.processingText}>
+            {file.status === "pending" ? "queued" : "processing"}
+          </Text>
+        </View>
+      )}
+      <View style={styles.cardWrapper}>
+        {/* Gradient border overlay */}
+        <View style={styles.gradientBorder} />
         
-        <View style={styles.fileHeader}>
-          <View style={styles.titleContainer}>
-            <View style={[styles.fileIcon, { backgroundColor: Platform.OS === 'ios' ? 'rgba(159, 122, 234, 0.15)' : 'rgba(159, 122, 234, 0.1)' }]}>
-              <MaterialIcons
-                name={getFileIcon(file.mimeType)}
-                size={24}
-                color="rgb(159, 122, 234)"
-              />
+        {/* Card content */}
+        <ThemedView 
+          variant="card" 
+          style={styles.card}
+        >
+          {/* Popular ribbon - can be conditionally rendered */}
+          {file.featured && (
+            <View style={styles.ribbon}>
+              <ThemedText style={styles.ribbonText} colorName="background">Most Popular</ThemedText>
             </View>
-            <View style={styles.fileInfo}>
-              <ThemedText weight="semibold" style={styles.fileName} numberOfLines={1}>
-                {file.name}
-              </ThemedText>
-              <ThemedText colorName="textSecondary" type="caption" style={styles.fileDate}>
-                {formatDate(file.createdAt)}
-              </ThemedText>
+          )}
+          
+          <View style={styles.fileHeader}>
+            <View style={styles.titleContainer}>
+              <View style={[styles.fileIcon, { backgroundColor: Platform.OS === 'ios' ? 'rgba(159, 122, 234, 0.15)' : 'rgba(159, 122, 234, 0.1)' }]}>
+                <MaterialIcons
+                  name={getFileIcon(file.mimeType)}
+                  size={24}
+                  color="rgb(159, 122, 234)"
+                />
+              </View>
+              <View style={styles.fileInfo}>
+                <ThemedText weight="semibold" style={styles.fileName} numberOfLines={1}>
+                  {file.name}
+                </ThemedText>
+                <ThemedText colorName="textSecondary" type="caption" style={styles.fileDate}>
+                  {formatDate(file.createdAt)}
+                </ThemedText>
+              </View>
+            </View>
+            
+            <View style={styles.headerActions}>
+              <TouchableOpacity
+                style={styles.iconButton}
+                onPress={handleShare}
+                disabled={!file.processed}
+              >
+                <MaterialIcons 
+                  name="share" 
+                  size={22} 
+                  color={file.processed ? "#68D391" : "#AAAAAA"} 
+                />
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={styles.iconButton}
+                onPress={handleDelete}
+              >
+                <MaterialIcons name="delete-outline" size={22} color="#FC8181" />
+              </TouchableOpacity>
             </View>
           </View>
           
-          <View style={styles.headerActions}>
-            <TouchableOpacity
-              style={styles.iconButton}
-              onPress={handleShare}
-              disabled={!file.processed}
-            >
-              <MaterialIcons 
-                name="share" 
-                size={22} 
-                color={file.processed ? "#68D391" : "#AAAAAA"} 
-              />
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              style={styles.iconButton}
-              onPress={handleDelete}
-            >
-              <MaterialIcons name="delete-outline" size={22} color="#FC8181" />
-            </TouchableOpacity>
-          </View>
-        </View>
-        
-        {/* Content area with preview and metadata side by side */}
-        <View style={styles.contentContainer}>
-          {/* Preview container on the left */}
-          {file.extractedText && !moderation.isAppropriate ? (
-            <ThemedView 
-              style={styles.contentFilteredContainer} 
-              colorName="warning"
-            >
-              <MaterialIcons name="warning" size={18} color={Platform.OS === 'ios' ? '#f59e0b' : '#F6E05E'} />
-              <ThemedText style={styles.contentFilteredText}>
-                Content flagged for review
-              </ThemedText>
-            </ThemedView>
-          ) : (
-            <View style={styles.previewContainer}>
-              {file.mimeType?.includes('image') && file.blobUrl ? (
-                <Image
-                  source={{ uri: file.blobUrl }}
-                  style={styles.imagePreview}
-                  resizeMode="cover"
-                />
-              ) : file.mimeType?.includes('pdf') && file.blobUrl ? (
-                <View style={styles.pdfPreviewContainer}>
-                  <MaterialIcons name="picture-as-pdf" size={48} color={primaryColor} />
-                  <ThemedText colorName="textSecondary" style={styles.pdfPreviewText}>PDF Document</ThemedText>
-                </View>
-              ) : file.extractedText ? (
-                <View style={styles.textPreviewContainer}>
-                  <ThemedText colorName="textSecondary" style={styles.previewText} numberOfLines={6}>
-                    {getContentPreview()}
-                  </ThemedText>
+          {/* Content area with preview and metadata side by side */}
+          <View style={styles.contentContainer}>
+            {/* Preview container on the left */}
+            {file.extractedText && !moderation.isAppropriate ? (
+              <ThemedView 
+                style={styles.contentFilteredContainer} 
+                colorName="warning"
+              >
+                <MaterialIcons name="warning" size={18} color={Platform.OS === 'ios' ? '#f59e0b' : '#F6E05E'} />
+                <ThemedText style={styles.contentFilteredText}>
+                  Content flagged for review
+                </ThemedText>
+              </ThemedView>
+            ) : (
+              <View style={styles.previewContainer}>
+                {file.mimeType?.includes('image') && file.blobUrl ? (
+                  <Image
+                    source={{ uri: file.blobUrl }}
+                    style={styles.imagePreview}
+                    resizeMode="cover"
+                  />
+                ) : file.mimeType?.includes('pdf') && file.blobUrl ? (
+                  <View style={styles.pdfPreviewContainer}>
+                    <MaterialIcons name="picture-as-pdf" size={48} color={primaryColor} />
+                    <ThemedText colorName="textSecondary" style={styles.pdfPreviewText}>PDF Document</ThemedText>
+                  </View>
+                ) : (
+                  <View style={styles.noPreviewContainer}>
+                    <MaterialIcons name="insert-drive-file" size={48} color={textSecondaryColor} />
+                    <ThemedText colorName="textSecondary" style={styles.noPreviewText}>No preview available</ThemedText>
+                  </View>
+                )}
+              </View>
+            )}
+
+            {/* Metadata container on the right */}
+            <View style={styles.metadataContainer}>
+              {/* Status badge */}
+              {file.processed ? (
+                <View style={styles.statusBadge}>
+                  <MaterialIcons name="check-circle" size={14} color="#fff" />
+                  <ThemedText style={styles.statusBadgeText}>Ready</ThemedText>
                 </View>
               ) : (
-                <View style={styles.noPreviewContainer}>
-                  <MaterialIcons name="insert-drive-file" size={48} color={textSecondaryColor} />
-                  <ThemedText colorName="textSecondary" style={styles.noPreviewText}>No preview available</ThemedText>
+                <View style={[styles.statusBadge, styles.processingBadge]}>
+                  <MaterialIcons name="pending" size={14} color="#fff" />
+                  <ThemedText style={styles.statusBadgeText}>Processing</ThemedText>
                 </View>
               )}
+              
+              {/* File type */}
+              <View style={styles.metadataItem}>
+                <MaterialIcons name="insert-drive-file" size={16} color="rgb(159, 122, 234)" />
+                <ThemedText colorName="textSecondary" style={styles.metadataText}>
+                  {file.mimeType?.includes('pdf') ? 'PDF' : 
+                  file.mimeType?.includes('image') ? 'Image' : 'Text'}
+                </ThemedText>
+              </View>
+              
+              {/* Creation date */}
+              <View style={styles.metadataItem}>
+                <MaterialIcons name="access-time" size={16} color="rgb(159, 122, 234)" />
+                <ThemedText colorName="textSecondary" style={styles.metadataText}>
+                  {formatDate(file.createdAt).split(',')[0]}
+                </ThemedText>
+              </View>
+            </View>
+          </View>
+
+          {/* Moderation Warning */}        
+          {!moderation.isAppropriate && (
+            <View style={styles.moderationWarning}>
+              <MaterialIcons name="warning" size={16} color={warningColor} />
+              <ThemedText style={styles.moderationText} colorName="warning">
+                Content Warning: {moderation.contentFlags?.join(', ') || 'Potentially inappropriate'}
+              </ThemedText>
             </View>
           )}
 
-          {/* Metadata container on the right */}
-          <View style={styles.metadataContainer}>
-            {/* Status badge */}
-            {file.processed ? (
-              <View style={styles.statusBadge}>
-                <MaterialIcons name="check-circle" size={14} color="#fff" />
-                <ThemedText style={styles.statusBadgeText}>Ready</ThemedText>
-              </View>
-            ) : (
-              <View style={[styles.statusBadge, styles.processingBadge]}>
-                <MaterialIcons name="pending" size={14} color="#fff" />
-                <ThemedText style={styles.statusBadgeText}>Processing</ThemedText>
-              </View>
-            )}
-            
-            {/* File type */}
-            <View style={styles.metadataItem}>
-              <MaterialIcons name="insert-drive-file" size={16} color="rgb(159, 122, 234)" />
-              <ThemedText colorName="textSecondary" style={styles.metadataText}>
-                {file.mimeType?.includes('pdf') ? 'PDF' : 
-                file.mimeType?.includes('image') ? 'Image' : 'Text'}
-              </ThemedText>
-            </View>
-            
-            {/* Word count if text is available */}
-            {file.extractedText && (
-              <View style={styles.metadataItem}>
-                <MaterialIcons name="description" size={16} color="rgb(159, 122, 234)" />
-                <ThemedText colorName="textSecondary" style={styles.metadataText}>
-                  {`${Math.ceil(file.extractedText.length / 100)} words`}
-                </ThemedText>
-              </View>
-            )}
-            
-            {/* Creation date */}
-            <View style={styles.metadataItem}>
-              <MaterialIcons name="access-time" size={16} color="rgb(159, 122, 234)" />
-              <ThemedText colorName="textSecondary" style={styles.metadataText}>
-                {formatDate(file.createdAt).split(',')[0]}
-              </ThemedText>
-            </View>
+          {/* Content Preview Section - Use the new render function */} 
+          <View style={styles.contentPreviewContainer}>
+             {renderContentPreview()} 
           </View>
-        </View>
 
-        <View style={styles.actionButtons}>
-          <TouchableOpacity
-            style={[styles.mainActionButton, !file.processed && styles.disabledButton]}
-            onPress={handleView}
-            disabled={!file.processed}
-          >
-            <ThemedText style={styles.mainActionButtonText} colorName="background">
-              View Note
-            </ThemedText>
-            <MaterialIcons name="arrow-right" size={18} color="#fff" />
-          </TouchableOpacity>
-        </View>
-      </ThemedView>
+          <View style={styles.actionButtons}>
+            <TouchableOpacity
+              style={[styles.mainActionButton, !file.processed && styles.disabledButton]}
+              onPress={handleView}
+              disabled={!file.processed}
+            >
+              <ThemedText style={styles.mainActionButtonText} colorName="background">
+                View Note
+              </ThemedText>
+              <MaterialIcons name="arrow-right" size={18} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        </ThemedView>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  cardContainer: {
+    marginBottom: 12,
+    borderRadius: 16,
+    // Remove border to avoid double lines with ThemedView's shadow/border
+    // borderWidth: 1,
+    // Add shadow for iOS and elevation for Android
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+    width: '100%', // Ensure full width
+  },
   cardWrapper: {
     position: 'relative',
     marginBottom: 24,
@@ -619,5 +664,58 @@ const styles = StyleSheet.create({
   contentContainer: {
     flexDirection: 'row',
     marginBottom: 16,
+  },
+  generatedImagePreview: {
+    width: '100%',
+    height: 150, // Adjust height as needed
+    borderRadius: 8,
+    marginVertical: 8,
+    backgroundColor: '#e0e0e0', // Placeholder background
+  },
+  contentPreviewContainer: {
+    marginTop: 12,
+    marginBottom: 12,
+  },
+  moderationWarning: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#F6E05E',
+    borderRadius: 8,
+  },
+  moderationText: {
+    marginLeft: 8,
+    fontSize: 14,
+    fontWeight: '500',
+    lineHeight: 18, // Slightly increased line height
+  },
+  fileContentPreview: {
+    // Style for the content preview (image or text)
+    width: '100%', // Ensure preview takes full width available
+    marginBottom: 12,
+  },
+  processingOverlay: {
+    position: "absolute",
+    top: 4,
+    right: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    flexDirection: "row",
+    alignItems: "center",
+    zIndex: 10, // Ensure it's above other elements
+  },
+  processingText: {
+    color: "#fff",
+    marginLeft: 4,
+    fontSize: 10,
+    fontWeight: "600",
+  },
+  featuredCard: {
+    // Add a subtle border or background to highlight featured cards
+    // ... existing code ...
+    color: "#666",
   },
 });

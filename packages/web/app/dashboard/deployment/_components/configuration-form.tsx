@@ -64,12 +64,13 @@ export const ConfigurationForm: FC<ConfigurationFormProps> = ({
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      modelName: deployment?.modelName || "gpt-4o",
-      visionModelName: deployment?.visionModelName || "gpt-4o",
+      modelName: deployment?.modelName || "gpt-4.1-mini",
+      visionModelName: deployment?.visionModelName || "gpt-4.1-mini",
       openaiKey: "",
       anthropicKey: "",
       googleKey: "",
     },
+    mode: "onChange"
   });
 
   const handleSubmit = (values: FormValues) => {

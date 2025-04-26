@@ -140,10 +140,10 @@ export default function RootLayout() {
           console.log('[RootLayout] Processed file data:', JSON.stringify(fileData, null, 2));
           
           console.log('\n[RootLayout] === Navigation ===');
-          console.log('[RootLayout] Navigating to share screen');
+          console.log('[RootLayout] Passing shared file to tabs screen');
           
-          // Use safe navigation instead of direct router.replace
-          safeNavigate('/(tabs)/share', { sharedFile: JSON.stringify(fileData) });
+          // Navigate to the main tabs screen, passing the file data as a parameter
+          safeNavigate('/(tabs)', { sharedFile: JSON.stringify(fileData) });
 
         } catch (innerError) {
           // If anything fails with file processing, still go to home page
@@ -197,7 +197,8 @@ export default function RootLayout() {
             console.log('[RootLayout] Text data:', textData);
   
             console.log('[RootLayout] Navigating to share screen with text');
-            safeNavigate('/(tabs)/share', { sharedFile: JSON.stringify(textData) });
+            // Navigate to the main tabs screen for text as well
+            safeNavigate('/(tabs)', { sharedFile: JSON.stringify(textData) });
           } else {
             // No valid parameters found, go to home
             console.log('[RootLayout] No valid parameters found, going to home');

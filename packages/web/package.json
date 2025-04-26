@@ -24,6 +24,8 @@
     "@ai-sdk/groq": "^1.1.0",
     "@ai-sdk/mistral": "^1.1.15",
     "@ai-sdk/openai": "^1.2.2",
+    "@aws-sdk/client-s3": "^3.787.0",
+    "@aws-sdk/s3-request-presigner": "^3.787.0",
     "@clerk/nextjs": "^6.9.6",
     "@hookform/resolvers": "^3.9.1",
     "@mistralai/mistralai": "^1.5.2",
@@ -55,7 +57,7 @@
     "lucide-react": "^0.479.0",
     "next": "15.1.6",
     "ollama-ai-provider": "^0.15.2",
-    "openai": "^4.76.0",
+    "openai": "^4.96.0",
     "postcss": "8.5.3",
     "posthog-js": "^1.203.2",
     "posthog-node": "^4.3.1",
@@ -90,6 +92,6 @@
     "ts-jest": "^29.2.5",
     "tsx": "^4.19.2",
     "typescript": "5.8.2",
-    "uuid": "^11.0.3"
+    "uuid": "^11.1.0"
   }
 }

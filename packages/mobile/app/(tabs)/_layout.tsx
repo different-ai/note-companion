@@ -8,15 +8,21 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { useSemanticColor } from '@/hooks/useThemeColor';
 import { HapticTab } from '@/components/HapticTab';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BottomTabBarButtonProps } from '@react-navigation/bottom-tabs';
 
 // Import TabBarBackground component
 import TabBarBackground from '@/components/ui/TabBarBackground';
+// Import the custom CameraTabButton
+import CameraTabButton from '@/components/ui/CameraTabButton';
 
 interface TabIconProps {
   color: string;
   size: number;
   focused: boolean;
 }
+
+// Explicitly type the icon name
+type MaterialIconName = React.ComponentProps<typeof MaterialIcons>['name'];
 
 export default function TabLayout() {
   const { isSignedIn, isLoaded } = useAuth();
@@ -74,7 +80,7 @@ export default function TabLayout() {
   };
 
   // Custom tab bar icon with animation
-  const renderTabIcon = (props: TabIconProps, iconName: React.ComponentProps<typeof MaterialIcons>['name']) => {
+  const renderTabIcon = (props: TabIconProps, iconName: MaterialIconName) => {
     const { color, size, focused } = props;
     return (
       <MaterialIcons
@@ -91,59 +97,68 @@ export default function TabLayout() {
   return (
     <Tabs 
       screenOptions={{
-        // Tab bar styling
+        // Common Tab bar styling
         tabBarActiveTintColor: primaryColor,
         tabBarInactiveTintColor: tabIconDefaultColor,
         tabBarStyle: {
           backgroundColor: tabBarColor,
-          // Add subtle border to tab bar
           borderTopColor: 'rgba(0,0,0,0.05)',
           borderTopWidth: StyleSheet.hairlineWidth,
-          // Extra iOS-specific styling
           ...(Platform.OS === 'ios' ? {
             position: 'absolute',
-            height: 49 + insets.bottom, // Standard iOS tab bar height + bottom safe area
+            height: 49 + insets.bottom,
           } : {}),
         },
-        // Use custom tab button with haptic feedback on iOS
-        tabBarButton: (props) => <HapticTab {...props} />,
-        // Make tab bar background translucent on iOS
         tabBarBackground: () => <TabBarBackground />,
-        // Show tab bar labels
         tabBarShowLabel: true,
-        // Dynamic Island compatible header styling
-        headerShown: false, // Hide default headers, we'll use custom ones in each tab
-        // Animation for tab transitions
+        headerShown: false,
         tabBarHideOnKeyboard: true,
-        ...headerStyle,
+        ...headerStyle, // Apply common header styles
       }}
     >
+      {/* Regular Tabs using HapticTab */}
       <Tabs.Screen
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: (props) => renderTabIcon(props, 'home'),
+          tabBarIcon: ({ color, size, focused }: TabIconProps) => renderTabIcon({ color, size, focused }, 'home'),
+          tabBarButton: (props: BottomTabBarButtonProps) => <HapticTab {...props} />,
         }}
       />
       <Tabs.Screen
         name="notes"
         options={{
           title: 'My Notes',
-          tabBarIcon: (props) => renderTabIcon(props, 'note'),
+          tabBarIcon: ({ color, size, focused }: TabIconProps) => renderTabIcon({ color, size, focused }, 'note'),
+          tabBarButton: (props: BottomTabBarButtonProps) => <HapticTab {...props} />,
         }}
       />
+      
+      {/* Camera Tab using CameraTabButton */}
+      <Tabs.Screen
+        name="camera"
+        options={{
+          title: 'Capture',
+          tabBarIcon: ({ color, size, focused }: TabIconProps) => renderTabIcon({ color, size, focused }, 'camera-alt'),
+          tabBarButton: (props: BottomTabBarButtonProps) => <CameraTabButton {...props} />,
+        }}
+      />
+      
+      {/* Regular Tabs using HapticTab */}
       <Tabs.Screen
         name="sync"
         options={{
           title: 'Sync',
-          tabBarIcon: (props) => renderTabIcon(props, 'sync'),
+          tabBarIcon: ({ color, size, focused }: TabIconProps) => renderTabIcon({ color, size, focused }, 'sync'),
+          tabBarButton: (props: BottomTabBarButtonProps) => <HapticTab {...props} />,
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
           title: 'Settings',
-          tabBarIcon: (props) => renderTabIcon(props, 'settings'),
+          tabBarIcon: ({ color, size, focused }: TabIconProps) => renderTabIcon({ color, size, focused }, 'settings'),
+          tabBarButton: (props: BottomTabBarButtonProps) => <HapticTab {...props} />,
         }}
       />
     </Tabs>

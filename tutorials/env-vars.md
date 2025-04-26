@@ -24,7 +24,7 @@ Available Bedrock Models:
 
 ### Models
 
-- `MODEL_NAME`: The model to use for generating file names. Defaults to `"gpt-4o"` if not set.
+- `MODEL_NAME`: The model to use for generating file names. Defaults to `"gpt-4.1-mini"` if not set.
 
 ### API Keys
 This is necessary when deploying with vercel, but not required if you run it locally.

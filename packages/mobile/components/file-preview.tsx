@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Image,
@@ -8,12 +8,11 @@ import {
   ScrollView,
   Dimensions,
   Platform,
-} from 'react-native';
-import Pdf from 'react-native-pdf';
-import { MaterialIcons } from '@expo/vector-icons';
-import { TextDocumentViewer } from './text-document-viewer';
+} from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
+import { TextDocumentViewer } from "./text-document-viewer";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
 interface FilePreviewProps {
   fileUrl?: string;
@@ -22,10 +21,10 @@ interface FilePreviewProps {
   textContent?: string;
 }
 
-export const FilePreview: React.FC<FilePreviewProps> = ({ 
-  fileUrl, 
-  mimeType = '', 
-  fileName = '',
+export const FilePreview: React.FC<FilePreviewProps> = ({
+  fileUrl,
+  mimeType = "",
+  fileName = "",
   textContent,
 }) => {
   const [loading, setLoading] = useState(true);
@@ -40,9 +39,11 @@ export const FilePreview: React.FC<FilePreviewProps> = ({
     );
   }
 
-  const isPdf = mimeType?.toLowerCase().includes('pdf');
-  const isImage = mimeType?.toLowerCase().includes('image');
-  const isText = mimeType?.toLowerCase().includes('text') || mimeType?.toLowerCase().includes('markdown');
+  const isPdf = mimeType?.toLowerCase().includes("pdf");
+  const isImage = mimeType?.toLowerCase().includes("image");
+  const isText =
+    mimeType?.toLowerCase().includes("text") ||
+    mimeType?.toLowerCase().includes("markdown");
 
   // For preview dimensions
   const previewWidth = width - 40; // Accounting for padding
@@ -53,86 +54,47 @@ export const FilePreview: React.FC<FilePreviewProps> = ({
   };
 
   const handleError = (errorObj: object) => {
-    console.error('Error loading file:', errorObj);
+    console.error("Error loading file:", errorObj);
     setLoading(false);
-    setError('Failed to load file preview');
+    setError("Failed to load file preview");
   };
 
   const renderPreview = () => {
-    if (isPdf) {
-      // PDF Preview
-      const source = { uri: fileUrl, cache: true };
-      
-      return (
-        <View style={styles.fileContainer}>
-          <Pdf
-            source={source}
-            onLoadComplete={handleLoadComplete}
-            onError={handleError}
-            style={[styles.pdfView, { width: previewWidth, height: previewHeight }]}
-            trustAllCerts={false}
-            renderActivityIndicator={() => <ActivityIndicator size="large" color="#007AFF" />}
-            enablePaging={true}
-            page={1}
-          />
-          {loading && (
-            <View style={[styles.loadingOverlay, { width: previewWidth, height: previewHeight }]}>
-              <ActivityIndicator size="large" color="rgb(159, 122, 234)" />
-              <Text style={styles.loadingText}>Loading PDF...</Text>
-            </View>
-          )}
-        </View>
-      );
-    } else if (isImage) {
-      // Image Preview
-      return (
-        <View style={styles.fileContainer}>
-          <Image
-            source={{ uri: fileUrl }}
-            style={[styles.imagePreview, { width: previewWidth, height: previewHeight }]}
-            onLoad={handleLoadComplete}
-            onError={({ nativeEvent: { error } }) => {
-              console.error('Image error:', error);
-              setLoading(false);
-              setError('Failed to load image preview');
-            }}
-            resizeMode="contain"
-          />
-          {loading && (
-            <View style={[styles.loadingOverlay, { width: previewWidth, height: previewHeight }]}>
-              <ActivityIndicator size="large" color="rgb(159, 122, 234)" />
-              <Text style={styles.loadingText}>Loading image...</Text>
-            </View>
-          )}
-        </View>
-      );
-    } else if (isText && textContent) {
-      // Text/Markdown Preview
-      return (
-        <TextDocumentViewer
-          content={textContent}
-          title={fileName}
-          metadata={{
-            source: fileUrl,
+    // PDF Preview
+
+    return (
+      <View style={styles.fileContainer}>
+        <Image
+          source={{ uri: fileUrl }}
+          style={[
+            styles.imagePreview,
+            { width: previewWidth, height: previewHeight },
+          ]}
+          onLoad={handleLoadComplete}
+          onError={({ nativeEvent: { error } }) => {
+            console.error("Image error:", error);
+            setLoading(false);
+            setError("Failed to load image preview");
           }}
+          resizeMode="contain"
         />
-      );
-    } else {
-      // Generic file preview
-      return (
-        <View style={styles.genericContainer}>
-          <MaterialIcons name="insert-drive-file" size={64} color="rgb(159, 122, 234)" />
-          <Text style={styles.fileNameText} numberOfLines={2}>
-            {fileName || 'File preview not available'}
-          </Text>
-          <Text style={styles.mimeTypeText}>{mimeType || 'Unknown format'}</Text>
-        </View>
-      );
-    }
+        {loading && (
+          <View
+            style={[
+              styles.loadingOverlay,
+              { width: previewWidth, height: previewHeight },
+            ]}
+          >
+            <ActivityIndicator size="large" color="rgb(159, 122, 234)" />
+            <Text style={styles.loadingText}>Loading image...</Text>
+          </View>
+        )}
+      </View>
+    );
   };
 
   return (
-    <ScrollView 
+    <ScrollView
       style={styles.container}
       contentContainerStyle={styles.contentContainer}
       showsVerticalScrollIndicator={false}
@@ -145,22 +107,12 @@ export const FilePreview: React.FC<FilePreviewProps> = ({
       ) : (
         <>
           <View style={styles.previewHeader}>
-            <MaterialIcons 
-              name={
-                isPdf ? "picture-as-pdf" 
-                  : isImage ? "image" 
-                  : isText ? "description"
-                  : "insert-drive-file"
-              } 
-              size={24} 
-              color="rgb(159, 122, 234)" 
+            <MaterialIcons
+              name={"image"}
+              size={24}
+              color="rgb(159, 122, 234)"
             />
-            <Text style={styles.previewHeaderText}>
-              {isPdf ? 'PDF Preview' 
-                : isImage ? 'Image Preview' 
-                : isText ? 'Text Preview'
-                : 'File Preview'}
-            </Text>
+            <Text style={styles.previewHeaderText}>Image Preview</Text>
           </View>
           {renderPreview()}
         </>
@@ -172,87 +124,87 @@ export const FilePreview: React.FC<FilePreviewProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'rgb(251, 244, 234)',
+    backgroundColor: "rgb(251, 244, 234)",
   },
   contentContainer: {
     padding: 20,
   },
   previewHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
     marginBottom: 16,
   },
   previewHeaderText: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
     marginLeft: 8,
-    color: '#1a1a1a',
+    color: "#1a1a1a",
   },
   fileContainer: {
     borderRadius: 12,
-    overflow: 'hidden',
+    overflow: "hidden",
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.08)',
-    backgroundColor: 'rgb(255, 250, 240)',
+    borderColor: "rgba(0,0,0,0.08)",
+    backgroundColor: "rgb(255, 250, 240)",
   },
   pdfView: {
-    backgroundColor: 'rgb(255, 250, 240)',
+    backgroundColor: "rgb(255, 250, 240)",
   },
   imagePreview: {
-    backgroundColor: 'rgb(255, 250, 240)',
+    backgroundColor: "rgb(255, 250, 240)",
   },
   loadingOverlay: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
-    backgroundColor: 'rgba(251, 244, 234, 0.9)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(251, 244, 234, 0.9)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   loadingText: {
     marginTop: 12,
     fontSize: 14,
-    color: '#666',
+    color: "#666",
   },
   genericContainer: {
     width: width - 40,
     height: (width - 40) * 1.4,
-    backgroundColor: 'rgb(255, 250, 240)',
+    backgroundColor: "rgb(255, 250, 240)",
     borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.08)',
+    borderColor: "rgba(0,0,0,0.08)",
   },
   fileNameText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     marginTop: 16,
-    textAlign: 'center',
-    color: '#1a1a1a',
+    textAlign: "center",
+    color: "#1a1a1a",
   },
   mimeTypeText: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
     marginTop: 8,
   },
   errorContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     padding: 20,
   },
   errorText: {
     fontSize: 16,
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: 16,
-    color: '#FF3B30',
+    color: "#FF3B30",
   },
   noFileText: {
     fontSize: 16,
     marginTop: 16,
-    color: '#8E8E93',
-    textAlign: 'center',
+    color: "#8E8E93",
+    textAlign: "center",
   },
-}); 
+});

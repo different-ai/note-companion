@@ -22,11 +22,31 @@ export interface UploadedFile {
   processingStatus: string;
   extractedText?: string;
   userId?: string;
+  processType?: string;
+  generatedImageUrl?: string;
 }
 
 export interface FetchFilesResponse {
   files: UploadedFile[];
   pagination: PaginationData;
+}
+
+// Define a type for the raw API response file structure
+interface RawFileApiResponse {
+  id: number;
+  originalName?: string;
+  name?: string;
+  fileType?: string;
+  mimeType?: string;
+  blobUrl?: string;
+  createdAt?: string;
+  status?: string;
+  processed?: boolean;
+  textContent?: string;
+  extractedText?: string;
+  userId?: string;
+  processType?: string;
+  generatedImageUrl?: string;
 }
 
 /**
@@ -58,7 +78,7 @@ export const fetchFiles = async (
     const data = await response.json();
     
     // Transform the server response to match the expected format
-    const transformedFiles = data.files.map((file: any) => {
+    const transformedFiles = data.files.map((file: RawFileApiResponse): UploadedFile => {
       return {
         id: file.id,
         name: file.originalName || file.name || 'Unnamed Note',
@@ -68,7 +88,9 @@ export const fetchFiles = async (
         processed: file.status === 'completed' || file.processed === true,
         processingStatus: file.status || (file.processed ? 'completed' : 'processing'),
         extractedText: file.textContent || file.extractedText || '',
-        userId: file.userId || ''
+        userId: file.userId || '',
+        processType: file.processType || 'standard-ocr',
+        generatedImageUrl: file.generatedImageUrl
       };
     });
 

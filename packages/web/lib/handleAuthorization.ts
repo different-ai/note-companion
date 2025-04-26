@@ -125,12 +125,16 @@ function createLogger(context: AuthContext) {
         timestamp: new Date().toISOString()
       }));
     },
-    error: (message: string, error: any, extra = {}) => {
+    error: (message: string, error: unknown, extra = {}) => {
+      // Determine if error is an instance of Error to safely access message/stack
+      const errorDetails = error instanceof Error 
+        ? { error: error.message, stack: error.stack }
+        : { error: 'Unknown error object' };
+
       console.error(JSON.stringify({
         level: 'error',
         message,
-        error: error?.message,
-        stack: error?.stack,
+        ...errorDetails,
         ...context,
         ...extra,
         timestamp: new Date().toISOString()

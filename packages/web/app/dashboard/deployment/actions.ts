@@ -224,17 +224,17 @@ export async function getDeploymentStatus(): Promise<
       (env) => env.key === "ANTHROPIC_API_KEY"
     );
     const googleKeyPresent = envs.some((env) => env.key === "GOOGLE_API_KEY");
-    const currentModelName =
-      envs.find((env) => env.key === "MODEL_NAME")?.value || "gpt-4o";
-    const currentVisionModelName =
-      envs.find((env) => env.key === "VISION_MODEL_NAME")?.value || "gpt-4o";
+    const modelName =
+      envs.find((env) => env.key === "MODEL_NAME")?.value || "gpt-4.1-mini";
+    const visionModelName =
+      envs.find((env) => env.key === "VISION_MODEL_NAME")?.value || "gpt-4.1-mini";
 
     return {
       projectUrl: deployment.projectUrl,
       deploymentUrl: deployment.deploymentUrl,
       lastDeployment: deployment.lastDeployment,
-      modelName: currentModelName,
-      visionModelName: currentVisionModelName,
+      modelName,
+      visionModelName,
       lastApiKeyUpdate: deployment.lastApiKeyUpdate,
       openaiKeyPresent,
       anthropicKeyPresent,

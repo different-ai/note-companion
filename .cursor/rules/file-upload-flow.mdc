@@ -1,0 +1,203 @@
+---
+description: call me if you're working on upload functionality
+globs: 
+alwaysApply: false
+---
+
+Okay, let's break down the entire mobile upload flow with maximum detail, linking client functions, API endpoints, and relevant files.
+
+**Relevant Client-Side Files:**
+
+*   `packages/mobile/app/(tabs)/index.tsx`: The main UI screen where users interact with upload buttons. Contains the functions that initiate the upload process based on user actions.
+*   `packages/mobile/utils/file-handler.ts`: Contains the core logic for preparing files, interacting with the API, polling for results, and managing the background sync queue.
+*   `packages/mobile/constants/config.ts`: Defines the base `API_URL` used for all server requests.
+*   `packages/mobile/components/processing-status.tsx`: UI component to display the upload/processing status.
+*   `packages/mobile/components/usage-status.tsx`: UI component to display usage info.
+
+**Relevant Server-Side Files (Inferred Structure):**
+
+*   `packages/web/app/api/create-upload-url/route.ts`: Handles requests to generate presigned URLs for direct R2 uploads.
+*   `packages/web/app/api/record-upload/route.ts`: Handles requests to record the metadata after a file is successfully uploaded to R2.
+*   `packages/web/app/api/process-file/route.ts`: Handles requests to initiate the backend processing pipeline for a given file ID.
+*   `packages/web/app/api/get-upload-status/[fileId]/route.ts`: Handles polling requests to check the status and retrieve results of file processing.
+*   Backend services for OCR, text analysis, database interaction, etc. (likely in `packages/web/lib/` or similar).
+
+---
+
+**Phase 1: Initiation (Client-Side - `index.tsx`)**
+
+1.  **User Action:** The user interacts with one of the buttons or shares content.
+    *   **"Upload Files":** Triggers the `onPress` handler which calls `pickDocument()`.
+        *   **File:** `packages/mobile/app/(tabs)/index.tsx` (around line 444)
+        *   **Function:** `pickDocument()` (around line 285)
+    *   **"Photo Library":** Triggers the `onPress` handler which calls `pickPhotos()`.
+        *   **File:** `packages/mobile/app/(tabs)/index.tsx` (around line 462)
+        *   **Function:** `pickPhotos()` (around line 311)
+    *   **Camera Tab/Button:** Navigates to the camera screen (`(tabs)/camera.tsx`), which likely calls `takePhoto()` upon capture. (Assuming `takePhoto` is similar to `pickPhotos` but uses `launchCameraAsync`). Let's assume `takePhoto` exists and works like `pickPhotos`.
+        *   **File:** `packages/mobile/app/(tabs)/camera.tsx` (or similar, not provided) -> calls `takePhoto()` (around line 344 in `index.tsx` for reference)
+    *   **Share Intent:** OS triggers the app via share extension.
+        *   **File:** `packages/mobile/app/(tabs)/index.tsx`
+        *   **Hook:** `useShareIntent()` (line 33)
+        *   **Function:** `useEffect` hook for `shareIntent` (line 39) handles the incoming data.
+
+2.  **File Selection/Capture:**
+    *   `pickDocument`: Uses `expo-document-picker` (`DocumentPicker.getDocumentAsync`) to select files.
+    *   `pickPhotos`: Uses `expo-image-picker` (`ImagePicker.launchImageLibraryAsync`) to select photos.
+    *   `takePhoto`: Uses `expo-image-picker` (`ImagePicker.launchCameraAsync`) to capture a photo.
+    *   Share Intent: Data (`files` or `text`) is directly available from the `shareIntent` object.
+
+3.  **Passing to Core Logic:** Regardless of the initiation method, the selected/captured file(s) are formatted into an array of `SharedFile` objects and passed to the `uploadFiles()` function.
+    *   **File:** `packages/mobile/app/(tabs)/index.tsx`
+    *   **Function:** `uploadFiles()` (line 181)
+
+**Phase 2: Upload Preparation (Client-Side - `index.tsx` & `file-handler.ts`)**
+
+1.  **`uploadFiles()` Execution:**
+    *   **File:** `packages/mobile/app/(tabs)/index.tsx` (line 181)
+    *   Sets the overall UI status state variable (`status`) to `"uploading"`.
+    *   Initializes the `uploadResults` state array, one entry per file, with `status: "uploading"`.
+    *   Retrieves the authentication token using `useAuth().getToken()`.
+    *   Iterates through the `files` array, calling `handleFileProcess` for each file.
+
+2.  **`handleFileProcess()` Execution:**
+    *   **File:** `packages/mobile/utils/file-handler.ts` (line 462)
+    *   Calls the `onStatusChange` callback (if provided) with `"uploading"`.
+    *   Calls `prepareFile()` to normalize the `SharedFile` object.
+
+3.  **`prepareFile()` Execution:**
+    *   **File:** `packages/mobile/utils/file-handler.ts` (line 61)
+    *   Determines a consistent `fileName` (using provided name or generating one).
+    *   Determines the `mimeType` (using provided type or inferring from extension).
+    *   If `file.text` exists:
+        *   Generates a temporary file path in `FileSystem.cacheDirectory`.
+        *   Uses `expo-file-system` (`FileSystem.writeAsStringAsync`) to write the text content to this temporary file. Sets `fileUri` to this path.
+    *   If `file.uri` exists (media file):
+        *   Normalizes the `fileUri` based on the platform (`Platform.select`).
+    *   Returns the `fileName`, `mimeType`, and `fileUri`.
+
+**Phase 3: File Upload (Client-Side & Server-Side Interaction)**
+
+This phase uses the Presigned URL flow for R2.
+
+1.  **`handleFileProcess()` Calls `uploadFile()`:**
+    *   **File:** `packages/mobile/utils/file-handler.ts` (line 470 calls `uploadFile`)
+
+2.  **`uploadFile()` Execution - Step 1: Get Presigned URL:**
+    *   **File:** `packages/mobile/utils/file-handler.ts` (line 149)
+    *   Uses the `fileName` and `mimeType` from `prepareFile()`.
+    *   **API Endpoint Called:** `POST ${API_URL}/api/create-upload-url`
+        *   **Client Function:** `fetch` (line 172)
+        *   **Request Body:** `{ filename: fileName, contentType: mimeType }`
+        *   **Authorization:** `Bearer ${token}` header.
+        *   **Relevant Server File (Inferred):** `packages/web/app/api/create-upload-url/route.ts`
+        *   **Server Action (Inferred):** Authenticates user, generates a presigned PUT URL for Cloudflare R2 using the filename and content type, generates the corresponding public URL, potentially creates a preliminary database entry, returns `{ uploadUrl, key, publicUrl }`.
+    *   Handles errors if the fetch fails or the server returns an error.
+
+3.  **`uploadFile()` Execution - Step 2: Upload to R2:**
+    *   **File:** `packages/mobile/utils/file-handler.ts`
+    *   Uses the `uploadUrl` received from the server and the `fileUri` from `prepareFile()`.
+    *   **Direct R2 Call (No App API):** Uses `expo-file-system` (`FileSystem.uploadAsync`) to upload the file content directly to the R2 `uploadUrl`.
+        *   **Client Function:** `FileSystem.uploadAsync` (line 199)
+        *   **HTTP Method:** `PUT`
+        *   **Headers:** `Content-Type: mimeType` (Crucial for R2). **NO** Authorization header needed here.
+        *   **Upload Type:** `FileSystem.FileSystemUploadType.BINARY_CONTENT`
+    *   Checks the `uploadResult.status` (expecting 2xx). Throws error if R2 upload fails.
+
+4.  **`uploadFile()` Execution - Step 3: Notify Backend:**
+    *   **File:** `packages/mobile/utils/file-handler.ts`
+    *   Uses the `key`, `publicUrl`, `fileName`, and `mimeType`.
+    *   **API Endpoint Called:** `POST ${API_URL}/api/record-upload`
+        *   **Client Function:** `fetch` (line 220)
+        *   **Request Body:** `{ key, publicUrl, originalName: fileName, fileType: mimeType }`
+        *   **Authorization:** `Bearer ${token}` header.
+        *   **Relevant Server File (Inferred):** `packages/web/app/api/record-upload/route.ts`
+        *   **Server Action (Inferred):** Authenticates user, finds/updates the database record associated with `key`, marks it as uploaded with `status: 'pending'`, stores the `publicUrl` and metadata, potentially triggers the processing queue, returns `{ success: true, fileId, status: 'pending', url: publicUrl, ... }`.
+    *   Handles errors if the fetch fails.
+    *   Returns the `UploadResponse` object (`{ success, fileId, status, url, ... }`) back to `handleFileProcess`.
+
+**Phase 4: Processing Trigger (Client-Side & Server-Side Interaction)**
+
+1.  **`handleFileProcess()` Checks Upload Result:**
+    *   **File:** `packages/mobile/utils/file-handler.ts` (line 472)
+    *   Checks if `uploadData.success` is true and `uploadData.fileId` exists. If not, throws an error.
+    *   Calls `onStatusChange` callback with `"processing"` and details (`fileId`, `url`, etc.).
+    *   Determines if polling is needed (i.e., not a direct text upload that might be marked complete immediately by the server - though the current code seems to always poll).
+
+2.  **`handleFileProcess()` Triggers Processing (if needed):**
+    *   **File:** `packages/mobile/utils/file-handler.ts` (line 490)
+    *   **API Endpoint Called:** `POST ${API_URL}/api/process-file`
+        *   **Client Function:** `fetch` (line 493)
+        *   **Request Body:** `{ fileId: uploadData.fileId }`
+        *   **Authorization:** `Bearer ${token}` header.
+        *   **Relevant Server File (Inferred):** `packages/web/app/api/process-file/route.ts`
+        *   **Server Action (Inferred):** Authenticates user, finds the file record by `fileId`, enqueues the file for background processing (OCR, analysis), updates status if needed, returns a confirmation (e.g., `{ success: true, message: 'Processing started' }`).
+    *   Logs errors if the trigger fails but continues to polling.
+
+**Phase 5: Polling for Results (Client-Side & Server-Side Interaction)**
+
+1.  **`handleFileProcess()` Calls `pollForResults()`:**
+    *   **File:** `packages/mobile/utils/file-handler.ts` (line 521)
+    *   Passes `fileId`, `token`, and `isTextFile` flag (though currently seems unused as R2 flow handles all types).
+
+2.  **`pollForResults()` Execution:**
+    *   **File:** `packages/mobile/utils/file-handler.ts` (line 265)
+    *   Waits for an `initialDelay` (2000ms).
+    *   Enters a `while` loop (max `maxAttempts` = 30).
+    *   **API Endpoint Called:** `GET ${API_URL}/api/get-upload-status/${fileIdStr}`
+        *   **Client Function:** `fetch` (line 322)
+        *   **Authorization:** `Bearer ${token}` header.
+        *   **Relevant Server File (Inferred):** `packages/web/app/api/get-upload-status/[fileId]/route.ts`
+        *   **Server Action (Inferred):** Authenticates user, queries the database for the file record matching `fileId`. Returns the current status (`pending`, `processing`, `completed`, `error`) and, if completed, the extracted text and other relevant data.
+    *   **Response Handling:**
+        *   If `status === 'completed'` or `status === 'error'`: Exits loop, returns the result object.
+        *   If `status === 'processing'` or `status === 'pending'`: Increments attempt count, waits `pollInterval` (3000ms), continues loop.
+        *   If 404 or other error: Increments attempt count, waits `pollInterval`, continues loop.
+    *   If loop finishes (max attempts reached): Returns an error result (`{ status: 'error', error: 'Timed out...' }`).
+
+**Phase 6: Result Display (Client-Side - `index.tsx`)**
+
+1.  **`handleFileProcess()` Returns Result:**
+    *   **File:** `packages/mobile/utils/file-handler.ts` (line 532)
+    *   Returns the final `UploadResult` object (either success or error) back to the `uploadFiles` function's `.then()` handler.
+
+2.  **`uploadFiles()` Updates State:**
+    *   **File:** `packages/mobile/app/(tabs)/index.tsx` (line 212, inside the `.then()` chain)
+    *   Updates the specific file's entry in the `uploadResults` state array with the final `status`, `text`, `error`, etc.
+    *   Checks if all files (`processedCount + errorCount === totalFiles`) have finished.
+    *   Updates the overall `status` state variable to `"completed"` or `"error"` based on the outcomes.
+
+3.  **UI Rerender:** React Native rerenders the component due to state changes.
+    *   **File:** `packages/mobile/app/(tabs)/index.tsx`
+    *   `renderProcessingStatus()` (line 496) is called.
+    *   It checks the overall `status` and the `uploadResults` array.
+    *   It renders the `ProcessingStatus` component (`packages/mobile/components/processing-status.tsx`) with appropriate messages, file details, and potentially error information based on the final state.
+
+**Phase 7: Background Sync (Client-Side - `file-handler.ts`)**
+
+*This runs in parallel or if the initial upload failed due to network issues.*
+
+1.  **Saving Locally (If triggered, e.g., share while offline):**
+    *   **File:** `packages/mobile/utils/file-handler.ts`
+    *   **Function:** `saveFileLocally()` (line 580)
+    *   Uses `expo-file-system` (`ensurePendingUploadsDir`, `makeDirectoryAsync`, `writeAsStringAsync`, `copyAsync`) to save file metadata (`metadata.json`) and content (e.g., `content.txt` or the original file) into a unique subdirectory within `PENDING_UPLOADS_DIR` (`${FileSystem.documentDirectory}pending_uploads/`).
+    *   Calls `addToSyncQueue()`.
+
+2.  **Adding to Queue:**
+    *   **File:** `packages/mobile/utils/file-handler.ts`
+    *   **Function:** `addToSyncQueue()` (line 625)
+    *   Reads the current queue from `SYNC_QUEUE_FILE` (`${FileSystem.documentDirectory}sync_queue.json`).
+    *   Appends the `localId` if not present.
+    *   Writes the updated queue back to `SYNC_QUEUE_FILE`.
+
+3.  **Processing Queue:**
+    *   **File:** `packages/mobile/utils/file-handler.ts`
+    *   **Function:** `processSyncQueue()` (line 653), typically called by `startBackgroundSync()` (line 772).
+    *   Reads the queue from `SYNC_QUEUE_FILE`.
+    *   Takes the first `localId`.
+    *   Reads the `metadata.json` and content file from the corresponding `PENDING_UPLOADS_DIR` subdirectory.
+    *   Reconstructs a `SharedFile` object.
+    *   **Calls `handleFileProcess()` (line 711):** This re-enters the main upload/poll flow described in Phases 2-6 for the queued item, using the same API endpoints (`/api/create-upload-url`, `/api/record-upload`, `/api/process-file`, `/api/get-upload-status/...`).
+    *   Updates the local `metadata.json` based on the outcome (`status: 'completed'` or `status: 'error'`).
+    *   Removes the item from `SYNC_QUEUE_FILE` on success or moves it to the end on error.
+
+This comprehensive flow details the journey of a file from user interaction on the mobile client, through API interactions with the server, direct upload to R2, background processing, status polling, and finally, result display or background sync handling.

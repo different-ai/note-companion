@@ -72,7 +72,7 @@ export function BetaRequestForm({
               className="bg-primary text-white hover:bg-primary/90"
               disabled={isPending}
             >
-              {isPending ? "Requesting..." : "Request Beta Access"}
+              {isPending ? "Requesting..." : "Get Access Now"}
               <Send className="ml-2 h-4 w-4" />
             </Button>
           </form>
@@ -80,7 +80,7 @@ export function BetaRequestForm({
             <p className="text-red-500 text-xs mt-2 text-center">{errorMessage}</p>
           )}
           <p className="text-xs text-muted-foreground mt-2 text-center">
-            We'll notify you when the beta is ready. No spam.
+            Access instructions will be sent to your email immediately.
           </p>
         </div>
       ) : (
@@ -90,7 +90,7 @@ export function BetaRequestForm({
           </div>
           <h4 className="text-lg font-medium mb-1">Thanks for joining!</h4>
           <p className="text-muted-foreground text-sm text-center max-w-md">
-            You're on the beta access list! We'll send you updates about the Note Companion Mobile app launch.
+            You now have beta access! Check your email for login instructions to start using Note Companion Mobile.
           </p>
         </div>
       )}

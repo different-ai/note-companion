@@ -136,7 +136,7 @@ export async function generateReleaseNotes(
     apiKey: options.openAIApiKey,
   });
 
-  const model = openai("gpt-4o");
+  const model = openai("gpt-4.1");
   const diff = getDiff(options.repoRoot, version);
   
   const maxRetries = 3;

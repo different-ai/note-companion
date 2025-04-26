@@ -335,14 +335,14 @@ export default function Page() {
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-4xl text-center">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
-              Simple, Flexible Pricing
+              Simple Pricing
             </h2>
             {/* <p className="text-lg text-muted-foreground mb-12">
               Whether you're a solo note-taker or a power user looking for advanced features, we've got you covered.
             </p> */}
             <div className="bg-[#EBF5FF] border-1 border-[#2E90FA] rounded-lg p-4 mb-12 max-w-3xl mx-auto text-center">
               <p className="text-[#1570EF]">
-                Educators and students qualify for a 50% discount on the Lifetime plan or a special Monthly rate of $9. To claim this offer, please reach out at alex@fileorganizer2000.com via your education email.
+                Educators and students qualify for a special Monthly rate of $9. To claim this offer, please reach out at alex@fileorganizer2000.com via your education email.
               </p>
             </div>
             

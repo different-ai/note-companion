@@ -1,4 +1,27 @@
-//
+// Type definitions for subscription and product system
+export type PlanType = "subscription" | "free";
+export type ProductType = "subscription" | "top_up" | "free";
+export type Plan =
+  | "monthly"
+  | "yearly"
+  | "top_up"
+  | "free";
+
+export interface ProductMetadata {
+  type: PlanType;
+  plan: Plan;
+}
+
+// Type helpers for webhook handlers
+export type WebhookMetadata = {
+  userId: string;
+  type: ProductType;
+  plan: Plan;
+};
+
+export type WebhookEventType = SubscriptionWebhookEvent;
+
+// Webhook event types
 export type SubscriptionWebhookEvent =
   | "checkout.session.completed"
   | "customer.created"
@@ -27,40 +50,30 @@ export type SubscriptionWebhookEvent =
   | "subscription_schedule.released"
   | "subscription_schedule.updated";
 
-// Product and plan types for type safety
-export type ProductType = "subscription" | "lifetime" | "top_up" | "free";
-export type Plan =
-  | "monthly"
-  | "yearly"
-  | "lifetime_license"
-  | "one_year_license"
-  | "top_up"
-  | "free";
-export type PlanType = "subscription" | "pay-once" | "free";
-
 // Pricing configuration
 export const PRICES = {
+  FREE: 0, // $0.00
   MONTHLY: 1500, // $15.00
   YEARLY: 11900, // $119.00
-  LIFETIME: 30000, // $300.00
-  ONE_YEAR: 20000, // $200.00
   TOP_UP: 1500, // $15.00
-  FREE: 0, // $0.00
+  ONE_YEAR: 20000, // $200.00
+  LIFETIME: 30000, // $300.00
 } as const;
 
+// Features by plan type
 const freeFeatures = [
-  "Limited to 100,000 tokens",
-  "Process up to ~30 files per month",
+
+  "Process up to ~30 notes per month (100 000 tokens)",
   "Limited audio transcription (10 min)",
   "Basic support",
   "No credit card required",
 ];
 
 const cloudFeatures = [
-  "No external AI credits needed",
-  "Seamless no-sweat setup",
-  "~1000 files per month",
+
+  "~1000 notes per month (5 million tokens)",
   "300 min audio transcription p/m",
+  "Seamless no-sweat setup",
   "Support",
   "30 days money-back guarantee",
 ];
@@ -76,13 +89,9 @@ const standardPayOnceFeatures = [
   "30 days money-back guarantee",
 ];
 
-export interface ProductMetadata {
-  type: PlanType;
-  plan: Plan;
-}
-
 // Product metadata configuration
 export const PRODUCTS = {
+  // Free tier
   FreeTier: {
     name: "Note Companion - Free",
     metadata: {
@@ -98,6 +107,8 @@ export const PRODUCTS = {
     },
     features: freeFeatures,
   },
+  
+  // Subscription plans
   SubscriptionMonthly: {
     name: "Note Companion - Cloud",
     metadata: {
@@ -129,6 +140,8 @@ export const PRODUCTS = {
     },
     features: [...cloudFeatures, "Save 33% compared to monthly"],
   },
+  
+  // One-time payment plans
   PayOnceLifetime: {
     name: "Note Companion - Lifetime",
     metadata: {
@@ -174,7 +187,7 @@ export const PRODUCTS = {
   },
 } as const;
 
-// Helper to get URLs based on environment
+// Helper functions
 export const getTargetUrl = () => {
   if (process.env.VERCEL_ENV === "production") {
     return process.env.VERCEL_PROJECT_PRODUCTION_URL;
@@ -209,12 +222,3 @@ export const validateWebhookMetadata = (metadata: unknown): metadata is WebhookM
 export const config = {
   products: PRODUCTS,
 };
-
-// Type helpers for webhook handlers
-export type WebhookMetadata = {
-  userId: string;
-  type: ProductType;
-  plan: Plan;
-};
-
-export type WebhookEventType = SubscriptionWebhookEvent;

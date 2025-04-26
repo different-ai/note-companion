@@ -22,9 +22,10 @@ export async function POST(request: NextRequest) {
         shouldRename: z.boolean(),
         reason: z.string(),
       }),
-      prompt: `Given the content and file name: "${fileName}", should we rename the file? Content: "${content}", based on ${customInstructions}`,
+      prompt: `Given the content and file name: "${fileName}", should we rename the file? Content: "${content}", based on ${customInstructions}. Additional context:
+      Time: ${new Date().toISOString()}`,
     });
-    console.log("should rename", shouldRename.object, customInstructions);
+
     if (!shouldRename.object.shouldRename) {
       // remove extension from fileName if it exists
       return NextResponse.json({
