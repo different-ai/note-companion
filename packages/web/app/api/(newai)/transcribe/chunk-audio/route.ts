@@ -158,37 +158,34 @@ class AudioChunker {
     // Check if the input is a URL
     if (audioPathOrUrl.startsWith('http://') || audioPathOrUrl.startsWith('https://')) {
       console.log(`Downloading audio from URL: ${audioPathOrUrl}`);
-      const tempFilePath = path.join(
-        '/tmp',
-        `audio_${Date.now()}${path.extname(audioPathOrUrl)}`
-      );
+      const tempFilePath = path.join('/tmp', `audio_${Date.now()}${path.extname(audioPathOrUrl)}`);
 
-      // Download the file
-      const response = await fetch(audioPathOrUrl);
-      if (!response.ok) {
-        throw new Error(`Failed to download audio from URL: ${audioPathOrUrl}`);
-      }
+      // Download and save file concurrently
+      const downloadPromise = fetch(audioPathOrUrl)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`Failed to download audio from URL: ${audioPathOrUrl}`);
+          }
+          return response.arrayBuffer();
+        })
+        .then(arrayBuffer => {
+          const buffer = Buffer.from(arrayBuffer);
+          return fs.promises.writeFile(tempFilePath, new Uint8Array(buffer));
+        })
+        .then(() => {
+          console.log(`Downloaded audio to temporary file: ${tempFilePath}`);
+          audioPath = tempFilePath;
+        });
 
-      if (response.body) {
-        const arrayBuffer = await response.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
-        await fs.promises.writeFile(tempFilePath, new Uint8Array(buffer));
-
-        console.log(`Downloaded audio to temporary file: ${tempFilePath}`);
-        audioPath = tempFilePath;
-      } else {
-        throw new Error('Response body is undefined');
-      }
-
-      console.log(`Downloaded audio to temporary file: ${tempFilePath}`);
-      audioPath = tempFilePath;
+      // Wait for download completion
+      await downloadPromise;
     }
 
     // Check if the audio file is under the limits before processing
     const audioFileInfo = await AudioChunker.getFileInfo(audioPath);
 
     if (audioFileInfo.duration <= AudioChunker.MAX_DURATION && audioFileInfo.size <= AudioChunker.MAX_SIZE_MB) {
-      console.log(`✅ File is already under limits (${AudioChunker.MAX_DURATION / 60} minutes and ${AudioChunker.MAX_SIZE_MB} MB). No chunking needed.`);
+      console.log(`✅ File is already under limits. No chunking needed.`);
       AudioChunker.FINAL_CHUNKS.add(audioFileInfo);
       chunkPaths.push(audioFileInfo.path);
       return chunkPaths;
@@ -210,7 +207,7 @@ class AudioChunker {
       throw new Error(`Unsupported file format: .${ext}`);
     }
 
-    // Convert to mp3 for compatibility with ffmpeg
+    // Convert to mp3 for compatibility with ffmpeg if needed
     const mp3Path = path.join(path.dirname(audioPath), `${path.basename(audioPath, path.extname(audioPath))}.mp3`);
     if (ext !== 'mp3') {
       console.log(`Converting ${audioPath} to mp3 format for compatibility...`);
@@ -227,19 +224,11 @@ class AudioChunker {
     }
 
     const fileInfo = await AudioChunker.getFileInfo(audioPath);
-
     console.log(`Processing file: ${audioPath}`);
-    console.log(`Duration: ${fileInfo.duration.toFixed(2)}s, Size: ${fileInfo.size.toFixed(2)} MB`);
 
-    // If the file is already within limits, no chunking is needed
     if (fileInfo.duration <= AudioChunker.MAX_DURATION && fileInfo.size <= AudioChunker.MAX_SIZE_MB) {
-      console.log(`✅ File is already under limits (${AudioChunker.MAX_DURATION / 60} minutes and ${AudioChunker.MAX_SIZE_MB} MB). No chunking needed.`);
-      if (fileInfo.name.includes('_part')) {
-        AudioChunker.FINAL_CHUNKS.add(fileInfo);
-        chunkPaths.push(fileInfo.path);
-      } else {
-        chunkPaths.push(audioPathOrUrl); // Append the URL directly if under limits
-      }
+      console.log(`✅ File is already under limits. No chunking needed.`);
+      chunkPaths.push(audioPath);
       return chunkPaths;
     }
 
@@ -255,10 +244,15 @@ class AudioChunker {
       ? maxDurationForSize
       : AudioChunker.MAX_DURATION;
 
-    // Detect silence points within the target range
+    // Detect silence points within the target range concurrently
     const targetStart = AudioChunker.TARGET_START_RATIO * effectiveMaxDuration;
     const targetEnd = effectiveMaxDuration;
-    const silencePoints = await AudioChunker.detectSilence(audioPath, targetStart, targetEnd);
+
+    // Parallel processing of silence detection and chunking logic
+    const [silencePoints] = await Promise.all([
+      AudioChunker.detectSilence(audioPath, targetStart, targetEnd),
+      // You can perform other asynchronous tasks concurrently here (e.g., preparing other cuts).
+    ]);
 
     console.log('Detected silence points in target range:', silencePoints.map(p => p.toFixed(2)));
 
@@ -279,59 +273,70 @@ class AudioChunker {
     const secondChunk = path.join(outputDir, `${baseName}_part2${path.extname(audioPath)}`);
 
     console.log(`Cutting at ${cutPoint.toFixed(2)} seconds...`);
-    await AudioChunker.cutAudio(audioPath, firstChunk, 0, cutPoint);
-    await AudioChunker.cutAudio(audioPath, secondChunk, cutPoint, fileInfo.duration - cutPoint);
+
+    // Run chunking in parallel
+    const chunkPromises = [
+      AudioChunker.cutAudio(audioPath, firstChunk, 0, cutPoint),
+      AudioChunker.cutAudio(audioPath, secondChunk, cutPoint, fileInfo.duration - cutPoint),
+    ];
+
+    await Promise.all(chunkPromises);
 
     console.log('✅ Audio chunked into:');
     console.log('   -', firstChunk);
     console.log('   -', secondChunk);
 
-    const firstChunkInfo = await AudioChunker.getFileInfo(firstChunk);
-    const secondChunkInfo = await AudioChunker.getFileInfo(secondChunk);
+    const chunkInfos = await Promise.all([
+      AudioChunker.getFileInfo(firstChunk),
+      AudioChunker.getFileInfo(secondChunk),
+    ]);
 
-    console.log(`   - First chunk: ${firstChunkInfo.size.toFixed(2)} MB, ${firstChunkInfo.duration.toFixed(2)}s`);
-    console.log(`   - Second chunk: ${secondChunkInfo.size.toFixed(2)} MB, ${secondChunkInfo.duration.toFixed(2)}s`);
+    console.log(`   - First chunk: ${chunkInfos[0].size.toFixed(2)} MB, ${chunkInfos[0].duration.toFixed(2)}s`);
+    console.log(`   - Second chunk: ${chunkInfos[1].size.toFixed(2)} MB, ${chunkInfos[1].duration.toFixed(2)}s`);
 
-    // Remove the original file from final chunks and add the new chunks
     AudioChunker.removeFromFinalChunks(audioPath);
-
-    AudioChunker.FINAL_CHUNKS.add(firstChunkInfo);
-    AudioChunker.FINAL_CHUNKS.add(secondChunkInfo);
-
-    chunkPaths.push(firstChunkInfo.path, secondChunkInfo.path);
+    chunkPaths.push(firstChunk, secondChunk);
 
     // Recursively process chunks if they still exceed limits
     const chunksToProcess: string[] = [];
     const intermediatesToRemove: string[] = [];
 
-    if (firstChunkInfo.duration > AudioChunker.MAX_DURATION || firstChunkInfo.size > AudioChunker.MAX_SIZE_MB) {
-      chunksToProcess.push(firstChunk);
-      intermediatesToRemove.push(firstChunk);
-    }
+    // Process chunks concurrently
+    const chunkProcessingPromises = chunkInfos.map(async (chunkInfo, index) => {
+      const chunk = index === 0 ? firstChunk : secondChunk;
 
-    if (secondChunkInfo.duration > AudioChunker.MAX_DURATION || secondChunkInfo.size > AudioChunker.MAX_SIZE_MB) {
-      chunksToProcess.push(secondChunk);
-      intermediatesToRemove.push(secondChunk);
-    }
+      if (chunkInfo.duration > AudioChunker.MAX_DURATION || chunkInfo.size > AudioChunker.MAX_SIZE_MB) {
+        chunksToProcess.push(chunk);
+        intermediatesToRemove.push(chunk);
+      }
+    });
 
-    for (const chunk of chunksToProcess) {
+    await Promise.all(chunkProcessingPromises);
+
+    // Remove intermediate files and process further chunks in parallel
+    const subChunkProcessingPromises = chunksToProcess.map(async chunk => {
       console.log(`\nRecursively processing chunk: ${chunk}`);
       const subChunks = await AudioChunker.chunkAudio(chunk);
       chunkPaths.push(...subChunks);
-    }
+    });
+
+    await Promise.all(subChunkProcessingPromises);
 
     // Remove intermediate files from memory and chunkPaths
-    for (const intermediate of intermediatesToRemove) {
+    const removeIntermediatesPromises = intermediatesToRemove.map(async intermediate => {
       console.log(`Removing intermediate file: ${intermediate}`);
       AudioChunker.removeFromFinalChunks(intermediate);
       const index = chunkPaths.indexOf(intermediate);
       if (index > -1) {
         chunkPaths.splice(index, 1);
       }
-    }
+    });
+
+    await Promise.all(removeIntermediatesPromises);
 
     return chunkPaths;
   }
+
 
   // Print a summary of the final audio chunks
   private static printChunkSummary(): void {
@@ -401,13 +406,13 @@ class AudioChunker {
   }
 }
 
-namespace AudioChunker {
-  // Interface to represent file information
-  export interface FileInfo {
-    path: string;
-    name: string;
-    duration: number;
-    size: number;
-    originalFile: string;
-  }
-}
+// namespace AudioChunker {
+//   // Interface to represent file information
+//   export interface FileInfo {
+//     path: string;
+//     name: string;
+//     duration: number;
+//     size: number;
+//     originalFile: string;
+//   }
+// }
