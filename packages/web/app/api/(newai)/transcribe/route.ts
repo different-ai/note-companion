@@ -28,6 +28,7 @@ export async function POST(request: Request) {
     const uploadResponse = await fetch(`http://localhost:3000/api/transcribe/upload`, {
       method: "POST",
       body: formData,
+      timeout: 600000,
     });
 
     if (!uploadResponse.ok) {
