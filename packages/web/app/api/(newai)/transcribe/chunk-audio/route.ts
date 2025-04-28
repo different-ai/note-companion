@@ -405,14 +405,3 @@ class AudioChunker {
     }
   }
 }
-
-// namespace AudioChunker {
-//   // Interface to represent file information
-//   export interface FileInfo {
-//     path: string;
-//     name: string;
-//     duration: number;
-//     size: number;
-//     originalFile: string;
-//   }
-// }
