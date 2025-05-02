@@ -12,7 +12,6 @@ import { MaterialIcons } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system";
-// TODO: Uncomment to re-enable share intent functionality
 import { useShareIntent } from "expo-share-intent";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ProcessingStatus } from "@/components/processing-status";
@@ -38,12 +37,10 @@ export default function HomeScreen() {
     sharedFile?: string;
     capturedPhoto?: string;
   }>();
-  // TODO: Uncomment to re-enable share intent functionality
   const { shareIntent } = useShareIntent();
   const primaryColor = useSemanticColor("primary");
   const insets = useSafeAreaInsets();
 
-  // TODO: Uncomment this useEffect block to re-enable share intent functionality
   useEffect(() => {
     // Handle shared content
     const handleSharedContent = async () => {
@@ -343,51 +340,6 @@ export default function HomeScreen() {
     }
   };
 
-  const takePhoto = async () => {
-    try {
-      const { status: cameraStatus } =
-        await ImagePicker.requestCameraPermissionsAsync();
-      if (cameraStatus !== "granted") {
-        setStatus("error");
-        setUploadResults([
-          {
-            status: "error",
-            error: "Camera permission denied",
-            fileName: undefined,
-            mimeType: undefined,
-            text: undefined,
-            fileUrl: undefined,
-          },
-        ]);
-        return;
-      }
-
-      const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        quality: 0.8,
-      });
-
-      if (result.canceled) return;
-      if (result.assets && result.assets.length > 0) {
-        await uploadFiles(result.assets);
-      }
-    } catch (error) {
-      console.error("Error taking photo:", error);
-      setStatus("error");
-      setUploadResults([
-        {
-          status: "error",
-          error:
-            error instanceof Error ? error.message : "Failed to take photo",
-          fileName: undefined,
-          mimeType: undefined,
-          text: undefined,
-          fileUrl: undefined,
-        },
-      ]);
-    }
-  };
-
   // New function for Magic Diagram
   const takeMagicDiagramPhoto = async () => {
     try {
@@ -440,11 +392,6 @@ export default function HomeScreen() {
         },
       ]);
     }
-  };
-
-  const handleRetry = () => {
-    setStatus("idle");
-    setUploadResults([]);
   };
 
   const renderHeader = () => (
@@ -549,21 +496,34 @@ export default function HomeScreen() {
   return (
     <ThemedView style={styles.container}>
       {renderHeader()}
-      <ProcessingStatus
-        status={status}
-        result={uploadResults[0]?.text as any} // Keep existing 'any' for now
-        fileUrl={uploadResults[0]?.url}
-        mimeType={uploadResults[0]?.mimeType}
-        fileName={uploadResults[0]?.fileName}
-        // Add processType prop - Need to get this from uploadResults too
-        // Assuming UploadResult has processType, which might need adding
-        // For now, let's try accessing it, will need adjustment if not present
-        processType={(uploadResults[0] as any)?.processType} // Add processType, may need type update
-        showDetails={false}
-      />
       <ScrollView style={styles.scrollView}>
         <View style={styles.mainSection}>
-          {renderExplanation()}
+          {/* if not processing show explanation card  if not show processing status*/}
+          {status === "uploading" ? (
+            <ProcessingStatus
+              status={status}
+              result={uploadResults[0]?.text as any} // Keep existing 'any' for now
+              fileUrl={uploadResults[0]?.url}
+              mimeType={uploadResults[0]?.mimeType}
+            />
+          ) : (
+            <>
+              <View style={styles.explanationCard}>
+                <MaterialIcons
+                  name="auto-awesome"
+                  size={24}
+                  color={primaryColor}
+                />
+                <Text style={styles.explanationTitle}>
+                  Get OCR from any image
+                </Text>
+                <Text style={styles.explanationText}>
+                  Upload any image and get the text extracted. You can also use
+                  the share sheet to upload from other apps.
+                </Text>
+              </View>
+            </>
+          )}
           {renderUploadButtons()}
         </View>
       </ScrollView>

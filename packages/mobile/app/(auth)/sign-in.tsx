@@ -38,7 +38,13 @@ export default function SignInScreen() {
       setLoading(true);
       console.log('[SignIn] Attempting sign in with email');
       
-      // Create a sign in attempt
+      if (!isLoaded || !signIn) {
+        console.error('[SignIn] Clerk not loaded or signIn unavailable');
+        Alert.alert('Error', 'Sign in service is not ready. Please try again.');
+        setLoading(false);
+        return;
+      }
+
       const result = await signIn.create({
         identifier: email,
         password,
@@ -49,19 +55,33 @@ export default function SignInScreen() {
       if (result.status === 'complete') {
         console.log('[SignIn] Sign in complete, activating session');
         
-        // Ensure we persist the session by setting it active
+        if (!setSignInActive) {
+           console.error('[SignIn] setSignInActive is unavailable');
+           Alert.alert('Error', 'Could not activate session. Please try again.');
+           setLoading(false);
+           return;
+        }
         await setSignInActive({ session: result.createdSessionId });
         console.log('[SignIn] Session activated successfully');
         
-        // Navigate to main app
         router.replace('/(tabs)');
       } else {
         console.log('[SignIn] Sign in requires additional steps:', result.status);
         // Handle additional verification if needed
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[SignIn] Sign in error:', err);
-      Alert.alert('Error', err.errors?.[0]?.message || 'Failed to sign in');
+      // More generic error checking for Clerk
+      let errorMessage = 'Failed to sign in. Please check your credentials.';
+      if (typeof err === 'object' && err !== null && 'errors' in err) {
+        const clerkError = err as { errors: { message: string }[] };
+        if (Array.isArray(clerkError.errors) && clerkError.errors.length > 0 && clerkError.errors[0].message) {
+          errorMessage = clerkError.errors[0].message;
+        }
+      } else if (err instanceof Error) {
+        errorMessage = err.message; // Fallback to general error message
+      }
+      Alert.alert('Error', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -185,10 +205,8 @@ export default function SignInScreen() {
             style={[styles.button, styles.appleButton]}
             onPress={onSignInWithApple}
           >
-            <View style={styles.appleLogoContainer}>
-              <Ionicons name="logo-apple" size={24} color="#FFFFFF" />
-            </View>
-            <Text style={[styles.buttonText, styles.appleButtonText]}>
+            <Ionicons name="logo-apple" size={24} color="#000000" />
+            <Text style={styles.buttonText}>
               Continue with Apple
             </Text>
           </TouchableOpacity>
@@ -306,12 +324,13 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
   },
   appleButton: {
-    backgroundColor: '#000',
-    borderColor: '#000',
+    backgroundColor: '#fff',
+    borderColor: '#ddd',
   },
   appleLogoContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    // Remove this style - no longer needed
+    // justifyContent: 'center',
+    // alignItems: 'center',
   },
   buttonText: {
     fontSize: 16,
@@ -319,7 +338,8 @@ const styles = StyleSheet.create({
     color: '#1a1a1a',
   },
   appleButtonText: {
-    color: '#fff',
+    // Remove this style - using buttonText now
+    // color: '#fff',
   },
   divider: {
     flexDirection: 'row',

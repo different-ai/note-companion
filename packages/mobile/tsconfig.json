@@ -1,13 +1,12 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
+    "moduleResolution": "bundler",
     "tsBuildInfoFile": "node_modules/.cache/tsbuildinfo.json",
     "types": ["react", "react-native", "nativewind/types"],
     "incremental": true,
     "strict": true,
     "baseUrl": ".",
-
-    "typeRoots": ["./node_modules/@types"],
 
     "paths": {
       "@/*": ["./*"]

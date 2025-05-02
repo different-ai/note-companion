@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Alert, Platform, ScrollView, Linking } from 'react-native';
+import { View, StyleSheet, Alert, Platform, ScrollView, Linking, ActivityIndicator } from 'react-native';
 import { useAuth, useUser } from '@clerk/clerk-expo';
 import { Button } from '../../components/Button';
 import { ThemedView } from '../../components/ThemedView';
@@ -8,12 +8,46 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useSemanticColor } from '@/hooks/useThemeColor';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { UsageStatus } from '@/components/usage-status';
+import Purchases, { CustomerInfo } from 'react-native-purchases';
+import { useRouter } from 'expo-router';
 
 export default function SettingsScreen() {
   const { signOut } = useAuth();
   const { user } = useUser();
   const primaryColor = useSemanticColor('primary');
   const insets = useSafeAreaInsets();
+  const router = useRouter();
+
+  const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
+  const [isFetchingInfo, setIsFetchingInfo] = useState(true);
+
+  useEffect(() => {
+    const fetchCustomerInfo = async () => {
+      setIsFetchingInfo(true);
+      try {
+        const info = await Purchases.getCustomerInfo();
+        setCustomerInfo(info);
+      } catch (e) {
+        console.error("Failed to fetch customer info:", e);
+      } finally {
+        setIsFetchingInfo(false);
+      }
+    };
+
+    fetchCustomerInfo();
+  }, []);
+
+  useEffect(() => {
+    const listener = (info: CustomerInfo) => {
+      setCustomerInfo(info);
+    };
+    Purchases.addCustomerInfoUpdateListener(listener);
+    return () => {
+      Purchases.removeCustomerInfoUpdateListener(listener);
+    };
+  }, []);
+
+  const hasProAccess = customerInfo?.activeSubscriptions?.length > 0;
 
   const handleDeleteAccount = () => {
     Alert.alert(
@@ -36,9 +70,7 @@ export default function SettingsScreen() {
 
   const confirmDeleteAccount = async () => {
     try {
-      // First attempt to delete the user
       await user?.delete();
-      // If successful, sign out
       await signOut();
     } catch (error) {
       console.error("Error deleting account:", error);
@@ -47,6 +79,10 @@ export default function SettingsScreen() {
         "There was a problem deleting your account. Please try again later."
       );
     }
+  };
+
+  const handleManageSubscription = () => {
+    Alert.alert("Manage Subscription", "Subscription management not yet implemented.");
   };
 
   return (
@@ -80,6 +116,38 @@ export default function SettingsScreen() {
         <View style={styles.section}>
           <ThemedText type="subtitle" style={styles.sectionTitle}>Account Status</ThemedText>
           
+          <ThemedView variant="elevated" style={styles.card}>
+            {isFetchingInfo ? (
+              <ActivityIndicator color={primaryColor} />
+            ) : (
+              <View style={styles.subscriptionInfoContainer}>
+                <View style={styles.subscriptionTextContainer}>
+                  <ThemedText type="defaultSemiBold">Subscription</ThemedText>
+                  <ThemedText colorName="textSecondary">
+                    {hasProAccess ? "Pro Access Active" : "Free Tier"}
+                  </ThemedText>
+                </View>
+                {!hasProAccess ? (
+                  <Button 
+                    variant="primary"
+                    onPress={() => router.push("/(modals)/paywall")}
+                    style={styles.upgradeButton}
+                  >
+                    Upgrade to Pro
+                  </Button>
+                ) : (
+                  <Button 
+                    variant="secondaryOutline"
+                    onPress={handleManageSubscription}
+                    style={styles.manageButton}
+                  >
+                    Manage
+                  </Button>
+                )}
+              </View>
+            )}
+          </ThemedView>
+
           <UsageStatus />
           
           <ThemedView variant="elevated" style={styles.infoCard}>
@@ -178,6 +246,27 @@ const styles = StyleSheet.create({
   userDetails: {
     marginLeft: 12,
   },
+  subscriptionInfoContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  subscriptionTextContainer: {
+    flex: 1,
+    marginRight: 8,
+  },
+  upgradeButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    minHeight: 0,
+  },
+  manageButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    minHeight: 0,
+    borderColor: '#CCCCCC',
+    borderWidth: 1,
+  },
   infoCard: {
     padding: 16,
     borderRadius: 12,
@@ -197,11 +286,10 @@ const styles = StyleSheet.create({
   signOutButton: {
     marginTop: 10,
     borderRadius: 12,
-    minHeight: 50, // Taller buttons for better touch targets
+    minHeight: 50,
     marginHorizontal: 16,
     borderWidth: 1,
     borderColor: '#CCCCCC',
-    // We're explicitly setting backgroundColor in the component itself
   },
   bottomActions: {
     paddingVertical: 20,
