@@ -130,10 +130,16 @@ export default function SettingsScreen() {
               {/* Disclosure for External Purchase Link */}
               <View style={styles.disclosureSection}>
                 <ThemedText style={styles.disclosureText} colorName="textSecondary">
-                  Tapping "Upgrade on notecompanion.ai" will take you outside the app to complete your purchase for the Note Companion - Cloud plan ($15.00/month).
-                  This subscription is managed entirely through our website, not Apple.
+                  <ThemedText style={[styles.disclosureText, { fontWeight: '600' }]}>Note Companion AI - Cloud Plan</ThemedText>{'\n\n'}
+                  Subscription Length: Monthly (recurring payment, cancel anytime){'\n'}
+                  Price: $15.00/month{'\n\n'}
+                  Tapping "Upgrade on notecompanion.ai" will take you outside the app to complete your purchase. This subscription is managed entirely through our website, not Apple.
                 </ThemedText>
               </View>
+              <TouchableOpacity style={styles.tosLink} onPress={() => Linking.openURL('https://notecompanion.ai/terms-of-service')}>
+                <ThemedText style={styles.tosLinkText}>Terms of Service</ThemedText>
+                <MaterialIcons name="launch" size={16} color={primaryColor} />
+              </TouchableOpacity>
             </View>
           )}
 
@@ -304,6 +310,17 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 16,
     textAlign: 'center',
+  },
+  tosLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+  },
+  tosLinkText: {
+    marginRight: 8,
+    color: '#007AFF',
+    fontSize: 14,
   },
   legalSection: {
     padding: 16,
