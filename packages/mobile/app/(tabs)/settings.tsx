@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Alert, Platform, ScrollView, Linking, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, Alert, Platform, ScrollView, Linking, TouchableOpacity } from 'react-native';
 import { useAuth, useUser } from '@clerk/clerk-expo';
 import { Button } from '../../components/Button';
 import { ThemedView } from '../../components/ThemedView';
@@ -8,46 +8,33 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useSemanticColor } from '@/hooks/useThemeColor';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { UsageStatus } from '@/components/usage-status';
-import Purchases, { CustomerInfo } from 'react-native-purchases';
-import { useRouter } from 'expo-router';
+import Constants from 'expo-constants';
+import * as Localization from 'expo-localization';
+import * as WebBrowser from 'expo-web-browser';
 
 export default function SettingsScreen() {
   const { signOut } = useAuth();
   const { user } = useUser();
   const primaryColor = useSemanticColor('primary');
   const insets = useSafeAreaInsets();
-  const router = useRouter();
+  const isUS = Localization.region === 'US';
 
-  const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
-  const [isFetchingInfo, setIsFetchingInfo] = useState(true);
+  type ExtraConfig = { upgradeCheckoutUrl?: string };
+  const checkoutUrl = process.env.EXPO_PUBLIC_UPGRADE_CHECKOUT_URL;
 
-  useEffect(() => {
-    const fetchCustomerInfo = async () => {
-      setIsFetchingInfo(true);
-      try {
-        const info = await Purchases.getCustomerInfo();
-        setCustomerInfo(info);
-      } catch (e) {
-        console.error("Failed to fetch customer info:", e);
-      } finally {
-        setIsFetchingInfo(false);
-      }
-    };
 
-    fetchCustomerInfo();
-  }, []);
-
-  useEffect(() => {
-    const listener = (info: CustomerInfo) => {
-      setCustomerInfo(info);
-    };
-    Purchases.addCustomerInfoUpdateListener(listener);
-    return () => {
-      Purchases.removeCustomerInfoUpdateListener(listener);
-    };
-  }, []);
-
-  const hasProAccess = customerInfo?.activeSubscriptions?.length > 0;
+  const handleUpgrade = async () => {
+    if (!checkoutUrl) {
+      Alert.alert('Unavailable', 'Upgrade link is not configured.');
+      return;
+    }
+    try {
+      await WebBrowser.openBrowserAsync(checkoutUrl);
+    } catch (error) {
+      console.error("Failed to open upgrade URL:", error);
+      Alert.alert("Error", "Could not open the upgrade page.");
+    }
+  };
 
   const handleDeleteAccount = () => {
     Alert.alert(
@@ -70,7 +57,9 @@ export default function SettingsScreen() {
 
   const confirmDeleteAccount = async () => {
     try {
+      // First attempt to delete the user
       await user?.delete();
+      // If successful, sign out
       await signOut();
     } catch (error) {
       console.error("Error deleting account:", error);
@@ -79,10 +68,6 @@ export default function SettingsScreen() {
         "There was a problem deleting your account. Please try again later."
       );
     }
-  };
-
-  const handleManageSubscription = () => {
-    Alert.alert("Manage Subscription", "Subscription management not yet implemented.");
   };
 
   return (
@@ -97,7 +82,10 @@ export default function SettingsScreen() {
         </ThemedText>
       </ThemedView>
       
-      <ScrollView style={styles.contentContainer}>
+      <ScrollView 
+        style={styles.contentContainer}
+        contentContainerStyle={{ paddingBottom: 100 }}
+      >
         <View style={styles.section}>
           <ThemedText type="subtitle" style={styles.sectionTitle}>Account</ThemedText>
           
@@ -116,38 +104,6 @@ export default function SettingsScreen() {
         <View style={styles.section}>
           <ThemedText type="subtitle" style={styles.sectionTitle}>Account Status</ThemedText>
           
-          <ThemedView variant="elevated" style={styles.card}>
-            {isFetchingInfo ? (
-              <ActivityIndicator color={primaryColor} />
-            ) : (
-              <View style={styles.subscriptionInfoContainer}>
-                <View style={styles.subscriptionTextContainer}>
-                  <ThemedText type="defaultSemiBold">Subscription</ThemedText>
-                  <ThemedText colorName="textSecondary">
-                    {hasProAccess ? "Pro Access Active" : "Free Tier"}
-                  </ThemedText>
-                </View>
-                {!hasProAccess ? (
-                  <Button 
-                    variant="primary"
-                    onPress={() => router.push("/(modals)/paywall")}
-                    style={styles.upgradeButton}
-                  >
-                    Upgrade to Pro
-                  </Button>
-                ) : (
-                  <Button 
-                    variant="secondaryOutline"
-                    onPress={handleManageSubscription}
-                    style={styles.manageButton}
-                  >
-                    Manage
-                  </Button>
-                )}
-              </View>
-            )}
-          </ThemedView>
-
           <UsageStatus />
           
           <ThemedView variant="elevated" style={styles.infoCard}>
@@ -158,15 +114,45 @@ export default function SettingsScreen() {
           </ThemedView>
         </View>
         
-        {/* Bottom buttons */}
-        <View style={styles.bottomActions}>
-          <Button
-            onPress={() => signOut()}
-            variant="secondary" 
-            textStyle={{color: '#333333', fontWeight: '600'}}
-          >
-            Sign Out
-          </Button>
+        {/* Upgrade and Sign Out buttons */}
+        <View style={styles.actionsContainer}> 
+
+          {/* Upgrade Section (Conditional for US) */}
+          {isUS && (
+            <View style={styles.upgradeSection}>
+              <Button
+                onPress={handleUpgrade}
+                variant="primary"
+              >
+                Upgrade on notecompanion.ai
+              </Button>
+
+              {/* Disclosure for External Purchase Link */}
+              <View style={styles.disclosureSection}>
+                <ThemedText style={styles.disclosureText} colorName="textSecondary">
+                  <ThemedText style={[styles.disclosureText, { fontWeight: '600' }]}>Note Companion AI - Cloud Plan</ThemedText>{'\n\n'}
+                  Subscription Length: Monthly (recurring payment, cancel anytime){'\n'}
+                  Price: $15.00/month{'\n\n'}
+                  Tapping "Upgrade on notecompanion.ai" will take you outside the app to complete your purchase. This subscription is managed entirely through our website, not Apple.
+                </ThemedText>
+              </View>
+              <TouchableOpacity style={styles.tosLink} onPress={() => Linking.openURL('https://notecompanion.ai/terms-of-service')}>
+                <ThemedText style={styles.tosLinkText}>Terms of Service</ThemedText>
+                <MaterialIcons name="launch" size={16} color={primaryColor} />
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Sign Out Button */}
+          <View style={styles.signOutContainer}>
+            <Button
+              onPress={() => signOut()}
+              variant="secondary" 
+              textStyle={{color: '#333333', fontWeight: '600'}}
+            >
+              Sign Out
+            </Button>
+          </View>
         </View>
         
         {/* Danger Zone Section */}
@@ -184,6 +170,19 @@ export default function SettingsScreen() {
               Delete Account
             </Button>
           </ThemedView>
+        </View>
+
+        {/* Legal Section */}
+        <View style={styles.legalSection}>
+          <ThemedText type="subtitle" style={styles.sectionTitle}>Legal</ThemedText>
+          <TouchableOpacity style={styles.legalLink} onPress={() => Linking.openURL('https://notecompanion.ai/privacy')}> 
+            <ThemedText style={styles.legalLinkText}>Privacy Policy</ThemedText>
+            <MaterialIcons name="launch" size={16} color={primaryColor} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.legalLink} onPress={() => Linking.openURL('https://notecompanion.ai/terms-of-service')}>
+            <ThemedText style={styles.legalLinkText}>Terms of Service</ThemedText>
+            <MaterialIcons name="launch" size={16} color={primaryColor} />
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </ThemedView>
@@ -246,27 +245,6 @@ const styles = StyleSheet.create({
   userDetails: {
     marginLeft: 12,
   },
-  subscriptionInfoContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  subscriptionTextContainer: {
-    flex: 1,
-    marginRight: 8,
-  },
-  upgradeButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    minHeight: 0,
-  },
-  manageButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    minHeight: 0,
-    borderColor: '#CCCCCC',
-    borderWidth: 1,
-  },
   infoCard: {
     padding: 16,
     borderRadius: 12,
@@ -283,16 +261,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
   },
-  signOutButton: {
-    marginTop: 10,
-    borderRadius: 12,
-    minHeight: 50,
-    marginHorizontal: 16,
-    borderWidth: 1,
-    borderColor: '#CCCCCC',
-  },
-  bottomActions: {
+  actionsContainer: {
     paddingVertical: 20,
+    marginTop: 10,
+  },
+  upgradeSection: {
+    marginBottom: 16,
+  },
+  signOutContainer: {
     marginTop: 10,
   },
   dangerSection: {
@@ -323,5 +299,41 @@ const styles = StyleSheet.create({
     minHeight: 48,
     backgroundColor: '#E53E3E',
     marginTop: 8,
+  },
+  disclosureSection: {
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 16,
+    backgroundColor: 'rgba(254, 215, 215, 0.1)',
+  },
+  disclosureText: {
+    fontSize: 12,
+    lineHeight: 16,
+    textAlign: 'center',
+  },
+  tosLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+  },
+  tosLinkText: {
+    marginRight: 8,
+    color: '#007AFF',
+    fontSize: 14,
+  },
+  legalSection: {
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 10,
+    backgroundColor: 'rgba(254, 215, 215, 0.1)',
+  },
+  legalLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  legalLinkText: {
+    marginLeft: 8,
   },
 });

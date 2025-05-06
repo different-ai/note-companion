@@ -1,8 +1,8 @@
 "use server";
-import { auth } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import Stripe from "stripe";
-import { PRODUCTS, PRICES } from "../../../srm.config";
+import { PRODUCTS, PRICES, ProductMetadata } from "../../../srm.config";
 import { getUrl } from "@/lib/getUrl";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -13,172 +13,141 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 const getUrls = () => {
   const origin = getUrl();
   return {
-    success: `${origin}/dashboard/subscribers`,
-    cancel: `${origin}/dashboard`,
-    lifetime: `${origin}/dashboard/lifetime`,
+    // Consistent success/cancel URLs simplify things
+    success: `${origin}/dashboard?checkout=success`,
+    cancel: `${origin}/dashboard/pricing?checkout=cancel`,
+    // Specific landing for lifetime might be nice, but optional
+    // lifetime: `${origin}/dashboard/lifetime`,
   };
 };
+
+// Internal helper to create Stripe Session without redirecting
+export async function _createStripeCheckoutSession(userId: string, plan: keyof typeof PRODUCTS) {
+  const { success, cancel } = getUrls();
+  const productConfig = PRODUCTS[plan];
+
+  if (!productConfig) {
+    throw new Error(`Invalid plan specified: ${plan}`);
+  }
+
+  const authResult = await auth(); // Get the full auth object
+  if (!authResult.userId || authResult.userId !== userId) throw new Error("User mismatch or not authenticated");
+
+  // Fetch user details using clerkClient for email prefill
+  const clerkUser = await clerkClient.users.getUser(userId);
+  const userEmail = clerkUser.emailAddresses.find(e => e.id === clerkUser.primaryEmailAddressId)?.emailAddress;
+
+  const metadata = {
+    userId,
+    type: productConfig.metadata.type,
+    plan: productConfig.metadata.plan,
+  };
+
+  // Determine mode and line items based on product config
+  const mode = productConfig.metadata.type === "subscription" ? "subscription" : "payment";
+  const priceInfo = Object.values(productConfig.prices)[0]; // Assumes one price per product for simplicity here
+
+  if (!priceInfo) {
+    throw new Error(`No price info found for plan: ${plan}`);
+  }
+
+  const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [
+    {
+      price_data: {
+        currency: "usd",
+        product_data: {
+          name: productConfig.name,
+          metadata: {
+            plan_type: productConfig.metadata.type,
+            plan_name: productConfig.metadata.plan,
+          },
+        },
+        unit_amount: priceInfo.amount,
+        ...(mode === "subscription" && priceInfo.interval && priceInfo.interval !== 'one_time'
+            ? { recurring: { interval: priceInfo.interval } }
+            : {}),
+      },
+      quantity: 1,
+    },
+  ];
+
+  const sessionCreateParams: Stripe.Checkout.SessionCreateParams = {
+    mode,
+    payment_method_types: ["card"],
+    metadata,
+    line_items: lineItems,
+    success_url: success,
+    cancel_url: cancel,
+    allow_promotion_codes: true,
+    ...(userEmail ? { customer_email: userEmail } : {}),
+  };
+
+  // Add subscription-specific data if applicable
+  if (mode === "subscription") {
+    sessionCreateParams.subscription_data = {
+      metadata,
+      ...(priceInfo.type === 'recurring' && priceInfo.trialPeriodDays
+          ? { trial_period_days: priceInfo.trialPeriodDays }
+          : {}),
+    };
+  }
+  // Add payment_intent_data if applicable (for one-time payments)
+  else if (mode === "payment") {
+      sessionCreateParams.payment_intent_data = { metadata };
+  }
+
+  const session = await stripe.checkout.sessions.create(sessionCreateParams);
+
+  if (!session.url) {
+      throw new Error("Stripe session creation failed, no URL returned.");
+  }
+
+  return session.url;
+}
+
+
+// --- Existing Actions Refactored ---
 
 export async function createPayOnceLifetimeCheckout() {
   const { userId } = await auth();
   if (!userId) throw new Error("Not authenticated");
-  const metadata = {
-    userId,
-    type: PRODUCTS.PayOnceLifetime.metadata.type,
-    plan: PRODUCTS.PayOnceLifetime.metadata.plan,
-  };
-
-  const { success, cancel, lifetime } = getUrls();
-
-  const session = await stripe.checkout.sessions.create({
-    mode: "payment",
-    payment_method_types: ["card"],
-    metadata,
-    line_items: [
-      {
-        price_data: {
-          currency: "usd",
-          product_data: {
-            name: PRODUCTS.PayOnceLifetime.name,
-            metadata: PRODUCTS.PayOnceLifetime.metadata,
-          },
-          unit_amount: PRICES.LIFETIME,
-        },
-        quantity: 1,
-      },
-    ],
-    payment_intent_data: {
-      metadata,
-    },
-    success_url: lifetime,
-    cancel_url: cancel,
-    allow_promotion_codes: true,
-  });
-
-  redirect(session.url!);
+  const sessionUrl = await _createStripeCheckoutSession(userId, 'PayOnceLifetime');
+  redirect(sessionUrl);
 }
 
 export async function createMonthlySubscriptionCheckout() {
   const { userId } = await auth();
   if (!userId) throw new Error("Not authenticated");
-
-  const { success, cancel } = getUrls();
-  const metadata = {
-    userId,
-    type: PRODUCTS.SubscriptionMonthly.metadata.type,
-    plan: PRODUCTS.SubscriptionMonthly.metadata.plan,
-  };
-
-  const session = await stripe.checkout.sessions.create({
-    mode: "subscription",
-    payment_method_types: ["card"],
-    metadata,
-    line_items: [
-      {
-        price_data: {
-          currency: "usd",
-          product_data: {
-            name: PRODUCTS.SubscriptionMonthly.name,
-          },
-          unit_amount: PRICES.MONTHLY,
-          recurring: {
-            interval: "month",
-          },
-        },
-        quantity: 1,
-      },
-    ],
-    subscription_data: {
-      metadata,
-    },
-
-    success_url: success,
-    cancel_url: cancel,
-    allow_promotion_codes: true,
-  });
-
-  redirect(session.url!);
+  const sessionUrl = await _createStripeCheckoutSession(userId, 'SubscriptionMonthly');
+  redirect(sessionUrl);
 }
 
-export async function createYearlySession(userId: string) {
-  const { success, cancel } = getUrls();
-  const metadata = {
-    userId,
-    type: PRODUCTS.SubscriptionYearly.metadata.type,
-    plan: PRODUCTS.SubscriptionYearly.metadata.plan,
-  };
-
-  const session = await stripe.checkout.sessions.create({
-    mode: "subscription",
-    payment_method_types: ["card"],
-    metadata,
-    line_items: [
-      {
-        price_data: {
-          currency: "usd",
-          product_data: {
-            name: PRODUCTS.SubscriptionYearly.name,
-          },
-          unit_amount: PRICES.YEARLY,
-          recurring: {
-            interval: "year",
-          },
-        },
-        quantity: 1,
-      },
-    ],
-    success_url: success,
-    cancel_url: cancel,
-    allow_promotion_codes: true,
-    subscription_data: {
-      trial_period_days:
-        PRODUCTS.SubscriptionYearly.prices.yearly.trialPeriodDays,
-      metadata,
-    },
-  });
-  return session;
-}
-
+// Modified to just return URL for direct use if needed, but primarily redirects
 export async function createYearlySubscriptionCheckout() {
   const { userId } = await auth();
   if (!userId) throw new Error("Not authenticated");
-  const session = await createYearlySession(userId);
-  redirect(session.url!);
+  const sessionUrl = await _createStripeCheckoutSession(userId, 'SubscriptionYearly');
+  redirect(sessionUrl);
+}
+
+// This was returning session before, now aligns with others
+export async function createYearlySession(userId: string) {
+   console.warn("createYearlySession is deprecated, use server action createYearlySubscriptionCheckout");
+   const sessionUrl = await _createStripeCheckoutSession(userId, 'SubscriptionYearly');
+   return { url: sessionUrl }; // Maintain previous return shape if needed elsewhere, but redirect is standard
 }
 
 export async function createPayOnceOneYearCheckout() {
   const { userId } = await auth();
   if (!userId) throw new Error("Not authenticated");
+  const sessionUrl = await _createStripeCheckoutSession(userId, 'PayOnceOneYear');
+  redirect(sessionUrl);
+}
 
-  const { success, cancel, lifetime } = getUrls();
-
-  const session = await stripe.checkout.sessions.create({
-    mode: "payment",
-    payment_method_types: ["card"],
-    metadata: {
-      userId,
-      type: PRODUCTS.PayOnceOneYear.metadata.type,
-      plan: PRODUCTS.PayOnceOneYear.metadata.plan,
-      product: PRODUCTS.PayOnceOneYear.name,
-    },
-
-    line_items: [
-      {
-        price_data: {
-          currency: "usd",
-          product_data: {
-            name: PRODUCTS.PayOnceOneYear.name,
-            metadata: PRODUCTS.PayOnceOneYear.metadata,
-          },
-          unit_amount: PRICES.ONE_YEAR,
-        },
-        quantity: 1,
-      },
-    ],
-    success_url: lifetime,
-    cancel_url: cancel,
-    allow_promotion_codes: true,
-  });
-
-  redirect(session.url!);
+// Add action for Top Up if needed
+export async function createTopUpCheckout() {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Not authenticated");
+    const sessionUrl = await _createStripeCheckoutSession(userId, 'PayOnceTopUp');
+    redirect(sessionUrl);
 }

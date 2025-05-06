@@ -1,453 +1,351 @@
-import "react-native-gesture-handler";
-import { DefaultTheme, ThemeProvider } from "@react-navigation/native";
-import { useFonts } from "expo-font";
-import { Stack, router, useRouter } from "expo-router";
-import * as SplashScreen from "expo-splash-screen";
-import { StatusBar } from "expo-status-bar";
-import React, { useEffect, useState, useCallback } from "react";
-import { SafeAreaProvider } from "react-native-safe-area-context";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
-import "react-native-reanimated";
-import { Platform, ActivityIndicator, View, AppState } from "react-native";
-import * as Linking from "expo-linking";
-import { processSharedFile, cleanupSharedFile } from "@/utils/share-handler";
-import * as FileSystem from "expo-file-system";
-import { AuthProvider, useAuth } from "@/providers/auth";
-import Purchases, { CustomerInfo } from "react-native-purchases";
-import Paywall from "./(paywall)/paywall";
+import 'react-native-gesture-handler';
+import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { useFonts } from 'expo-font';
+import { Stack, router, useRouter, useSegments } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
+import { useEffect, useState, useRef } from 'react';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import 'react-native-reanimated';
+import { Platform, ActivityIndicator, View } from 'react-native';
+import * as Linking from 'expo-linking';
+import { processSharedFile, cleanupSharedFile } from '@/utils/share-handler';
+import * as FileSystem from 'expo-file-system';
+
+import { useColorScheme } from '@/hooks/useColorScheme';
+// Remove direct ClerkProvider import and use our custom AuthProvider
+import { AuthProvider } from '@/providers/auth';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
-// --- Helper Hook for URL Handling ---
-function useUrlHandler() {
-  const [urlToProcess, setUrlToProcess] = useState<string | null>(null);
-
-  useEffect(() => {
-    let isMounted = true; // Track mounted state within the hook
-
-    // Get initial URL
-    Linking.getInitialURL().then((url) => {
-      if (isMounted && url) {
-        // console.log('[useUrlHandler] Initial URL received:', url);
-        setUrlToProcess(url);
-      }
-    });
-
-    // Subscribe to subsequent URL events
-    const subscription = Linking.addEventListener("url", ({ url }) => {
-      if (isMounted) {
-        // console.log('[useUrlHandler] URL event received:', url);
-        setUrlToProcess(url);
-      }
-    });
-
-    // Handle AppState changes for Android potentially missed initial URL
-    const handleAppStateChange = (nextAppState: string) => {
-      if (Platform.OS === "android" && nextAppState === "active") {
-        Linking.getInitialURL().then((url) => {
-          if (isMounted && url) {
-            // console.log('[useUrlHandler] Initial URL refetched on active:', url);
-            // Only set if it wasn't processed already (basic check)
-            if (url !== urlToProcess) {
-              setUrlToProcess(url);
-            }
-          }
-        });
-      }
-    };
-
-    const appStateSubscription = AppState.addEventListener(
-      "change",
-      handleAppStateChange
-    );
-
-    return () => {
-      isMounted = false;
-      subscription.remove();
-      appStateSubscription.remove();
-    };
-  }, []); // Run only once on mount
-
-  // Function to clear the URL after processing
-  const clearUrl = useCallback(() => {
-    setUrlToProcess(null);
-  }, []);
-
-  return { urlToProcess, clearUrl };
-}
-
-// --- Helper for File Existence Check ---
-async function findExistingFilePath(originalUrl: string): Promise<string> {
-  // console.log('[findExistingFilePath] Checking original:', originalUrl);
-  const originalInfo = await FileSystem.getInfoAsync(originalUrl);
-  if (originalInfo.exists) {
-    return originalUrl;
-  }
-
-  // console.log('[findExistingFilePath] Original not found, decoding and checking alternatives');
-  const decodedUrl = decodeURIComponent(decodeURIComponent(originalUrl));
-  const alternativePaths = [
-    decodedUrl,
-    originalUrl.replace("file://", ""), // Common issue on some platforms
-    originalUrl.replace(/%2520/g, "%20"), // Handle double-encoded spaces
-  ];
-
-  for (const path of alternativePaths) {
-    // console.log('[findExistingFilePath] Trying alternative:', path);
-    try {
-      // Add try-catch around getInfoAsync as it can fail on invalid URIs
-      const altFileInfo = await FileSystem.getInfoAsync(path);
-      if (altFileInfo.exists) {
-        // console.log('[findExistingFilePath] Found at:', path);
-        return path;
-      }
-    } catch (e) {
-      console.warn(`[findExistingFilePath] Error checking path ${path}:`, e);
-    }
-  }
-
-  throw new Error(
-    `File not found at original path: ${originalUrl} or alternatives`
-  );
-}
-
-// --- Main Layout Component ---
-function RootLayoutNav() {
-  // Add type assertion for user as a temporary workaround
-  const { isLoaded: isAuthLoaded, isSignedIn, user } = useAuth() as any; // +user for RC
-  console.log('[Layout] Auth State:', { isAuthLoaded, isSignedIn, userId: user?.id });
-  const [isFontLoaded] = useFonts({
-    SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
+export default function RootLayout() {
+  // Always use light mode by setting colorScheme to 'light' instead of using useColorScheme()
+  const colorScheme = 'light';
+  const [loaded] = useFonts({
+    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
-  console.log('[Layout] Font State:', { isFontLoaded });
-  const { urlToProcess, clearUrl } = useUrlHandler();
   const router = useRouter();
+  const segments = useSegments();
   const [isProcessingShare, setIsProcessingShare] = useState(false);
-  const [isNavigationReady, setIsNavigationReady] = useState(false);
+  const [initialUrl, setInitialUrl] = useState<string | null>(null);
+  const [isReady, setIsReady] = useState(false);
+  const isMounted = useRef(false);
 
-  // Determine if the app core is ready (fonts, auth)
-  const isAppReady = isFontLoaded && isAuthLoaded;
+  const publishableKey = CLERK_PUBLISHABLE_KEY;
 
-  // --- RevenueCat entitlement guard (modal) ---
   useEffect(() => {
-    console.log('[Layout] RevenueCat Effect: Running');
-    if (!isFontLoaded || !isAuthLoaded) {
-      console.log('[Layout] RevenueCat Effect: Waiting for Fonts/Auth');
-      return; // wait for core
-    }
-    console.log('[Layout] RevenueCat Effect: Fonts/Auth Ready, Initializing RC...');
-
-    const apiKey = process.env.EXPO_PUBLIC_RC_API_KEY;
-
-    if (!apiKey) {
-      console.error("[Layout] RevenueCat Effect: EXPO_PUBLIC_RC_API_KEY is missing!");
-      return; 
-    }
-
-    // Define the update listener function first
-    const update = async (customerInfo: CustomerInfo) => {
-      try {
-        const hasPro = customerInfo.activeSubscriptions.length > 0;
-        console.log(`[Layout] RevenueCat Update: User ${hasPro ? 'HAS' : 'does NOT have'} pro subscription.`); 
-      } catch (e) {
-        console.warn("[customerInfo update handler] failed:", e);
-      }
-    };
-
-    // Function to configure and fetch initial info
-    const initializeAndFetchInfo = async () => {
-      try {
-        console.log('[Layout] RevenueCat Effect: Configuring Purchases...');
-        await Purchases.configure({
-          apiKey: apiKey, 
-          // Use asserted user type
-          appUserID: user?.id, 
-        });
-        console.log('[Layout] RevenueCat Effect: Configure SUCCESS');
-
-        // Fetch info AFTER successful configuration
-        try {
-          console.log('[Layout] RevenueCat Effect: Fetching initial CustomerInfo...');
-          const info = await Purchases.getCustomerInfo();
-          console.log('[Layout] RevenueCat Effect: Fetch CustomerInfo SUCCESS');
-          update(info); // Call update with the fetched info
-        } catch (fetchError) {
-          console.error("[Layout] RevenueCat Effect: Fetch CustomerInfo FAILED:", fetchError);
-        }
-
-      } catch (configError) {
-        console.error("[Layout] RevenueCat Effect: Configure FAILED:", configError);
-      }
-    };
-
-    // Call the initialization function
-    initializeAndFetchInfo();
-
-    // Add the listener (now that 'update' is defined in this scope)
-    console.log('[Layout] RevenueCat Effect: Adding listener');
-    // addCustomerInfoUpdateListener doesn't return a subscription object to remove
-    // Pass the original listener function 'update' to remove it
-    Purchases.addCustomerInfoUpdateListener(update); 
-
-    // Cleanup function
-    return () => {
-      console.log('[Layout] RevenueCat Effect: Removing listener');
-      // Pass the *same function instance* to remove the listener
-      Purchases.removeCustomerInfoUpdateListener(update); 
-    };
-  }, [isFontLoaded, isAuthLoaded, user?.id]);
-
-  // Effect to hide splash screen once fonts are loaded
-  useEffect(() => {
-    if (isFontLoaded) {
+    if (loaded) {
       SplashScreen.hideAsync();
     }
-  }, [isFontLoaded]);
+  }, [loaded]);
 
-  // Effect to mark navigation as ready (can be expanded if Expo Router has a specific readiness hook)
-  useEffect(() => {
-    // Assuming navigation is ready shortly after the component mounts and auth is loaded
-    if (isAppReady) {
-      const timer = setTimeout(() => setIsNavigationReady(true), 100); // Small delay remains reasonable here
-      return () => clearTimeout(timer);
-    }
-  }, [isAppReady]);
-
-  // --- URL Processing Logic ---
-  const handleIncomingURL = useCallback(
-    async (url: string) => {
-      // console.log('\n[RootLayout] ===== Starting URL Processing =====');
-      // console.log('[RootLayout] Raw incoming URL:', url);
-      setIsProcessingShare(true); // Show loading indicator
-
-      try {
-        // Handle direct file URLs
-        if (url.startsWith("file://")) {
-          // console.log('\n[RootLayout] === Processing File URL ===');
-          try {
-            const accessibleUri = await findExistingFilePath(url);
-            const decodedUrl = decodeURIComponent(accessibleUri); // Decode the final path
-            const fileName = decodedUrl.split("/").pop() || "shared-file";
-
-            // Determine mime type (basic example, might need refinement)
-            let mimeType = "application/octet-stream";
-            if (fileName.toLowerCase().endsWith(".pdf"))
-              mimeType = "application/pdf";
-            // Add more image types if needed
-            else if (/\.(jpg|jpeg|png|gif|bmp|webp|heic)$/i.test(fileName))
-              mimeType = "image/*"; // Generic image type
-
-            const sharedFile = { uri: accessibleUri, mimeType, name: fileName };
-            // console.log('[RootLayout] Shared file object:', JSON.stringify(sharedFile, null, 2));
-
-            const fileData = await processSharedFile(sharedFile);
-            // console.log('[RootLayout] Processed file data:', JSON.stringify(fileData, null, 2));
-            // console.log('[RootLayout] Navigating to (tabs) with file data');
-            router.replace({
-              pathname: "/(tabs)",
-              params: { sharedFile: JSON.stringify(fileData) },
-            });
-          } catch (innerError) {
-            console.error(
-              "[RootLayout] Error processing file:// URL:",
-              innerError
-            );
-            router.replace("/(tabs)"); // Navigate home on error
-          }
-          return; // Exit after handling file URL
-        }
-
-        // Handle custom scheme URLs (e.g., notecompanion://share?...)
-        const { scheme, path, queryParams } = Linking.parse(url);
-        // console.log('[RootLayout] Parsed App URL:', { scheme, path, queryParams });
-
-        if (
-          path === "share" ||
-          (scheme === "notecompanion" && queryParams?.uri)
-        ) {
-          // Adjust condition based on actual use
-          // console.log('[RootLayout] Processing share path/params');
-          try {
-            if (queryParams?.uri) {
-              const uri = decodeURIComponent(queryParams.uri as string);
-              const type = queryParams.type as string;
-              const name = queryParams.name as string;
-              const sharedFile = { uri, mimeType: type, name };
-
-              // console.log('[RootLayout] Shared file data (from params):', sharedFile);
-              const fileData = await processSharedFile(sharedFile);
-              // console.log('[RootLayout] Processed file data:', fileData);
-              // console.log('[RootLayout] Navigating to share screen');
-              router.replace({
-                pathname: "/(tabs)/share",
-                params: { sharedFile: JSON.stringify(fileData) },
-              });
-
-              // Clean up temporary files if needed (Android specific)
-              if (Platform.OS === "android" && uri.includes("content://")) {
-                // console.log('[RootLayout] Cleaning up Android temporary file');
-                await cleanupSharedFile(uri);
-              }
-            } else if (queryParams?.text) {
-              // console.log('[RootLayout] Processing shared text');
-              const textData = {
-                text: decodeURIComponent(queryParams.text as string),
-                mimeType: "text/plain",
-                name: "shared-text.txt",
-              };
-              // console.log('[RootLayout] Text data:', textData);
-              // console.log('[RootLayout] Navigating to (tabs) with text data');
-              router.replace({
-                pathname: "/(tabs)",
-                params: { sharedFile: JSON.stringify(textData) },
-              }); // Navigate to main tabs for text
-            } else {
-              console.warn(
-                "[RootLayout] Share path called without valid params (uri or text)"
-              );
-              router.replace("/(tabs)");
-            }
-          } catch (innerError) {
-            console.error(
-              "[RootLayout] Error processing share path:",
-              innerError
-            );
-            router.replace("/(tabs)"); // Navigate home on error
-          }
+  // Safe navigation function to ensure we only navigate when component is mounted
+  const safeNavigate = (pathname: string, params?: Record<string, any>) => {
+    console.log(`[RootLayout] Safe Navigate - isMounted: ${isMounted.current}, isReady: ${isReady}, pathname: ${pathname}`);
+    
+    if (!isMounted.current || !isReady) {
+      console.log('[RootLayout] Component not fully ready, delaying navigation');
+      // Set a small timeout to ensure the component is mounted and ready
+      setTimeout(() => {
+        console.log('[RootLayout] Attempting delayed navigation');
+        if (isMounted.current && isReady) {
+          console.log('[RootLayout] Executing delayed navigation to:', pathname);
+          router.replace(params ? { pathname, params } : pathname);
         } else {
-          console.warn(
-            "[RootLayout] Unknown URL path or scheme, navigating home:",
-            url
-          );
-          router.replace("/(tabs)");
+          console.log('[RootLayout] Still not ready for navigation, storing URL for later');
+          // Store the navigation intent for later if we're still not ready
+          setInitialUrl(JSON.stringify({ pathname, params }));
         }
-      } catch (error) {
-        console.error(
-          "[RootLayout] Unhandled error in handleIncomingURL:",
-          error
-        );
-        router.replace("/(tabs)"); // Navigate home on error
-      } finally {
-        setIsProcessingShare(false); // Hide loading indicator
-        clearUrl(); // Mark URL as processed
-      }
-    },
-    [router, clearUrl]
-  ); // Add dependencies
-
-  // Effect to process URL when app is ready and URL is available
-  useEffect(() => {
-    if (isAppReady && isNavigationReady && urlToProcess) {
-      // console.log(`[RootLayout] App ready, processing URL: ${urlToProcess}`);
-      handleIncomingURL(urlToProcess);
+      }, 300); // Small delay to ensure component is mounted
+      return;
     }
-  }, [isAppReady, isNavigationReady, urlToProcess, handleIncomingURL]);
+    
+    console.log('[RootLayout] Navigating immediately to:', pathname);
+    router.replace(params ? { pathname, params } : pathname);
+  };
 
-  // Effect for initial routing based on auth state when app is ready
-  useEffect(() => {
-    if (
-      !isAppReady ||
-      !isNavigationReady ||
-      urlToProcess ||
-      isProcessingShare
-    ) {
-      // Wait until app is ready, navigation is ready, and no URL is being processed
+  const handleIncomingURL = async (url: string | null) => {
+    console.log('\n[RootLayout] ===== Starting URL Processing =====');
+    console.log('[RootLayout] Raw incoming URL:', url);
+    if (!url) {
+      console.log('[RootLayout] No URL provided');
       return;
     }
 
-    // TODO: Replace this with a reliable method to get the current route segment in Expo Router v4+
-    // const currentRoute = router. ????
-    // console.log("[RootLayout] Auth state loaded. Signed In:", isSignedIn); // Add currentRoute here if available
+    // Set share processing state to show loading indicator instead of not-found
+    setIsProcessingShare(true);
 
-    if (isSignedIn) {
-      // Check if not already in the '(tabs)' group before navigating
-      // if (currentRoute does not start with '/(tabs)') {
-      // console.log("[RootLayout] User is signed in. Ensuring navigation to (tabs).");
-      router.replace("/(tabs)");
-      // }
-    } else {
-      // Check if not already in the '(auth)' group or sign-in screen before navigating
-      // if (currentRoute is not '/sign-in' and does not start with '/(auth)') {
-      // console.log("[RootLayout] User is signed out. Ensuring navigation to sign-in.");
-      router.replace("/sign-in"); // Adjust if your sign-in route is different
-      // }
+    try {
+      // Handle direct file URLs
+      if (url.startsWith('file://')) {
+        console.log('\n[RootLayout] === Processing File URL ===');
+        console.log('[RootLayout] Original URL:', url);
+        
+        try {
+          // First decode the URL to handle double-encoded spaces
+          const decodedUrl = decodeURIComponent(decodeURIComponent(url));
+          console.log('[RootLayout] After double decode:', decodedUrl);
+          
+          // Split URL into components for filename only
+          const urlParts = decodedUrl.split('/');
+          const fileName = urlParts.pop() || 'shared-file';
+          console.log('[RootLayout] Extracted filename:', fileName);
+  
+          // Create shared file object with original URL
+          const sharedFile = {
+            uri: url,  // Use original URL
+            mimeType: decodedUrl.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'application/octet-stream',
+            name: fileName,
+          };
+          console.log('\n[RootLayout] Created shared file object:', JSON.stringify(sharedFile, null, 2));
+  
+          // Check if file exists before processing
+          console.log('\n[RootLayout] === Checking File Existence ===');
+          const fileInfo = await FileSystem.getInfoAsync(url);  // Check original URL
+          console.log('[RootLayout] File info result:', JSON.stringify(fileInfo, null, 2));
+  
+          if (!fileInfo.exists) {
+            // Try alternative paths
+            console.log('\n[RootLayout] === Trying Alternative Paths ===');
+            const alternativePaths = [
+              url.replace('file://', ''),
+              decodedUrl,
+              url.replace(/%2520/g, '%20')
+            ];
+  
+            let foundPath = null;
+            for (const path of alternativePaths) {
+              console.log('[RootLayout] Trying path:', path);
+              const altFileInfo = await FileSystem.getInfoAsync(path);
+              console.log('[RootLayout] Result for path:', { path, exists: altFileInfo.exists });
+              if (altFileInfo.exists) {
+                console.log('[RootLayout] Found file at alternative path:', path);
+                sharedFile.uri = path;
+                foundPath = path;
+                break;
+              }
+            }
+  
+            if (!foundPath) {
+              throw new Error(`File not found at path: ${url}\nTried alternative paths: ${alternativePaths.join('\n')}`);
+            }
+          }
+  
+          console.log('\n[RootLayout] === Processing File ===');
+          const fileData = await processSharedFile(sharedFile);
+          console.log('[RootLayout] Processed file data:', JSON.stringify(fileData, null, 2));
+          
+          console.log('\n[RootLayout] === Navigation ===');
+          console.log('[RootLayout] Passing shared file to tabs screen');
+          
+          // Navigate to the main tabs screen, passing the file data as a parameter
+          safeNavigate('/(tabs)', { sharedFile: JSON.stringify(fileData) });
+
+        } catch (innerError) {
+          // If anything fails with file processing, still go to home page
+          console.error('[RootLayout] Error processing shared file:', innerError);
+          
+          // Navigate to the home tab instead of showing not found
+          console.log('[RootLayout] Navigating to home due to error');
+          safeNavigate('/(tabs)');
+        } finally {
+          // Always set processing to false when done
+          setIsProcessingShare(false);
+        }
+
+        return;
+      }
+
+      // Handle share scheme URLs
+      const { path, queryParams } = Linking.parse(url);
+      console.log('[RootLayout] Parsed URL:', { path, queryParams });
+
+      if (path === 'share') {
+        console.log('[RootLayout] Processing share path');
+        try {
+          if (queryParams?.uri) {
+            console.log('[RootLayout] Processing shared file with URI');
+            const sharedFile = {
+              uri: decodeURIComponent(queryParams.uri as string),
+              mimeType: queryParams.type as string,
+              name: queryParams.name as string,
+            };
+            console.log('[RootLayout] Shared file data:', sharedFile);
+  
+            const fileData = await processSharedFile(sharedFile);
+            console.log('[RootLayout] Processed file data:', fileData);
+            
+            console.log('[RootLayout] Navigating to share screen');
+            safeNavigate('/(tabs)/share', { sharedFile: JSON.stringify(fileData) });
+  
+            // Clean up temporary files after processing
+            if (Platform.OS === 'android') {
+              console.log('[RootLayout] Cleaning up Android temporary files');
+              await cleanupSharedFile(sharedFile.uri);
+            }
+          } else if (queryParams?.text) {
+            console.log('[RootLayout] Processing shared text');
+            const textData = {
+              text: decodeURIComponent(queryParams.text as string),
+              mimeType: 'text/plain',
+              name: 'shared-text.txt'
+            };
+            console.log('[RootLayout] Text data:', textData);
+  
+            console.log('[RootLayout] Navigating to share screen with text');
+            // Navigate to the main tabs screen for text as well
+            safeNavigate('/(tabs)', { sharedFile: JSON.stringify(textData) });
+          } else {
+            // No valid parameters found, go to home
+            console.log('[RootLayout] No valid parameters found, going to home');
+            safeNavigate('/(tabs)');
+          }
+        } catch (innerError) {
+          // If anything fails, still go to home page
+          console.error('[RootLayout] Error processing share path:', innerError);
+          console.log('[RootLayout] Navigating to home due to error');
+          safeNavigate('/(tabs)');
+        } finally {
+          // Always set processing to false when done
+          setIsProcessingShare(false);
+        }
+      } else {
+        // Unknown path, go to home
+        console.log('[RootLayout] Unknown path, going to home');
+        safeNavigate('/(tabs)');
+        setIsProcessingShare(false);
+      }
+    } catch (error) {
+      console.error('[RootLayout] Error handling shared content:', error);
+      // For any unhandled error, redirect to home
+      console.log('[RootLayout] Navigating to home due to unhandled error');
+      safeNavigate('/(tabs)');
+      setIsProcessingShare(false);
     }
-  }, [
-    isAppReady,
-    isNavigationReady,
-    isSignedIn,
-    router,
-    urlToProcess,
-    isProcessingShare,
-  ]);
+  };
 
-  // --- Render Logic ---
+  // Setup component mounted state FIRST - this must run before URL handling
+  useEffect(() => {
+    console.log('[RootLayout] Setting isMounted flag to true');
+    isMounted.current = true;
+    
+    return () => {
+      console.log('[RootLayout] Setting isMounted flag to false');
+      isMounted.current = false;
+    };
+  }, []);
 
-  // Show loading indicator while app core is loading or processing share
-  console.log('[Layout] Render Check:', { isAppReady, isProcessingShare });
-  if (!isAppReady || isProcessingShare) {
-    console.log('[Layout] Render: Showing Loading Indicator/Splash');
-    // Keep the splash screen visible while loading fonts/auth initially
-    // Show ActivityIndicator only if processing a share action *after* initial load
-    if (isProcessingShare && isAppReady) {
-      return (
-        <View
-          style={{
-            flex: 1,
-            justifyContent: "center",
-            alignItems: "center",
-            backgroundColor: DefaultTheme.colors.background,
-          }}
-        >
-          <ActivityIndicator size="large" color={DefaultTheme.colors.primary} />
-        </View>
-      );
+  // Handle delayed navigation after component is mounted and any stored URL
+  useEffect(() => {
+    if (!isMounted.current || !isReady) return;
+    
+    // If we have a delayed URL to handle, process it now
+    if (initialUrl) {
+      try {
+        // Check if it's a stored navigation object
+        if (initialUrl.startsWith('{')) {
+          const navData = JSON.parse(initialUrl);
+          console.log('[RootLayout] Processing stored navigation:', navData);
+          router.replace(navData.params ? { pathname: navData.pathname, params: navData.params } : navData.pathname);
+        } else {
+          // Otherwise it's a URL to process
+          console.log('[RootLayout] Processing delayed URL now that component is mounted:', initialUrl);
+          handleIncomingURL(initialUrl);
+        }
+      } catch (e) {
+        console.error('[RootLayout] Error handling stored URL data:', e);
+        // Fallback to home on error
+        router.replace('/(tabs)');
+      }
+      setInitialUrl(null);
     }
-    return null; // Keep splash screen visible otherwise
+  }, [initialUrl, isReady]);
+
+  // Mark component as ready after Stack is rendered
+  useEffect(() => {
+    // Set a small delay to ensure the Stack is fully rendered
+    const timer = setTimeout(() => {
+      console.log('[RootLayout] Setting isReady to true');
+      setIsReady(true);
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, [loaded]);
+
+  // Add logging for URL handling setup
+  useEffect(() => {
+    console.log('[RootLayout] Setting up URL handlers');
+    // Handle initial URL when app is opened from share
+    Linking.getInitialURL().then(url => {
+      console.log('[RootLayout] Initial URL:', url);
+      if (url) {
+        // If we have a URL on initial load, we want to handle it
+        // But delay processing until the component is mounted and ready
+        setInitialUrl(url);
+      }
+    });
+
+    // Subscribe to URL open events
+    const subscription = Linking.addEventListener('url', ({ url }) => {
+      console.log('[RootLayout] URL open event:', url);
+      if (isMounted.current && isReady) {
+        handleIncomingURL(url);
+      } else {
+        console.log('[RootLayout] Delaying URL handling until component is mounted and ready');
+        setInitialUrl(url);
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [isReady]);
+
+  if (!loaded) {
+    return null;
   }
 
-  // Clerk key check
+  // Show a loading spinner while processing shared content
+  if (isProcessingShare) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
+
   if (!CLERK_PUBLISHABLE_KEY) {
-    // This should ideally be caught during build or startup, but keep check
-    throw new Error("Missing CLERK_PUBLISHABLE_KEY env variable");
+    throw new Error('Missing CLERK_PUBLISHABLE_KEY');
   }
 
-  // Render main layout
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <ThemeProvider value={DefaultTheme}>
-          <Stack
-            screenOptions={{
-              headerStyle: { backgroundColor: "#f5f5f5" },
-              headerTintColor: "#000",
-              headerTitleStyle: { fontWeight: "600" },
-            }}
-          >
-            {/* Define screens */}
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-            {/* Define modal group */}
-            <Stack.Screen name="(modals)" options={{ presentation: 'modal', headerShown: false }} />
-            {/* Add other stack screens like modals if needed */}
-            {/* <Stack.Screen name="modal" options={{ presentation: 'modal' }} /> */}
-          </Stack>
-          <StatusBar style="dark" />
-        </ThemeProvider>
-      </SafeAreaProvider>
+      {/* Import and use the AuthProvider from providers/auth.tsx instead of direct ClerkProvider */}
+      <AuthProvider>
+        <SafeAreaProvider>
+          <ThemeProvider value={DefaultTheme}>
+            <Stack
+              screenOptions={{
+                headerStyle: {
+                  backgroundColor: '#f5f5f5',
+                },
+                headerTintColor: '#000',
+                headerTitleStyle: {
+                  fontWeight: '600',
+                },
+              }}
+            >
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+            </Stack>
+            <StatusBar style="dark" />
+          </ThemeProvider>
+        </SafeAreaProvider>
+      </AuthProvider>
     </GestureHandlerRootView>
-  );
-}
-
-// --- Final Export with Auth Provider ---
-export default function RootLayout() {
-  // Clerk Provider wraps the navigation
-  return (
-    <AuthProvider>
-      <RootLayoutNav />
-    </AuthProvider>
   );
 }

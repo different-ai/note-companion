@@ -42,9 +42,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
       CFBundleAllowMixedLocalizations: true,
       NSPhotoLibraryUsageDescription:
-        "We need access to your photos to upload and process them.",
+        "Allow access so you can attach receipt photos to an expense. Example: tap 'Add receipt', pick a photo, and we save it with the transaction.",
       NSCameraUsageDescription:
-        "We need access to your camera to take photos of documents.",
+        "Note Companion uses the camera to capture documents or diagrams that are then converted into text and saved as notes (e.g., snap a whiteboard to create a meeting note).",
       LSApplicationQueriesSchemes: ["obsidian"],
       UIFileSharingEnabled: true,
       LSSupportsOpeningDocumentsInPlace: true,
@@ -155,6 +155,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ],
   extra: {
     clerkPublishableKey: process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY,
+    storefront: "us",
     router: {
       origin: false,
     },

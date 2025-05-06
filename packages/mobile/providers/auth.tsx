@@ -1,4 +1,4 @@
-import { ClerkProvider, useAuth } from "@clerk/clerk-expo";
+import { ClerkProvider } from "@clerk/clerk-expo";
 import * as SecureStore from "expo-secure-store";
 import Constants from 'expo-constants';
 
@@ -46,7 +46,4 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       {children}
     </ClerkProvider>
   );
-}
-
-// Re-export useAuth for convenience
-export { useAuth }; 
+} 
