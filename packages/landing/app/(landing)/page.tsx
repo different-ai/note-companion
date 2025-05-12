@@ -342,7 +342,7 @@ export default function Page() {
             </p> */}
             <div className="bg-[#EBF5FF] border-1 border-[#2E90FA] rounded-lg p-4 mb-12 max-w-3xl mx-auto text-center">
               <p className="text-[#1570EF]">
-                Educators and students qualify for a special Monthly rate of $9. To claim this offer, please reach out at alex@fileorganizer2000.com via your education email.
+                Educators and students qualify for a special Monthly rate of $9. To claim this offer, please reach out at ben@notecompanion.ai via your education email.
               </p>
             </div>
             
