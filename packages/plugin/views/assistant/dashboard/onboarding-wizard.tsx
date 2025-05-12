@@ -152,6 +152,9 @@ export function OnboardingWizard({ plugin, onComplete }: OnboardingWizardProps) 
             {error && (
               <div className={tw("bg-red-50 text-red-700 p-3 rounded-md text-sm")}>
                 {error}
+                <div className={tw("mt-2 text-xs text-gray-600")}>
+                  Need help? Contact us at <a href="mailto:ben@notecompanion.ai" className={tw("text-blue-600 hover:underline")}>ben@notecompanion.ai</a>
+                </div>
               </div>
             )}
             
@@ -277,4 +280,4 @@ export function OnboardingWizard({ plugin, onComplete }: OnboardingWizardProps) 
       </motion.div>
     </StyledContainer>
   );
-} 
+}  

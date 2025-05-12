@@ -256,14 +256,27 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ plugin, userId, email })
           to help improve and maintain the project. 🙏
         </p>
         <p className="text-[--text-muted]">
-          <a
-            href="https://discord.gg/UWH53WqFuE"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[--text-accent] hover:text-[--text-accent-hover]"
-          >
-            Need help? Ask me on Discord.
-          </a>
+          Need help? Contact us:
+          <ul className="mt-1 space-y-1">
+            <li>
+              <a
+                href="mailto:ben@notecompanion.ai"
+                className="text-[--text-accent] hover:text-[--text-accent-hover]"
+              >
+                Email: ben@notecompanion.ai
+              </a>
+            </li>
+            <li>
+              <a
+                href="https://discord.gg/UWH53WqFuE"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[--text-accent] hover:text-[--text-accent-hover]"
+              >
+                Discord Community
+              </a>
+            </li>
+          </ul>
         </p>
       </div>
     </div>
