@@ -64,8 +64,8 @@ export default function TermsOfServicePage() {
         <h2 className="text-xl font-semibold mt-6 mb-3">Contact Us</h2>
         <p className="mb-6">
           If you have questions about these terms, please contact us at{' '}
-          <a href="mailto:hello@notecompanion.ai" className="text-blue-600 hover:underline">
-            hello@notecompanion.ai
+          <a href="mailto:ben@notecompanion.ai" className="text-blue-600 hover:underline">
+            ben@notecompanion.ai
           </a>.
         </p>
         
@@ -75,4 +75,4 @@ export default function TermsOfServicePage() {
       </div>
     </div>
   );
-} 
+}  

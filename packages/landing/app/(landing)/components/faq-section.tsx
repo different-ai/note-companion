@@ -91,11 +91,11 @@ export function FaqSection() {
 
 <strong>Contact Us</strong>
   Have questions or concerns about your privacy? Reach out to us at:
-  • Email: alex@fileorganizer2000.com
-  • Discord: @aex1696`}
+  • Email: ben@notecompanion.ai
+  • Discord: ben@notecompanion.ai`}
           />
         </div>
       </div>
     </section>
   );
-} 
+}  
