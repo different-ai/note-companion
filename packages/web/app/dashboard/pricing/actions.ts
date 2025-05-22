@@ -1,5 +1,5 @@
 "use server";
-import { auth, clerkClient } from "@clerk/nextjs/server";
+import { getAuth, clerkClient } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import Stripe from "stripe";
 import { PRODUCTS, PRICES, ProductMetadata } from "../../../srm.config";
@@ -30,8 +30,8 @@ export async function _createStripeCheckoutSession(userId: string, plan: keyof t
     throw new Error(`Invalid plan specified: ${plan}`);
   }
 
-  const authResult = await auth(); // Get the full auth object
-  if (!authResult.userId || authResult.userId !== userId) throw new Error("User mismatch or not authenticated");
+  const { userId: currentUser } = getAuth(); // Get the full auth object
+  if (!currentUser || currentUser !== userId) throw new Error("User mismatch or not authenticated");
 
   // Fetch user details using clerkClient for email prefill
   const clerkUser = await clerkClient.users.getUser(userId);
