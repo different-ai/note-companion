@@ -20,7 +20,7 @@ export async function incrementAndLogTokenUsage(
   // First check if user has available tokens based on their tier
   const { remaining: currentRemaining, usageError: checkError } = await checkTokenUsage(userId);
   
-  // Check if user needs to upgrade (has used all free tier tokens)
+  // Check if user needs to upgrade (has used all available tokens)
   const needsUpgrade = await checkIfUserNeedsUpgrade(userId);
   
   if (checkError) {

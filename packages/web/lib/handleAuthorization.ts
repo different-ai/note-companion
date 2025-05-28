@@ -94,9 +94,9 @@ async function ensureUserExists(userId: string): Promise<boolean> {
       .where(eq(UserUsageTable.userId, userId))
       .limit(1);
     
-    // If no user record exists, create one with free tier
+    // If no user record exists, create one with legacy plan
     if (!userUsage.length) {
-      console.log(`User ${userId} not found in database, initializing with free tier`);
+      console.log(`User ${userId} not found in database, initializing with legacy plan`);
       await createEmptyUserUsage(userId);
       return true;
     }

@@ -30,7 +30,7 @@ export const TierConfigTable = pgTable(
 export type TierConfig = typeof TierConfigTable.$inferSelect;
 export type NewTierConfig = typeof TierConfigTable.$inferInsert;
 
-// Default free tier token limit
+// Default legacy plan token limit
 export const DEFAULT_FREE_TIER_TOKENS = 100000;
 
 // Create a pgTable that maps to a table in your DB to track user usage
@@ -119,7 +119,7 @@ export const createEmptyUserUsage = async (userId: string) => {
     billingCycle: "free",
     tokenUsage: 0,
     maxTokenUsage: DEFAULT_FREE_TIER_TOKENS,
-    subscriptionStatus: "active", // Free tier is considered active
+    subscriptionStatus: "active", // Legacy plan is considered active
     paymentStatus: "free", // Free tier doesn't require payment
     tier: "free",
   });
@@ -250,9 +250,9 @@ export const checkTokenUsage = async (userId: string) => {
       .where(eq(UserUsageTable.userId, userId))
       .limit(1);
 
-    // If user doesn't exist yet, return default free tier tokens
+    // If user doesn't exist yet, return default legacy plan tokens
     if (!userUsage.length) {
-      console.log(`No user record found for ${userId} in checkTokenUsage, returning default free tier tokens`);
+      console.log(`No user record found for ${userId} in checkTokenUsage, returning default legacy plan tokens`);
       return {
         remaining: DEFAULT_FREE_TIER_TOKENS,
         usageError: false,
@@ -291,11 +291,11 @@ export const isSubscriptionActive = async (userId: string): Promise<boolean> => 
       .execute();
     
     if (!userUsage[0]) {
-      console.log(`No user record found for ${userId}, will be initialized with free tier`);
+      console.log(`No user record found for ${userId}, will be initialized with legacy plan`);
       return true; // Return true to allow initialization in ensureUserExists
     }
 
-    // Free tier is considered active by default
+    // Legacy plan is considered active by default
     if (userUsage[0].tier === "free") {
       return true;
     }
@@ -317,7 +317,7 @@ export const isSubscriptionActive = async (userId: string): Promise<boolean> => 
 export const checkUserSubscriptionStatus = async (userId: string): Promise<boolean> => {
   const isActive = await isSubscriptionActive(userId);
   
-  // For free tier, also check if they have remaining tokens
+  // For legacy plan, also check if they have remaining tokens
   if (isActive) {
     const userUsage = await db
       .select()
@@ -326,7 +326,7 @@ export const checkUserSubscriptionStatus = async (userId: string): Promise<boole
       .limit(1);
     
     if (userUsage.length > 0 && userUsage[0].tier === "free") {
-      // For free tier, check remaining tokens
+      // For legacy plan, check remaining tokens
       const tokenCheck = await checkTokenUsage(userId);
       return tokenCheck.remaining > 0;
     }
@@ -340,7 +340,7 @@ export async function createOrUpdateUserSubscriptionStatus(
   subscriptionStatus: string,
   paymentStatus: string,
   billingCycle: string,
-  tier: string = "free"  // Default to free tier
+  tier: string = "free"  // Default to legacy plan
 ): Promise<void> {
   try {
     // Get max tokens for tier from config
@@ -350,7 +350,7 @@ export async function createOrUpdateUserSubscriptionStatus(
       .where(eq(TierConfigTable.tierName, tier))
       .limit(1);
     
-    // Default to free tier tokens if no config found
+    // Default to legacy plan tokens if no config found
     const maxTokens = tierConfig.length > 0 
       ? tierConfig[0].maxTokens 
       : DEFAULT_FREE_TIER_TOKENS;
@@ -418,7 +418,7 @@ export async function handleFailedPayment(
       .where(eq(UserUsageTable.userId, userId))
       .limit(1);
     
-    // Determine if we need to drop down to free tier
+    // Determine if we need to drop down to legacy plan
     const shouldRevertToFreeTier = userUsage.length > 0 && 
       userUsage[0].tier !== "free" && 
       (paymentStatus === "failed" || subscriptionStatus === "inactive");
@@ -488,7 +488,7 @@ export const uploadedFiles = pgTable(
 export type UploadedFile = typeof uploadedFiles.$inferSelect;
 export type NewUploadedFile = typeof uploadedFiles.$inferInsert;
 
-// Check if user needs to upgrade from free tier
+// Check if user needs to upgrade from legacy plan
 export const checkIfUserNeedsUpgrade = async (userId: string): Promise<boolean> => {
   try {
     const userUsage = await db
@@ -501,7 +501,7 @@ export const checkIfUserNeedsUpgrade = async (userId: string): Promise<boolean> 
       return false;
     }
     
-    // Check if they're on free tier and have used all their tokens
+    // Check if they're on legacy plan and have used all their tokens
     if (userUsage[0].tier === "free" && userUsage[0].tokenUsage >= userUsage[0].maxTokenUsage) {
       return true;
     }

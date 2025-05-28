@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     if (process.env.NODE_ENV === 'development' && userId) {
       const { key } = await createLicenseKeyFromUserId(userId);
       
-      // Create empty usage for this user if needed - initialized with free tier
+      // Create empty usage for this user if needed - initialized with legacy plan
       await createEmptyUserUsage(userId);
       
       return NextResponse.json({

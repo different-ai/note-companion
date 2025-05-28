@@ -347,9 +347,9 @@ export default function DaoPage() {
               <div className="h-14 w-14 rounded-full bg-primary-100 flex items-center justify-center mb-6">
                 <Users className="h-7 w-7 text-primary-600" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">Free Community Plan</h3>
+              <h3 className="text-xl font-semibold mb-3">Community Contributor Plan</h3>
               <p className="text-gray-600">
-                We're introducing a new free tier for active community contributors. By participating in governance, providing feedback, or contributing to development, users can earn access to the platform.
+                We're introducing a special plan for active community contributors. By participating in governance, providing feedback, or contributing to development, users can earn access to the platform.
               </p>
             </div>
           </div>

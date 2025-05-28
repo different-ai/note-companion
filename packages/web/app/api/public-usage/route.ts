@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
         tokenUsage: 0,
         maxTokenUsage: 100000, // Default free tier tokens
         subscriptionStatus: "inactive",
-        currentPlan: "Free Tier",
+        currentPlan: "Legacy Plan",
         isActive: false
       });
     }
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
       tokenUsage: userUsage[0].tokenUsage || 0,
       maxTokenUsage: userUsage[0].maxTokenUsage || 100000,
       subscriptionStatus: userUsage[0].subscriptionStatus || "inactive",
-      currentPlan: userUsage[0].currentPlan || "Free Tier",
+      currentPlan: userUsage[0].currentPlan || "Legacy Plan",
       isActive: userUsage[0].subscriptionStatus === "active"
     });
     
@@ -57,4 +57,4 @@ export async function GET(request: NextRequest) {
       message: "Failed to fetch usage data"
     }, { status: 500 });
   }
-} 
+}  
