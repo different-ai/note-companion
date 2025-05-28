@@ -27,23 +27,7 @@ interface PricingCardsProps {
 export function PricingCards({ onSubscriptionComplete }: PricingCardsProps) {
   const [isYearly, setIsYearly] = useState(false);
 
-  // Add this text module before the pricing cards
-  const renderFreeInfoText = () => {
-    return (
-      <div className="text-center mb-6 p-4 bg-slate-50 rounded-lg">
-        <p className="text-slate-700 flex items-center justify-center gap-2 flex-wrap">
-          <Info className="h-5 w-5 text-slate-500" />
-          To activate your free plan, simply enter your email and password in the General tab of{" "}
-          <a 
-            href="obsidian://show-plugin?id=fileorganizer2000" 
-            className=" hover:text-violet-700 underline"
-          >
-           the Obsidian plugin
-          </a>
-        </p>
-      </div>
-    );
-  };
+
 
   const handlePlanSelection = async (planKey: string) => {
     try {
@@ -71,50 +55,7 @@ export function PricingCards({ onSubscriptionComplete }: PricingCardsProps) {
     }
   };
 
-  // Render the free tier card
-  const renderFreeTierCard = () => {
-    const freeFeatures = [
 
-      "Process up to ~30 notes per month (100 000 tokens)",
-      "Limited audio transcription (10 min)",
-      "Basic support",
-      "No credit card required",
-    ];
-    
-    return (
-      <Card className="p-6 rounded-xl flex-1 relative shadow-md transition-all hover:shadow-lg bg-white border border-slate-200">
-        <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-          <span className="bg-amber-100 text-amber-700 px-4 py-1 rounded-full text-sm font-semibold">
-            New!
-          </span>
-        </div>
-        <CardHeader className="pb-4">
-          <div className="flex flex-col">
-            <div>
-              <div className="flex items-center mb-2">
-                <CardTitle className="text-2xl font-bold">Free Tier</CardTitle>
-              </div>
-              <CardDescription className="text-3xl font-bold text-black mt-3 mb-3">
-                Free
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="pt-4 pb-6">
-          <ul className="space-y-3">
-            {freeFeatures.map((feature: string, index: number) => {
-              return (
-                <li key={index} className="flex items-start text-sm">
-                  <Check className="h-5 w-5 mr-3 text-green-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-700">{feature}</span>
-                </li>
-              );
-            })}
-          </ul>
-        </CardContent>
-      </Card>
-    );
-  };
 
   const renderSubscriptionPlan = () => {
     const planKey = isYearly ? "SubscriptionYearly" : "SubscriptionMonthly";
@@ -214,9 +155,7 @@ export function PricingCards({ onSubscriptionComplete }: PricingCardsProps) {
 
   return (
     <div className="mx-auto">
-      {renderFreeInfoText()}
       <div className="flex flex-col md:flex-row gap-8 justify-center">
-        {renderFreeTierCard()}
         {renderSubscriptionPlan()}
       </div>
     </div>

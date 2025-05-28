@@ -82,13 +82,11 @@ export default function Page() {
            Note Companion is an AI-powered Obsidian plugin that improves your workflow by automatically organizing and formatting your notes—so you don't have to.
 
           </p>
-          <div className="mt-3 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-amber-100 text-amber-800">
-            New! Free tier now available
-          </div>
+
           <div className="mt-10 flex items-center justify-center gap-x-6">
             <a href="https://accounts.notecompanion.ai/sign-up">
               <Button size="lg" className="bg-primary text-white hover:bg-primary/90">
-                Start for free
+                Get Started
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </a>
@@ -394,12 +392,12 @@ export default function Page() {
             Messy vault?
             </h2>
             <p className="text-lg text-muted-foreground mb-10">
-            Focus on building knowledge, not managing it. Note Companion maintains your vault organized and amplifies your thinking. Start with our free tier—no credit card required.
+            Focus on building knowledge, not managing it. Note Companion maintains your vault organized and amplifies your thinking.
             </p>
             <div className="flex items-center justify-center gap-x-6">
               <a href="https://accounts.notecompanion.ai/sign-up">
                 <Button size="lg" className="text-white bg-primary hover:bg-primary/90">
-                  Get Started Free
+                  Get Started
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </a>

@@ -1274,7 +1274,7 @@ export default class FileOrganizer extends Plugin {
               tokenUsage: 100000, // Some large number
               maxTokenUsage: 100000,
               subscriptionStatus: "active",
-              currentPlan: "Free Tier",
+              currentPlan: "Subscription",
               isActive: true
             };
           }

@@ -11,19 +11,6 @@ export function PricingCards() {
   const [isYearly, setIsYearly] = useState(false);
 
   const plans = {
-    freeTier: {
-      name: "Free Tier",
-      price: "Free",
-      features: [
-        "Limited to 100,000 tokens",
-        "Process up to ~30 notes per month (100 000 tokens)",
-        "Limited audio transcription (10 min)",
-        "Basic support",
-        "No credit card required",
-      ],
-      buttonText: "Sign Up Free",
-      buttonVariant: "outline" as const,
-    },
     selfHosted: {
       name: "Self-hosted",
       price: "Free",
@@ -84,31 +71,7 @@ export function PricingCards() {
   return (
     <div className="flex flex-col items-center justify-center w-full">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 max-w-6xl mx-auto px-4">
-        {/* Free Tier */}
-        <div className="relative group h-full">
-          <div className="absolute -inset-0.5 border border-2 border-black-500 rounded-2xl bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 group-hover:from-primary/40 group-hover:via-primary/25 group-hover:to-primary/40 transition-all duration-300" />
-          <div className="relative h-full rounded-2xl bg-background/100 backdrop-blur-sm p-6 flex flex-col justify-between">
-            <div>
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                <Badge variant="default" className="bg-amber-500 hover:bg-amber-600 text-white">
-                  New!
-                </Badge>
-              </div>
-              <h3 className="text-2xl font-semibold mb-4">Free Tier</h3>
-              <div className="h-[88px] flex flex-col justify-end mb-8">
-                <span className="text-4xl font-bold">Free</span>
-              </div>
-              <div className="space-y-3 mb-8">
-                {plans.freeTier.features.map((feature, index) => renderFeature(feature, index, 'freeTier'))}
-              </div>
-            </div>
-            <Link href="https://accounts.notecompanion.ai/sign-up" passHref>
-              <Button variant="outline" className="w-full">
-                Sign Up Free
-              </Button>
-            </Link>
-          </div>
-        </div>
+
 
         {/* Self-Hosted */}
         {/* <div className="relative group h-full">

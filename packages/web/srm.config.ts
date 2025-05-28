@@ -1,11 +1,10 @@
 // Type definitions for subscription and product system
-export type PlanType = "subscription" | "free";
-export type ProductType = "subscription" | "top_up" | "free";
+export type PlanType = "subscription";
+export type ProductType = "subscription" | "top_up";
 export type Plan =
   | "monthly"
   | "yearly"
-  | "top_up"
-  | "free";
+  | "top_up";
 
 export interface ProductMetadata {
   type: PlanType;
@@ -52,7 +51,6 @@ export type SubscriptionWebhookEvent =
 
 // Pricing configuration
 export const PRICES = {
-  FREE: 0, // $0.00
   MONTHLY: 1500, // $15.00
   YEARLY: 11900, // $119.00
   TOP_UP: 1500, // $15.00
@@ -61,13 +59,6 @@ export const PRICES = {
 } as const;
 
 // Features by plan type
-const freeFeatures = [
-
-  "Process up to ~30 notes per month (100 000 tokens)",
-  "Limited audio transcription (10 min)",
-  "Basic support",
-  "No credit card required",
-];
 
 const cloudFeatures = [
 
@@ -91,22 +82,6 @@ const standardPayOnceFeatures = [
 
 // Product metadata configuration
 export const PRODUCTS = {
-  // Free tier
-  FreeTier: {
-    name: "Note Companion - Free",
-    metadata: {
-      type: "free" as PlanType,
-      plan: "free" as Plan,
-    },
-    prices: {
-      free: {
-        amount: PRICES.FREE,
-        type: "free" as const,
-        interval: "unlimited" as const,
-      },
-    },
-    features: freeFeatures,
-  },
   
   // Subscription plans
   SubscriptionMonthly: {

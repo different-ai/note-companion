@@ -82,7 +82,7 @@ export function UsageStatus({ compact = false }: UsageStatusProps) {
   const getPlanDisplay = (plan: string) => {
     switch (plan?.toLowerCase()) {
       case 'free':
-        return 'Free Plan';
+        return 'Legacy Plan';
       case 'monthly':
         return 'Monthly Subscription';
       case 'yearly':
@@ -90,7 +90,7 @@ export function UsageStatus({ compact = false }: UsageStatusProps) {
       case 'lifetime':
         return 'Lifetime Access';
       default:
-        return plan || 'Free Plan';
+        return plan || 'Basic Plan';
     }
   };
 
@@ -98,9 +98,9 @@ export function UsageStatus({ compact = false }: UsageStatusProps) {
     <ThemedView variant="elevated" style={[styles.card, compact && styles.compactCard]}>
       <View style={styles.planInfo}>
         <MaterialIcons 
-          name={usageData?.tier === 'free' ? 'star-outline' : 'star'} 
+          name="star" 
           size={24} 
-          color={usageData?.tier === 'free' ? '#888' : primaryColor} 
+          color={primaryColor} 
         />
         <View style={styles.planDetails}>
           <ThemedText type="defaultSemiBold">
@@ -123,7 +123,7 @@ export function UsageStatus({ compact = false }: UsageStatusProps) {
                 styles.usageProgress, 
                 { 
                   width: `${Math.min(100, (usageData.tokenUsage / usageData.maxTokenUsage) * 100)}%`,
-                  backgroundColor: usageData.tier === 'free' ? '#888' : primaryColor
+                  backgroundColor: primaryColor
                 }
               ]} 
             />
@@ -133,9 +133,7 @@ export function UsageStatus({ compact = false }: UsageStatusProps) {
 
       {!compact && (
         <ThemedText style={styles.subscriptionNote}>
-          {usageData?.tier === 'free' 
-            ? 'This app requires a Note Companion AI account to access premium features.'
-            : 'Thank you for being a Note Companion AI member.'}
+          {'Thank you for being a Note Companion AI member.'}
         </ThemedText>
       )}
     </ThemedView>
@@ -215,4 +213,4 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     letterSpacing: 0.2,
   },
-}); 
+});        
