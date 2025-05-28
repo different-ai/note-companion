@@ -19,8 +19,8 @@ export default function TermsOfServicePage() {
         
         <h2 className="text-xl font-semibold mt-6 mb-3">Using Our Service</h2>
         <p className="mb-4">
-          We provide both free and paid services. Our pricing is transparent and available on our website. 
-          If you choose a free plan, you'll have access to basic features with usage limits.
+          We provide paid services with different tiers. Our pricing is transparent and available on our website. 
+          Each plan provides access to features with corresponding usage limits.
           Paid plans provide expanded features and higher usage limits.
         </p>
         
@@ -75,4 +75,4 @@ export default function TermsOfServicePage() {
       </div>
     </div>
   );
-}  
+}    

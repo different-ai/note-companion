@@ -31,10 +31,12 @@
     },
     {
       "path": "packages/audio-server"
+    },
+    {
+      "path": "packages/mobile"
     }
   ],
   "exclude": [
     "node_modules"
-  ],
-  "extends": "expo/tsconfig.base"
+  ]
 }

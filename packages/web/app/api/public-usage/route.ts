@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
       // Return default values for new users
       return NextResponse.json({
         tokenUsage: 0,
-        maxTokenUsage: 100000, // Default free tier tokens
+        maxTokenUsage: 100000, // Default legacy plan tokens
         subscriptionStatus: "inactive",
         currentPlan: "Legacy Plan",
         isActive: false
@@ -57,4 +57,4 @@ export async function GET(request: NextRequest) {
       message: "Failed to fetch usage data"
     }, { status: 500 });
   }
-}  
+}    

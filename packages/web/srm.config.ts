@@ -1,10 +1,11 @@
 // Type definitions for subscription and product system
-export type PlanType = "subscription";
-export type ProductType = "subscription" | "top_up";
+export type PlanType = "subscription" | "free";
+export type ProductType = "subscription" | "top_up" | "free";
 export type Plan =
   | "monthly"
   | "yearly"
-  | "top_up";
+  | "top_up"
+  | "free";
 
 export interface ProductMetadata {
   type: PlanType;

@@ -31,7 +31,7 @@ export type TierConfig = typeof TierConfigTable.$inferSelect;
 export type NewTierConfig = typeof TierConfigTable.$inferInsert;
 
 // Default legacy plan token limit
-export const DEFAULT_FREE_TIER_TOKENS = 100000;
+export const DEFAULT_LEGACY_PLAN_TOKENS = 100000;
 
 // Create a pgTable that maps to a table in your DB to track user usage
 export const UserUsageTable = pgTable(
@@ -118,9 +118,9 @@ export const createEmptyUserUsage = async (userId: string) => {
     userId,
     billingCycle: "free",
     tokenUsage: 0,
-    maxTokenUsage: DEFAULT_FREE_TIER_TOKENS,
+    maxTokenUsage: DEFAULT_LEGACY_PLAN_TOKENS,
     subscriptionStatus: "active", // Legacy plan is considered active
-    paymentStatus: "free", // Free tier doesn't require payment
+    paymentStatus: "free", // Legacy plan doesn't require payment
     tier: "free",
   });
 };
