@@ -419,17 +419,17 @@ export async function handleFailedPayment(
       .limit(1);
     
     // Determine if we need to drop down to legacy plan
-    const shouldRevertToFreeTier = userUsage.length > 0 && 
+    const shouldRevertToLegacyPlan = userUsage.length > 0 && 
       userUsage[0].tier !== "free" && 
       (paymentStatus === "failed" || subscriptionStatus === "inactive");
     
     // Set max tokens based on tier
-    const maxTokens = shouldRevertToFreeTier ? 
+    const maxTokens = shouldRevertToLegacyPlan ? 
       DEFAULT_FREE_TIER_TOKENS : 
       (userUsage.length > 0 ? userUsage[0].maxTokenUsage : DEFAULT_FREE_TIER_TOKENS);
     
     // Determine tier
-    const tier = shouldRevertToFreeTier ? "free" : (userUsage.length > 0 ? userUsage[0].tier : "free");
+    const tier = shouldRevertToLegacyPlan ? "free" : (userUsage.length > 0 ? userUsage[0].tier : "free");
     
     await db
       .insert(UserUsageTable)
