@@ -112,9 +112,16 @@ async function processSingleFileRecord(fileRecord: UploadedFile): Promise<{
   try {
     console.log(`Starting single file processing for ID: ${fileId}`);
 
-    // Determine R2 key
+    const processType = fileRecord.processType || "standard-ocr";
+    const fileType = fileRecord.fileType.toLowerCase();
+
+    const needsR2Key =
+      processType === "magic-diagram" ||
+      fileType === "text/plain" ||
+      fileType === "text/markdown";
+
     let r2Key = fileRecord.r2Key;
-    if (!r2Key) {
+    if (needsR2Key && !r2Key) {
       const urlParts = fileRecord.blobUrl.split("/");
       const uploadSegmentIndex = urlParts.findIndex(
         (part) => part === "uploads"
@@ -125,21 +132,23 @@ async function processSingleFileRecord(fileRecord: UploadedFile): Promise<{
       ) {
         r2Key = urlParts.slice(uploadSegmentIndex).join("/");
         console.log(`Derived R2 key from blobUrl: ${r2Key}`);
-      } else {
+      } else if (needsR2Key) {
         throw new Error(
           `Could not determine R2 key from blobUrl: ${fileRecord.blobUrl}`
         );
       }
     }
-    if (!r2Key) {
+    if (needsR2Key && !r2Key) {
       throw new Error(`Missing R2 key for file ID ${fileId}`);
     }
 
-    // Download file from R2
+    if (r2Key) {
+      console.log(`Using R2 key: ${r2Key}`);
+    }
+
+    // Download file from R2 if needed
     // Note: Downloading happens here, not needed before calling this function if called directly
     // const buffer = await downloadFromR2(r2Key); // This line is removed if buffer is not needed directly here
-
-    const fileType = fileRecord.fileType.toLowerCase();
 
     // --- Processing Logic ---
     if (fileType === "application/pdf" || fileType.includes("pdf")) {
@@ -170,7 +179,7 @@ async function processSingleFileRecord(fileRecord: UploadedFile): Promise<{
         console.warn(
           `Text file processing (${fileId}) needs content - assuming download required`
         );
-        const buffer = await downloadFromR2(r2Key);
+        const buffer = await downloadFromR2(r2Key!);
         textContent = buffer.toString("utf-8");
         tokensUsed = 0; // No LLM processing cost for plain text
         console.log(

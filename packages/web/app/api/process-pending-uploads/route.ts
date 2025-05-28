@@ -270,9 +270,18 @@ async function processSingleFileRecord(fileRecord: UploadedFile): Promise<{
   let tokensUsed = 0;
   let processingError: string | null = null;
 
-  // Define r2Key determination logic once at the beginning
+  // Determine process type before deriving R2 key
+  const processType = fileRecord.processType || "standard-ocr";
+  const fileType = fileRecord.fileType.toLowerCase();
+
+  // Only attempt to derive r2Key if the processing requires it
+  const needsR2Key =
+    processType === "magic-diagram" ||
+    fileType === "text/plain" ||
+    fileType === "text/markdown";
+
   let r2Key = fileRecord.r2Key;
-  if (!r2Key) {
+  if (needsR2Key && !r2Key) {
     const urlParts = fileRecord.blobUrl.split("/");
     const uploadSegmentIndex = urlParts.findIndex((part) => part === "uploads");
     if (uploadSegmentIndex !== -1 && uploadSegmentIndex < urlParts.length - 1) {
@@ -280,36 +289,37 @@ async function processSingleFileRecord(fileRecord: UploadedFile): Promise<{
       console.log(`[File ${fileId}] Derived R2 key from blobUrl: ${r2Key}`);
     } else {
       console.error(`[File ${fileId}] Could not determine R2 key from blobUrl: ${fileRecord.blobUrl}`);
-      // Set error and return immediately if r2Key is essential and cannot be derived
-      return {
-        status: "error",
-        textContent: null,
-        generatedImageUrl: null,
-        tokensUsed: 0,
-        error: `Could not determine R2 key from blobUrl: ${fileRecord.blobUrl}`,
-      };
+      if (needsR2Key) {
+        // r2Key is essential for this processing type
+        return {
+          status: "error",
+          textContent: null,
+          generatedImageUrl: null,
+          tokensUsed: 0,
+          error: `Could not determine R2 key from blobUrl: ${fileRecord.blobUrl}`,
+        };
+      }
     }
   }
-  if (!r2Key) {
-     // This check might be redundant if the above block handles the error case,
-     // but serves as a safeguard.
-     console.error(`[File ${fileId}] Missing R2 key after derivation attempt.`);
-     return {
-        status: "error",
-        textContent: null,
-        generatedImageUrl: null,
-        tokensUsed: 0,
-        error: `Missing R2 key for file ID ${fileId}`,
-     };
+
+  if (needsR2Key && !r2Key) {
+    console.error(`[File ${fileId}] Missing R2 key after derivation attempt.`);
+    return {
+      status: "error",
+      textContent: null,
+      generatedImageUrl: null,
+      tokensUsed: 0,
+      error: `Missing R2 key for file ID ${fileId}`,
+    };
   }
-   // Log the final R2 key being used
-  console.log(`[File ${fileId}] Using R2 key: ${r2Key}`);
+
+  if (r2Key) {
+    console.log(`[File ${fileId}] Using R2 key: ${r2Key}`);
+  }
 
 
   try {
     console.log(`Starting single file processing for ID: ${fileId}`);
-    const processType = fileRecord.processType || "standard-ocr";
-    const fileType = fileRecord.fileType.toLowerCase();
     console.log(`Processing type: ${processType}, File type: ${fileType}`);
 
 
@@ -322,7 +332,7 @@ async function processSingleFileRecord(fileRecord: UploadedFile): Promise<{
       // --- Magic Diagram Processing (Image Generation) ---
       console.log(`Processing Magic Diagram for ${fileId}`);
       // Pass userId again
-      const result = await processMagicDiagram(r2Key, fileRecord.originalName, userId);
+      const result = await processMagicDiagram(r2Key!, fileRecord.originalName, userId);
       if (result.error) {
         processingError = result.error;
         tokensUsed = 0;
