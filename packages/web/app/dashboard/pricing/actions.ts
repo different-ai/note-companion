@@ -34,7 +34,8 @@ export async function _createStripeCheckoutSession(userId: string, plan: keyof t
   if (!authResult.userId || authResult.userId !== userId) throw new Error("User mismatch or not authenticated");
 
   // Fetch user details using clerkClient for email prefill
-  const clerkUser = await clerkClient.users.getUser(userId);
+  const clerk = await clerkClient();
+  const clerkUser = await clerk.users.getUser(userId);
   const userEmail = clerkUser.emailAddresses.find(e => e.id === clerkUser.primaryEmailAddressId)?.emailAddress;
 
   const metadata = {
