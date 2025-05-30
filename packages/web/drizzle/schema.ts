@@ -135,7 +135,7 @@ export const initializeTierConfig = async () => {
       await db.insert(TierConfigTable).values([
         {
           tierName: "free",
-          maxTokens: DEFAULT_FREE_TIER_TOKENS,
+          maxTokens: DEFAULT_LEGACY_PLAN_TOKENS,
           isActive: true,
         },
         {
@@ -254,7 +254,7 @@ export const checkTokenUsage = async (userId: string) => {
     if (!userUsage.length) {
       console.log(`No user record found for ${userId} in checkTokenUsage, returning default legacy plan tokens`);
       return {
-        remaining: DEFAULT_FREE_TIER_TOKENS,
+        remaining: DEFAULT_LEGACY_PLAN_TOKENS,
         usageError: false,
       };
     }
@@ -353,7 +353,7 @@ export async function createOrUpdateUserSubscriptionStatus(
     // Default to legacy plan tokens if no config found
     const maxTokens = tierConfig.length > 0 
       ? tierConfig[0].maxTokens 
-      : DEFAULT_FREE_TIER_TOKENS;
+      : DEFAULT_LEGACY_PLAN_TOKENS;
     
     // Check if this is a tier upgrade from free to paid
     const existingUser = await db
@@ -425,8 +425,8 @@ export async function handleFailedPayment(
     
     // Set max tokens based on tier
     const maxTokens = shouldRevertToLegacyPlan ? 
-      DEFAULT_FREE_TIER_TOKENS : 
-      (userUsage.length > 0 ? userUsage[0].maxTokenUsage : DEFAULT_FREE_TIER_TOKENS);
+      DEFAULT_LEGACY_PLAN_TOKENS : 
+      (userUsage.length > 0 ? userUsage[0].maxTokenUsage : DEFAULT_LEGACY_PLAN_TOKENS);
     
     // Determine tier
     const tier = shouldRevertToLegacyPlan ? "free" : (userUsage.length > 0 ? userUsage[0].tier : "free");

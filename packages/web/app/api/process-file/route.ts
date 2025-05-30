@@ -60,11 +60,13 @@ async function processImageWithGPT4one(
   // Keep the existing implementation from process-file/route.ts (or the improved one from process-pending-uploads if different)
   try {
     console.log("Processing image with gpt-4o..."); // Use gpt-4o consistently
-    const openai = createOpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    const { getModel } = await import("@/lib/models");
+    const model = getModel("gpt-4o");
+    
     console.log(`Processing image URL: ${imageUrl}`); // Log the URL being sent
     const { object, usage } = await generateObject({
       //   model: openai("gpt-4.1"), // Ensure this uses gpt-4o if intended
-      model: openai("gpt-4.1"),
+      model,
       schema: z.object({ markdown: z.string() }),
       messages: [
         {
