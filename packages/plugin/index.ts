@@ -237,7 +237,7 @@ export default class FileOrganizer extends Plugin {
 
   async appendFormattedLinkToBackupFile(backupFile: TFile, formattedFile: TFile) {
     const formattedLink = `\n\n---\n[[${formattedFile.path} | Link to formatted file]]`;
-    
+
     await this.app.vault.append(backupFile, formattedLink);
   }
 
@@ -442,7 +442,7 @@ export default class FileOrganizer extends Plugin {
       const bytes = new Uint8Array(arrayBuffer);
       const doc = await pdfjsLib.getDocument({ data: bytes }).promise;
       let text = "";
-      
+
       // Use pdfPageLimit to cap the maximum pages read.
       const pageLimit = Math.min(doc.numPages, this.settings.pdfPageLimit);
       for (let pageNum = 1; pageNum <= pageLimit; pageNum++) {
@@ -518,11 +518,11 @@ export default class FileOrganizer extends Plugin {
   ): Promise<Response> {
     const formData = new FormData();
     const blob = new Blob([audioBuffer], { type: `audio/${fileExtension}` });
-    formData.append("audio", blob, `audio.${fileExtension}`);
-    formData.append("fileExtension", fileExtension);
-    // const newServerUrl = "http://localhost:3001/transcribe";
-    const newServerUrl =
-      "https://file-organizer-2000-audio-transcription.onrender.com/transcribe";
+    formData.append("file", blob, `audio.${fileExtension}`);
+
+    // const API_BASE_URL = "https://file-organizer-2000-audio-transcription.onrender.com";
+    const API_BASE_URL = "http://localhost:3000";
+    const newServerUrl = `${API_BASE_URL}/api/transcribe`;
 
     const response = await fetch(newServerUrl, {
       method: "POST",
@@ -1159,9 +1159,9 @@ export default class FileOrganizer extends Plugin {
 
   async activateDashboard(): Promise<DashboardView | null> {
     const { workspace } = this.app;
-    
+
     let leaf = workspace.getLeavesOfType(DASHBOARD_VIEW_TYPE)[0];
-    
+
     if (!leaf) {
       const rightLeaf = workspace.getRightLeaf(false);
       if (rightLeaf) {
@@ -1174,7 +1174,7 @@ export default class FileOrganizer extends Plugin {
         return null;
       }
     }
-    
+
     workspace.revealLeaf(leaf);
     return leaf.view as DashboardView;
   }
@@ -1184,7 +1184,7 @@ export default class FileOrganizer extends Plugin {
     try {
       // Ensure all required folders exist
       await checkAndCreateFolders(
-        this.app.vault, 
+        this.app.vault,
         [
           this.settings.pathToWatch,
           this.settings.defaultDestinationPath,
@@ -1199,7 +1199,7 @@ export default class FileOrganizer extends Plugin {
           this.settings.syncFolderPath,
         ]
       );
-      
+
       // Show success message
       new Notice("All required folders have been created successfully!", 3000);
     } catch (error) {
@@ -1207,13 +1207,13 @@ export default class FileOrganizer extends Plugin {
       new Notice("There was an error creating the required folders. Please check console for details.", 5000);
     }
   }
-  
+
   async fetchUsageStats(): Promise<UsageData | null> {
     try {
       if (!this.settings.API_KEY) {
         return null;
       }
-      
+
       // Try the public-usage endpoint first (works even with token limits)
       try {
         const publicResponse = await fetch(`${this.getServerUrl()}/api/public-usage`, {
@@ -1223,17 +1223,17 @@ export default class FileOrganizer extends Plugin {
             "Authorization": `Bearer ${this.settings.API_KEY}`
           },
         });
-        
+
         if (publicResponse.ok) {
           const data = await publicResponse.json();
           return data;
         }
-        
+
         logger.debug("Public usage endpoint failed, trying regular endpoint");
       } catch (error) {
         logger.debug("Error fetching from public usage endpoint, trying regular endpoint");
       }
-      
+
       // Fall back to the regular endpoint
       const response = await fetch(`${this.getServerUrl()}/api/usage`, {
         method: "GET",
@@ -1242,13 +1242,13 @@ export default class FileOrganizer extends Plugin {
           "Authorization": `Bearer ${this.settings.API_KEY}`
         },
       });
-      
+
       if (!response.ok) {
         // Special handling for token limit errors (429)
         if (response.status === 429) {
           // Get the error message
           const errorData = await response.json();
-          
+
           // If we got a token limit error, create a synthetic response
           // with maxed out usage data
           if (errorData.error && errorData.error.includes("Token limit exceeded")) {
@@ -1261,14 +1261,14 @@ export default class FileOrganizer extends Plugin {
                   "Authorization": `Bearer ${this.settings.API_KEY}`
                 },
               });
-              
+
               if (publicResponse.ok) {
                 return await publicResponse.json();
               }
             } catch (e) {
               logger.debug("Failed to get public usage after token limit error", e);
             }
-            
+
             // Fallback if public API also fails
             return {
               tokenUsage: 100000, // Some large number
@@ -1279,13 +1279,13 @@ export default class FileOrganizer extends Plugin {
             };
           }
         }
-        
+
         throw new Error(`Failed to fetch usage stats: ${response.status}`);
       }
-      
+
       const data = await response.json();
       return data;
-      
+
     } catch (error) {
       logger.error("Failed to fetch usage statistics", error);
       return null;
@@ -1295,17 +1295,17 @@ export default class FileOrganizer extends Plugin {
   openUpgradePlanModal() {
     // Get the server domain from settings
     const serverUrl = this.getServerUrl();
-    
+
     // Extract the domain from the full server URL
     // This pattern transforms "https://app.notecompanion.ai/api" into "https://app.notecompanion.ai"
     const serverDomain = serverUrl.replace(/\/api\/?$/, '');
-    
+
     // Use the server domain for the upgrade URL
     const upgradeUrl = `${serverDomain}/onboarding`;
-    
+
     // Log the URL being opened (helpful for debugging)
     logger.debug(`Opening upgrade plan URL: ${upgradeUrl}`);
-    
+
     // Open the URL in a browser
     window.open(upgradeUrl, '_blank');
   }
