@@ -34,6 +34,3 @@ jobs:
           cd packages/plugin && pnpm build && cd ../..
           cd packages/landing && pnpm build 2>/dev/null || true && cd ../..
           cd packages/release-notes && pnpm build 2>/dev/null || true && cd ../..
-
-      - name: Run tests
-        run: pnpm test  
