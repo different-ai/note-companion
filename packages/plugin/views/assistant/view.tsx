@@ -8,13 +8,12 @@ import { SectionHeader } from "./section-header";
 import { AppContext } from "./provider";
 import AIChatSidebar from "./ai-chat/container";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import { Meetings } from "./organizer/meetings/meetings";
 import ReactMarkdown from 'react-markdown';
 import { SyncTab } from "./synchronizer/sync-tab";
 
 export const ORGANIZER_VIEW_TYPE = "fo2k.assistant.sidebar2";
 
-type Tab = "organizer" | "inbox" | "chat" | "meetings" | "sync";
+type Tab = "organizer" | "inbox" | "chat" | "sync";
 
 function TabContent({
   activeTab,
@@ -88,21 +87,6 @@ function TabContent({
         <AIChatSidebar plugin={plugin} apiKey={plugin.settings.API_KEY} />
       </div>
 
-      <div
-        className={`absolute inset-0 ${
-          activeTab === "meetings" ? "block" : "hidden"
-        }`}
-      >
-        <div className="p-4">
-          <SectionHeader text="Meeting Notes" icon="📅 " />
-          <Meetings
-            plugin={plugin}
-            file={activeFile}
-            content={renderNoteContent(noteContent)}
-            refreshKey={refreshKey}
-          />
-        </div>
-      </div>
 
       <div
         className={`absolute inset-0 ${
@@ -180,12 +164,6 @@ function AssistantContent({
           Chat
         </TabButton>
         <TabButton
-          isActive={activeTab === "meetings"}
-          onClick={() => setActiveTab("meetings")}
-        >
-          Meetings
-        </TabButton>
-        <TabButton
           isActive={activeTab === "sync"}
           onClick={() => setActiveTab("sync")}
         >
@@ -229,11 +207,6 @@ export class AssistantViewWrapper extends ItemView {
       callback: () => this.activateTab("chat"),
     });
 
-    this.plugin.addCommand({
-      id: "open-meetings-tab",
-      name: "Open Meetings Tab",
-      callback: () => this.activateTab("meetings"),
-    });
     
     this.plugin.addCommand({
       id: "open-sync-tab",

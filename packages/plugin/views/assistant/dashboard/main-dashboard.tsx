@@ -8,14 +8,13 @@ import { FloatingActionButton } from "./floating-action-button";
 import { ProgressBar } from "./progress-bar";
 import Chat from "../ai-chat/container";
 import { AssistantView as Organizer } from "../organizer/organizer";
-import { Meetings } from "../organizer/meetings/meetings";
 
-type SectionType = "organizer" | "inbox" | "chat" | "meetings";
+type SectionType = "organizer" | "inbox" | "chat";
 
 /**
  * This is the main container merging the top-level features:
  *  - Onboarding
- *  - Collapsible sections (organizer, inbox, chat, meetings)
+ *  - Collapsible sections (organizer, inbox, chat)
  *  - Floating Action Button for context-aware quick actions
  *  - Basic real-time progress status
  */
@@ -175,20 +174,6 @@ export function MainDashboard() {
         </div>
       </CollapsibleSection>
 
-      <CollapsibleSection
-        title="Meetings"
-        isOpen={expandedSections.includes("meetings")}
-        onToggle={() => toggleSection("meetings")}
-      >
-        <div className="p-2">
-          <Meetings 
-            plugin={plugin} 
-            file={activeFile} 
-            content={activeContent} 
-            refreshKey={refreshKey} 
-          />
-        </div>
-      </CollapsibleSection>
 
       {/** 3) A floating action button for context-based "quick actions" */}
       <FloatingActionButton
