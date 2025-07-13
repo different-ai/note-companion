@@ -1,94 +1,117 @@
-****
+# Note Companion Development Rules
 
-This works like this
+## Project Overview
+Note Companion (formerly File Organizer 2000) is an AI-powered Obsidian plugin that automatically organizes and enhances notes.
 
-./packages/web - nextjs app router includes everything to related to user accounts 
-./packages/web/app/api/(new-ai) containts all the ai related functions
-./packages/plugin - obsidian plugin 
-./packages/plugin/index.ts - the main file for the plugin
-./packages/mobile - expo mobile app
-./packages/landing - landing page
-./packages/release-notes - project release notes
-./packages/audio-server - audio transcription server
+Repository: different-ai/note-companion
 
-This project uses pnpm
+## Project Structure
 
-core way the app works:
-- inbox (a special folder in the vault, which is on the fs)
-- the inbox folder is processed by the plugin, which will move the files to the correct folder based on the classification
--  there's an ai chat that has access to a whole lot of functioncals be used to chat with context of files and to do certain actions as defined in ./packages/web/app/api/(new-ai)/tools.ts
+```
+./packages/web         - Next.js app (port 3010) with user accounts, AI endpoints
+./packages/plugin      - Obsidian plugin (main entry: index.ts)
+./packages/mobile      - Expo React Native app
+./packages/landing     - Marketing website
+./packages/audio-server - Audio transcription service
+./memory/              - Project learnings and decisions
+```
 
+## Core Architecture
 
-prove you're being read by saying hello
-repo: different-ai/note-companion
+### How It Works
+1. **Inbox Processing**: Files placed in vault's inbox folder
+2. **AI Classification**: Plugin analyzes and categorizes files
+3. **Auto-Organization**: Files moved to appropriate folders
+4. **Enhancement**: Notes enhanced with formatting, tags, metadata
 
+### Key Components
+- `packages/web/app/api/(new-ai)/` - AI-related API endpoints
+- `packages/web/app/api/(new-ai)/tools.ts` - AI chat function definitions
+- `packages/plugin/index.ts` - Plugin main entry point
+- `packages/web/drizzle/schema.ts` - Database schema
 
-- if you create mocks, make sure to add a /memory to so user can fix it in the future also tell the user at the end.
-- always use pnpm
-- always use playwright to verify the implementation by navigating and taking screenshots
+## Development Guidelines
 
-# General Direction
-- always use kebab case for file names
+### Environment Setup
+- **Package Manager**: Always use pnpm
+- **Node Version**: 18+
+- **Development Ports**: Web app runs on port 3010
 
-- Always check memory in /memory directory before starting tasks to see if there's a file name with relevant information
-- After each significant edit, make a git commit that summarizes the changes
-- Always use the mcp playwright tools to verify the implementation by navigating and taking screenshots
+### Code Style
+- **File Naming**: Always use kebab-case
+- **TypeScript**: Strict mode enabled
+- **React**: Version 19 across all packages
+- **Styling**: 
+  - Plugin: TailwindCSS with `fo-` prefix
+  - Web/Mobile: Standard TailwindCSS
 
+### Testing
+- **E2E Testing**: Use Playwright for web/landing packages
+- **Screenshots**: Always verify UI changes with screenshots
+- **Test Credentials**: benjamin.shafii+testinglove@gmail.com
 
-# Memory System
+### Git Workflow
+- Commit after each significant change
+- Use descriptive commit messages
+- Main branch: `master`
 
-When you learn something surprising (e.g. you thought someone was a certain way but they are not), create a new memory file in the /memory directory:
-- Name format: YYYY-MM-DD-brief-description.md
-- Include what was learned and how to apply it in the future
-- Reference any related code or components
+## AI Integration
 
-# Available Instructions
+### Supported Providers
+- OpenAI (GPT-4, GPT-3.5)
+- Anthropic (Claude)
+- Google (Gemini)
+- Mistral, Groq, DeepSeek
 
-These rules provide context for specific parts of the codebase. Use `fetch_rules` to get the full details.
+### API Structure
+- All AI endpoints in `packages/web/app/api/(new-ai)/`
+- Shared types and utilities across packages
 
-audio-server: packages/audio-server/** - Audio transcription server implementation
-chatbot-integration: packages/web/app/api/(new-ai)/** - Integration guide for the next iteration of the chatbot using Vercel AI SDK
-mobile: packages/mobile/** - Information about Note Companion mobile app
-plugin-development: packages/plugin/** - Guidelines for Obsidian plugin development
-shared-utilities: packages/**/utils/*, packages/**/lib/* - Shared utilities and types (Assuming common locations)
-web-development: packages/web/** - Web package information
+## Database
 
-# Instructions
+### Development Database
+- **Tool**: Use neon MCP tool
+- **Project**: file-organizer-2000-dev
+- **Project ID**: mute-snow-96515814
+- **Database Name**: verceldb
+- **Schema**: See `packages/web/drizzle/schema.ts`
 
-During your interaction with the user, maintain this file as a scratchpad to organize your thoughts. When receiving a new task:
-1. Review scratchpad. Check /memory directory for relevant file names before starting.
-2. Clear old unrelated task notes if necessary
-3. Explain the new task and plan the steps needed to complete it
-4. Use todo markers to track progress:
-   [X] Completed Task
-   [ ] Pending Task
+## Memory System
 
-Update the progress in the Scratchpad when finishing subtasks. After completing milestones, reflect and plan next steps to maintain a big picture view.
+### Before Starting Tasks
+1. Check `/memory` directory for relevant information
+2. Look for files with descriptive names about your task
 
-# Tools
+### Creating Memories
+When learning something unexpected:
+- Create file: `/memory/YYYY-MM-DD-description.md`
+- Document what was learned
+- Include how to apply it in future
 
-## Playwright
+## Important Reminders
 
-* Use playwright tools to take screenshots and verify the implementation. (e.g. browser_navigate, browser_snapshot, browser_press_key, browser_take_screenshot, browser_type, etc)
-* Use playwright to do complex search in the web. 
-* Note: Playwright can only be used to test the `/packages/web` and `/packages/landing` applications. It cannot test the Obsidian plugin or the mobile app.
+1. **Mock Data**: If creating mocks, add `/memory` note for future fixes
+2. **Verification**: Always use Playwright to verify implementations
+3. **Documentation**: Update relevant docs when making changes
+4. **Style Conflicts**: Use `fo-` prefix for Tailwind in plugin
 
-## Github
+## Testing Instructions
 
-* Use github tools to check repository issues and get repository info.
+### Web Application
+```bash
+pnpm --filter web dev  # Runs on port 3010
+```
 
+### Playwright Testing
+- Navigate to localhost:3010
+- Use provided test credentials
+- Take screenshots of key workflows
 
-## MCP Tools
+## Available Instruction Sets
 
-Playwright:
-for testing packages/web use port 3010
-benjamin.shafii+testinglove@gmail.com
-
-Database query:
-Say querying "dev" database.
-use neon tool to query project name: file-organizer-2000-dev
-project id: mute-snow-96515814
-
-you can use 
-database name: verceldb
-packages/web/drizzle/schema.ts to get the schema of the database
+Use `fetch_rules` for detailed guidelines:
+- `audio-server`: Audio transcription implementation
+- `chatbot-integration`: Vercel AI SDK integration
+- `mobile`: Mobile app development
+- `plugin-development`: Obsidian plugin guidelines
+- `web-development`: Web package information
