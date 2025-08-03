@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useChat, UseChatOptions } from "@ai-sdk/react";
 import { moment } from "obsidian";
 import { Button } from "@/components/ui/button";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, AlertCircle } from "lucide-react";
 
 import FileOrganizer from "../../..";
 import { GroundingMetadata, DataChunk } from "./types/grounding";
@@ -206,10 +206,24 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     keepLastMessageOnError: true,
     onError: error => {
       logger.error(error.message);
-      setErrorMessage(
-        error.message ||
-          "Connection failed. If the problem persists, please check your internet connection or VPN."
-      );
+      let userFriendlyMessage = "Something went wrong. Please try again.";
+      
+      if (error.message?.toLowerCase().includes('api key')) {
+        userFriendlyMessage = "API key issue detected. Please check your settings.";
+      } else if (error.message?.toLowerCase().includes('network') || error.message?.toLowerCase().includes('fetch')) {
+        userFriendlyMessage = "Connection failed. Please check your internet connection.";
+      } else if (error.message?.toLowerCase().includes('rate limit')) {
+        userFriendlyMessage = "Rate limit reached. Please wait a moment and try again.";
+      } else if (error.message?.toLowerCase().includes('timeout')) {
+        userFriendlyMessage = "Request timed out. Please try again.";
+      } else if (error.message) {
+        // If we have a specific error message, show a cleaned up version
+        userFriendlyMessage = error.message.length > 100 
+          ? error.message.substring(0, 100) + "..." 
+          : error.message;
+      }
+      
+      setErrorMessage(userFriendlyMessage);
     },
     onFinish: () => {
       setErrorMessage(null);
@@ -306,8 +320,23 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
             </div>
             <div>
               <h2 className="text-lg font-medium">AI Assistant</h2>
-              <p className="text-sm text-[--text-muted]">
-                {isGenerating ? "Processing..." : "Ready to help"}
+              <p className="text-sm text-[--text-muted] flex items-center gap-2">
+                {isGenerating ? (
+                  <>
+                    <span className="inline-block w-2 h-2 bg-[--text-accent] rounded-full animate-pulse"></span>
+                    <span>Thinking...</span>
+                  </>
+                ) : errorMessage ? (
+                  <>
+                    <span className="inline-block w-2 h-2 bg-[--text-error] rounded-full"></span>
+                    <span>Error occurred</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="inline-block w-2 h-2 bg-[--interactive-success] rounded-full"></span>
+                    <span>Ready to help</span>
+                  </>
+                )}
               </p>
             </div>
           </div>
@@ -319,20 +348,24 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       <div className="flex-grow overflow-y-auto p-4">
         <div className="flex flex-col space-y-4">
           {errorMessage && (
-            <div className="bg-[--background-modifier-error] bg-opacity-10 text-[--text-error] p-4 rounded-lg flex items-center justify-between">
-              <span className="flex items-center">
-                <AlertCircle className="w-5 h-5 mr-2" />
-                {errorMessage}
-              </span>
-              <Button
-                onClick={handleRetry}
-                variant="outline"
-                size="sm"
-                className="text-[--text-error]"
-              >
-                <RefreshCw className="w-4 h-4 mr-1" />
-                Retry
-              </Button>
+            <div className="bg-[--background-secondary] border border-[--background-modifier-border] rounded-lg p-4 mb-4">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 mt-0.5">
+                  <AlertCircle className="w-5 h-5 text-[--text-error]" />
+                </div>
+                <div className="flex-grow">
+                  <h4 className="text-sm font-medium text-[--text-normal] mb-1">Unable to process request</h4>
+                  <p className="text-sm text-[--text-muted]">{errorMessage}</p>
+                </div>
+                <Button
+                  onClick={handleRetry}
+                  variant="ghost"
+                  size="sm"
+                  className="flex-shrink-0 hover:bg-[--background-modifier-hover]"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
           )}
 
@@ -373,20 +406,19 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
           )}
 
           {isGenerating && (
-            <div className="flex items-center space-x-4 bg-[--background-primary-alt] border border-[--background-modifier-border] rounded-lg p-3">
-              <div className="flex items-center space-x-2">
-                <div className="h-2 w-2 bg-primary rounded-full animate-pulse"></div>
-                <span className="text-sm">Processing request</span>
+            <div className="flex items-start gap-3 p-4">
+              <div className="flex-shrink-0 mt-1">
+                <div className="w-8 h-8 rounded-full bg-[--background-secondary] flex items-center justify-center">
+                  <div className="w-2 h-2 bg-[--text-accent] rounded-full animate-pulse"></div>
+                </div>
               </div>
-              <div className="text-sm text-[--text-muted]">|</div>
-              <div className="flex items-center space-x-2">
-                <div className="h-2 w-2 bg-[--text-muted] rounded-full"></div>
-                <span className="text-sm text-[--text-muted]">Analyzing context</span>
-              </div>
-              <div className="text-sm text-[--text-muted]">|</div>
-              <div className="flex items-center space-x-2">
-                <div className="h-2 w-2 bg-[--text-muted] rounded-full"></div>
-                <span className="text-sm text-[--text-muted]">Generating response</span>
+              <div className="flex-grow">
+                <div className="text-sm font-medium text-[--text-normal] mb-2">AI is thinking...</div>
+                <div className="space-y-2">
+                  <div className="h-2 bg-[--background-modifier-border] rounded animate-pulse" style={{ width: '75%' }}></div>
+                  <div className="h-2 bg-[--background-modifier-border] rounded animate-pulse" style={{ width: '50%' }}></div>
+                  <div className="h-2 bg-[--background-modifier-border] rounded animate-pulse" style={{ width: '60%' }}></div>
+                </div>
               </div>
             </div>
           )}
