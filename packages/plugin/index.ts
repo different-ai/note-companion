@@ -519,17 +519,12 @@ export default class FileOrganizer extends Plugin {
     const formData = new FormData();
     const blob = new Blob([audioBuffer], { type: `audio/${fileExtension}` });
     formData.append("audio", blob, `audio.${fileExtension}`);
-    formData.append("fileExtension", fileExtension);
-    // const newServerUrl = "http://localhost:3001/transcribe";
-    const newServerUrl =
-      "https://file-organizer-2000-audio-transcription.onrender.com/transcribe";
-
-    const response = await fetch(newServerUrl, {
+    
+    const response = await fetch(`${this.getServerUrl()}/api/transcribe`, {
       method: "POST",
       body: formData,
       headers: {
         Authorization: `Bearer ${this.settings.API_KEY}`,
-        // "Content-Type": "multipart/form-data",
       },
     });
     if (!response.ok) {
@@ -546,25 +541,18 @@ export default class FileOrganizer extends Plugin {
       const audioBuffer = await this.app.vault.readBinary(file);
       const response = await this.transcribeAudio(audioBuffer, file.extension);
 
-      if (!response.body) {
-        throw new Error("Response body is null");
-      }
+      const data = await response.json();
+      const transcript = data.text;
 
-      const reader = response.body.getReader();
-
+      // Convert the single transcript to an async iterator for compatibility
       async function* generateTranscript() {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          yield new TextDecoder().decode(value);
-        }
+        yield transcript;
       }
 
       return generateTranscript();
-    } catch (e) {
-      logger.error("Error generating transcript", e);
-      new Notice("Error generating transcript", 3000);
-      throw e;
+    } catch (error) {
+      console.error("Error generating transcript from audio:", error);
+      throw error;
     }
   }
 

@@ -12,8 +12,7 @@ note-companion/
 │   ├── plugin/          # Obsidian plugin (TypeScript, React 19)
 │   ├── web/             # Web application (Next.js 15, React 19)
 │   ├── mobile/          # Mobile app (React Native, Expo SDK 52)
-│   ├── landing/         # Marketing website (Next.js 15)
-│   └── audio-server/    # Audio transcription service (Express.js)
+│   └── landing/         # Marketing website (Next.js 15)
 ├── memory/              # Project memory and learnings
 ├── pnpm-workspace.yaml  # Workspace configuration
 └── turbo.json          # Turborepo configuration
@@ -77,14 +76,6 @@ Marketing website for Note Companion.
 - Framer Motion animations
 - Radix UI components
 
-### `packages/audio-server` - Audio Processing Server
-Dedicated server for audio transcription services.
-
-**Tech Stack:**
-- Express.js
-- Deepgram SDK
-- OpenAI integration
-- Multer for file uploads
 
 ## 🚀 Getting Started
 

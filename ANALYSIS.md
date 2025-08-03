@@ -65,7 +65,6 @@ The system implements the PARA method for file organization:
 packages/
 ├── web/           # Next.js web application
 ├── plugin/        # Obsidian plugin
-├── audio-server/  # Audio processing service
 ├── shared/        # Shared utilities
 └── release-notes/ # Release notes generator
 ```

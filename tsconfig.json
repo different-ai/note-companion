@@ -30,9 +30,6 @@
       "path": "packages/web"
     },
     {
-      "path": "packages/audio-server"
-    },
-    {
       "path": "packages/mobile"
     }
   ],
