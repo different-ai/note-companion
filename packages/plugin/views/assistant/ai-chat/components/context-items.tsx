@@ -2,7 +2,7 @@ import React from "react";
 import { SelectedItem } from "../selected-item";
 import { ContextItemType, useContextItems } from "../use-context-items";
 import { usePlugin } from "../../provider";
-import { TFile, TFolder } from "obsidian";
+import { TFolder } from "obsidian";
 
 export const ContextItems: React.FC = () => {
   const plugin = usePlugin();
@@ -15,7 +15,7 @@ export const ContextItems: React.FC = () => {
     folders,
     youtubeVideos,
     tags,
-    screenpipe,
+
     searchResults,
     removeByReference,
     toggleCurrentFile,
@@ -27,7 +27,7 @@ export const ContextItems: React.FC = () => {
     folder: "📁",
     tag: "🏷️",
     youtube: "🎥",
-    screenpipe: "📊",
+
     search: "🔍",
     "text-selection": "✂️",
   } as const;
@@ -51,9 +51,7 @@ export const ContextItems: React.FC = () => {
       case "tag":
         handleOpenTag(title);
         break;
-      case "screenpipe":
-        // Add screenpipe handling if needed
-        break;
+
       case "search":
         // Optionally handle search click - could show results in a modal
         break;
@@ -87,6 +85,18 @@ export const ContextItems: React.FC = () => {
     }
   };
 
+  const handleOpenTag = (tagName: string) => {
+    // Open search with tag query
+    const searchLeaf = app.workspace.getLeavesOfType("search")[0];
+    if (searchLeaf) {
+      app.workspace.revealLeaf(searchLeaf);
+      const searchView = searchLeaf.view as any;
+      if (searchView?.setQuery) {
+        searchView.setQuery(`tag:${tagName}`);
+      }
+    }
+  };
+
   return (
     <div className="flex-grow overflow-x-auto">
       <div className="flex flex-col space-y-2">
@@ -113,7 +123,7 @@ export const ContextItems: React.FC = () => {
                 key={file.id}
                 item={file.title}
                 onClick={() => handleItemClick("file", file.id, file.title)}
-                onRemove={() => removeByReference(file)}
+                onRemove={() => removeByReference(file.reference)}
                 prefix={`${prefixMap.file} `}
               />
             ))}
@@ -152,11 +162,9 @@ export const ContextItems: React.FC = () => {
           </div>
         )}
 
-        {/* Media section (YouTube and Screenpipe) */}
-        {(Object.values(youtubeVideos).length > 0 ||
-          Object.values(screenpipe).length > 0) && (
+        {/* YouTube section */}
+        {Object.values(youtubeVideos).length > 0 && (
           <div className="flex space-x-2">
-            {/* YouTube items */}
             {Object.values(youtubeVideos).map(video => (
               <SelectedItem
                 key={video.id}
@@ -166,18 +174,6 @@ export const ContextItems: React.FC = () => {
                 }
                 onRemove={() => removeByReference(video.reference)}
                 prefix={`${prefixMap.youtube} `}
-              />
-            ))}
-            {/* Screenpipe items */}
-            {Object.values(screenpipe).map(item => (
-              <SelectedItem
-                key={item.id}
-                item={item.reference}
-                onClick={() =>
-                  handleItemClick("screenpipe", item.id, item.reference)
-                }
-                onRemove={() => removeByReference(item.reference)}
-                prefix={`${prefixMap.screenpipe} `}
               />
             ))}
           </div>

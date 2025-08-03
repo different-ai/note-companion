@@ -42,10 +42,7 @@ interface TagContextItem extends BaseContextItem {
   files: ProcessedFile[];
 }
 
-interface ScreenpipeContextItem extends BaseContextItem {
-  type: "screenpipe";
-  data: any;
-}
+
 
 // Add new search result type
 interface SearchContextItem extends BaseContextItem {
@@ -70,7 +67,7 @@ type ContextCollections = {
   folders: Record<string, FolderContextItem>;
   youtubeVideos: Record<string, YouTubeContextItem>;
   tags: Record<string, TagContextItem>;
-  screenpipe: Record<string, ScreenpipeContextItem>;
+
   searchResults: Record<string, SearchContextItem>;
   textSelections: Record<string, TextSelectionContextItem>;
 };
@@ -85,7 +82,7 @@ interface ContextItemsState extends ContextCollections {
   addFolder: (folder: FolderContextItem) => void;
   addYouTubeVideo: (video: YouTubeContextItem) => void;
   addTag: (tag: TagContextItem) => void;
-  addScreenpipe: (data: ScreenpipeContextItem) => void;
+
   addSearchResults: (search: SearchContextItem) => void;
   addTextSelection: (selection: TextSelectionContextItem) => void;
 
@@ -181,11 +178,7 @@ export const useContextItems = create<ContextItemsState>((set, get) => ({
       youtubeVideos: { ...state.youtubeVideos, [video.id]: video },
     })),
 
-  // Add Screenpipe data without lightweight mode
-  addScreenpipe: data =>
-    set(state => ({
-      screenpipe: { ...state.screenpipe, [data.id]: data },
-    })),
+
 
   // Update addTag to handle lightweight mode
   addTag: tag =>
@@ -235,7 +228,7 @@ export const useContextItems = create<ContextItemsState>((set, get) => ({
         folder: "folders",
         youtube: "youtubeVideos",
         tag: "tags",
-        screenpipe: "screenpipe",
+
         search: "searchResults",
         "text-selection": "textSelections",
       };
@@ -248,7 +241,7 @@ export const useContextItems = create<ContextItemsState>((set, get) => ({
     }),
 
   setCurrentFile: file =>
-    set({ currentFile: { ...file, reference: "Current File" } }),
+    set({ currentFile: file ? { ...file, reference: "Current File", type: "file" } : null }),
 
   toggleCurrentFile: () =>
     set(state => ({
@@ -261,7 +254,6 @@ export const useContextItems = create<ContextItemsState>((set, get) => ({
       folders: {},
       youtubeVideos: {},
       tags: {},
-      screenpipe: {},
       searchResults: {},
       textSelections: {},
       includeCurrentFile: false,
@@ -310,7 +302,7 @@ export const useContextItems = create<ContextItemsState>((set, get) => ({
         "folders",
         "youtubeVideos",
         "tags",
-        "screenpipe",
+
         "searchResults",
         "textSelections",
       ];
@@ -408,15 +400,7 @@ export const addTagContext = async (
   });
 };
 
-export const addScreenpipeContext = (data: any) => {
-  useContextItems.getState().addScreenpipe({
-    id: "screenpipe-context",
-    type: "screenpipe",
-    data,
-    reference: "Screenpipe Context",
-    createdAt: Date.now(),
-  });
-};
+
 
 export const addSearchContext = (
   query: string,
@@ -455,7 +439,7 @@ export type ContextItemType =
   | "folder"
   | "youtube"
   | "tag"
-  | "screenpipe"
+
   | "search"
   | "text-selection";
 export type {
@@ -463,7 +447,7 @@ export type {
   FolderContextItem,
   YouTubeContextItem,
   TagContextItem,
-  ScreenpipeContextItem,
+
   BaseContextItem,
   SearchContextItem,
   ProcessedFile,
@@ -478,7 +462,7 @@ export const getUniqueReferences = () => {
     folders: store.folders,
     youtubeVideos: store.youtubeVideos,
     tags: store.tags,
-    screenpipe: store.screenpipe,
+
     searchResults: store.searchResults,
     textSelections: store.textSelections,
   };

@@ -22,7 +22,6 @@ export async function POST(req: NextRequest) {
         const {
           messages,
           newUnifiedContext,
-          enableScreenpipe,
           currentDatetime,
           unifiedContext: oldUnifiedContext,
           model: bodyModel,
@@ -51,7 +50,6 @@ export async function POST(req: NextRequest) {
             model: openai.responses("gpt-4o-mini"),
             system: getChatSystemPrompt(
               contextString,
-              enableScreenpipe,
               currentDatetime
             ),
             maxSteps: 3,
@@ -101,7 +99,6 @@ export async function POST(req: NextRequest) {
             model,
             system: getChatSystemPrompt(
               contextString,
-              enableScreenpipe,
               currentDatetime
             ),
             maxSteps: 3,

@@ -6,7 +6,7 @@ import { YouTubeHandler } from "./youtube-handler";
 import { SearchHandler } from "./search-handler";
 import { DateRangeHandler } from "./date-range-handler";
 import { LastModifiedHandler } from "./last-modified-handler";
-import { ScreenpipeHandler } from "./screenpipe-handler";
+
 import { SettingsUpdateHandler } from "./settings-update-handler";
 import { AppendContentHandler } from "./append-content-handler";
 import { OnboardHandler } from "./onboard-handler";
@@ -40,7 +40,7 @@ function ToolInvocationHandler({
       getYoutubeVideoId: "YouTube Transcript",
       modifyCurrentNote: "Note Modification",
       getLastModifiedFiles: "Recent File Activity",
-      getScreenpipeDailySummary: "Querying Screenpipe Data",
+
       generateSettings: "Settings Update",
       appendContentToFile: "Append Content",
       analyzeVaultStructure: "Vault Analysis",
@@ -84,13 +84,7 @@ function ToolInvocationHandler({
           app={app}
         />
       ),
-      getScreenpipeDailySummary: () => (
-        <ScreenpipeHandler
-          toolInvocation={toolInvocation}
-          handleAddResult={handleAddResult}
-          app={app}
-        />
-      ),
+
       generateSettings: () => (
         <SettingsUpdateHandler
           toolInvocation={toolInvocation}

@@ -44,15 +44,7 @@ export const enterpriseIntegrations: readonly Integration[] = [
     status: 'active',
     description: 'Smart file organization based on content and context.',
   },
-  {
-    name: 'Screenpipe Integration',
-    status: 'active',
-    description: 'Capture and transcribe audio for meeting notes.',
-    icon: `<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="32" height="32" rx="16" fill="#001B44"/>
-      <path d="M23.3333 12.6667L16 8L8.66667 12.6667M23.3333 12.6667L16 17.3333M23.3333 12.6667V19.3333L16 24M16 17.3333L8.66667 12.6667M16 17.3333V24M8.66667 12.6667V19.3333L16 24" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>`,
-  },
+
 ] as const;
 
 // Export type for use in other components

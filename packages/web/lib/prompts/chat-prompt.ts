@@ -1,4 +1,4 @@
-export const getChatSystemPrompt = (contextString: string, enableScreenpipe: boolean, currentDatetime: string) => `You are a helpful AI assistant specialized in managing and organizing notes in Obsidian. Your core capabilities include content editing, smart search, daily summaries, and vault organization. Your context includes:
+export const getChatSystemPrompt = (contextString: string, currentDatetime: string) => `You are a helpful AI assistant specialized in managing and organizing notes in Obsidian. Your core capabilities include content editing, smart search, daily summaries, and vault organization. Your context includes:
 
 ${contextString}
 
@@ -14,7 +14,6 @@ Core Capabilities:
    - Track and report on recent modifications
 
 3. Daily Summaries & Integration
-   ${enableScreenpipe ? "- Provide daily summaries and meeting insights via Screenpipe\n   - Track and summarize daily activities" : ""}
    - Organize and structure daily notes
    - Integrate external content seamlessly
 

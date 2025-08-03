@@ -12,9 +12,7 @@ export const ExperimentTab: React.FC<ExperimentTabProps> = ({ plugin }) => {
   const [enableAtomicNotes, setEnableAtomicNotes] = useState(
     plugin.settings.enableAtomicNotes
   );
-  const [enableScreenpipe, setEnableScreenpipe] = useState(
-    plugin.settings.enableScreenpipe
-  );
+
   const [enableFabric, setEnableFabric] = useState(
     plugin.settings.enableFabric
   );
@@ -30,12 +28,7 @@ export const ExperimentTab: React.FC<ExperimentTabProps> = ({ plugin }) => {
   const [enableDeepSearch, setEnableDeepSearch] = useState(
     plugin.settings.enableDeepSearch
   );
-  const [screenpipeTimeRange, setScreenpipeTimeRange] = useState(
-    plugin.settings.screenpipeTimeRange
-  );
-  const [queryScreenpipeLimit, setQueryScreenpipeLimit] = useState(
-    plugin.settings.queryScreenpipeLimit
-  );
+
 
   const handleToggleChange = async (
     value: boolean,
@@ -222,75 +215,7 @@ export const ExperimentTab: React.FC<ExperimentTabProps> = ({ plugin }) => {
             </div>
 
             <div className="space-y-3">
-              <ToggleSetting
-                name="Screenpipe Integration"
-                description="Enable Screenpipe integration for productivity analysis and meeting summaries."
-                value={enableScreenpipe}
-                onChange={value =>
-                  handleToggleChange(
-                    value,
-                    setEnableScreenpipe,
-                    "enableScreenpipe"
-                  )
-                }
-              />
 
-              {enableScreenpipe && (
-                <div className="ml-4 p-4 bg-[--background-primary-alt] rounded-lg border-l-2 border-[--text-accent] space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-sm text-[--text-normal] font-medium">
-                      Time Range (hours)
-                    </label>
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="number"
-                        min="1"
-                        max="24"
-                        value={screenpipeTimeRange}
-                        onChange={async e => {
-                          const value = Number(e.target.value);
-                          setScreenpipeTimeRange(value);
-                          plugin.settings.screenpipeTimeRange = value;
-                          await plugin.saveSettings();
-                        }}
-                        className="w-20 px-2 py-1 bg-[--background-primary] border border-[--background-modifier-border] rounded"
-                      />
-                      <span className="text-sm text-[--text-muted]">hours</span>
-                    </div>
-                    <p className="text-xs text-[--text-muted]">
-                      Adjust how far back Screenpipe should look for data. Lower
-                      values mean faster processing but may miss important
-                      context.
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm text-[--text-normal] font-medium">
-                      Query Limit
-                    </label>
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="number"
-                        min="1"
-                        max="100"
-                        value={queryScreenpipeLimit}
-                        onChange={async e => {
-                          const value = Number(e.target.value);
-                          setQueryScreenpipeLimit(value);
-                          plugin.settings.queryScreenpipeLimit = value;
-                          await plugin.saveSettings();
-                        }}
-                        className="w-20 px-2 py-1 bg-[--background-primary] border border-[--background-modifier-border] rounded"
-                      />
-                      <span className="text-sm text-[--text-muted]">items</span>
-                    </div>
-                    <p className="text-xs text-[--text-muted]">
-                      Maximum number of items to fetch per query. Higher limits
-                      provide more context but may impact performance.
-                    </p>
-                  </div>
-                </div>
-              )}
 
               <div className="space-y-3">
                 <ToggleSetting

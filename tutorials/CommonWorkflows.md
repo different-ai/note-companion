@@ -26,16 +26,6 @@ This triggers the ExecuteActionsHandler to:
 3. The second prompt triggers `executeActionsOnFileBasedOnPrompt`
 4. The ExecuteActionsHandler processes each file
 
-## Using Screenpipe Data for Organization
-
-### Step 1: Get Activity Data
-```
-based on my screenpipe activity give me a small summary of my day 
-```
-
-This uses the Screenpipe context so you can create daily logs of based on your activity right in Obidian.
-
-
 
 ## Finding and Tagging Recent Files
 

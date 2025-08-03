@@ -51,9 +51,7 @@ export class FileOrganizerSettings {
   contentCutoffChars = 1000;
   // use to prevent formatting of big file
   maxFormattingTokens = 100 * 1000;
-  screenpipeTimeRange = 8; // Default to 8 hours
-  // used only in screenpipe right now
-  queryScreenpipeLimit = 250;
+
   maxChatTokens = 100 * 1000;
   customTagInstructions =
     "Generate tags that capture the main topics, themes, and type of content in the document. Focus on specific, meaningful tags that will help with organization and retrieval.";

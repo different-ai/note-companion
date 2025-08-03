@@ -57,7 +57,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     tags,
     searchResults,
     currentFile,
-    screenpipe,
+
     textSelections,
     isLightweightMode,
   } = useContextItems();
@@ -70,7 +70,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     folders,
     tags,
     currentFile,
-    screenpipe,
+
     searchResults,
     textSelections,
   };
@@ -117,7 +117,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
         ),
         // Keep these as is
         currentFile: currentFile ? { ...currentFile, content: "" } : null,
-        screenpipe,
+    
         textSelections,
       };
       return JSON.stringify(lightweightContext);

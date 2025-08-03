@@ -65,13 +65,7 @@ export const chatTools = {
       maxDepth: z.number().optional().describe("Maximum folder depth to analyze"),
     }),
   },
-  getScreenpipeDailySummary: {
-    description: "Generate comprehensive daily summaries from Screenpipe data with key insights and activities",
-    parameters: z.object({
-      startTime: z.string().optional().describe("Start time in ISO format"),
-      endTime: z.string().optional().describe("End time in ISO format"),
-    }),
-  },
+
   moveFiles: {
     description: "Organize files into appropriate folders based on content and structure",
     parameters: z.object({
