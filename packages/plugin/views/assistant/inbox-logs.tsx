@@ -23,6 +23,7 @@ import { Inbox } from "../../inbox";
 import { VALID_MEDIA_EXTENSIONS, VALID_AUDIO_EXTENSIONS, VALID_IMAGE_EXTENSIONS } from "../../constants";
 import { TFile, Notice } from "obsidian";
 import { ProcessingTimeline } from "./organizer/components/processing-timeline";
+import { UndoButton } from "./organizer/components/undo-button";
 
 
 // Enhanced log entry display component
@@ -343,6 +344,7 @@ function FileCard({ record }: { record: FileRecord }) {
               </div>
               <StatusBadge status={record.status} />
             </div>
+            <UndoButton record={record} plugin={plugin} />
           </div>
 
           {/* Essential information display */}
