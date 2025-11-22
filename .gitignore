@@ -35,6 +35,13 @@ data.json
 /android/
 /ios/
 
+# Mobile build artifacts
+*.ipa
+*.apk
+*.aab
+build-*.ipa
+build-*.apk
+
 # Report files
 *REPORT*.md
 *REPORT*.MD
