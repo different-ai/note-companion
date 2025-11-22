@@ -272,10 +272,9 @@ export function SyncTab({ plugin }: { plugin: FileOrganizer }) {
       // Determine destination folder - use the dedicated sync folder
       const folderPath =
         plugin.settings.syncFolderPath || "_NoteCompanion/Sync";
-      let folder: TFolder;
 
       try {
-        folder = await plugin.ensureFolderExists(folderPath);
+        await plugin.ensureFolderExists(folderPath);
       } catch (err) {
         new Notice(`Failed to create sync folder: ${folderPath}`);
         throw err;
@@ -422,308 +421,126 @@ export function SyncTab({ plugin }: { plugin: FileOrganizer }) {
 
   return (
     <StyledContainer className={tw("bg-[--background-primary] h-full flex flex-col")}>
-      {/* Header - compact, flush */}
-      <div className={tw("px-3 py-2 border-b border-[--background-modifier-border]")}>
-        <SectionHeader text="Sync Files" icon="📥" />
-        <p className={tw("text-[--text-muted] text-xs px-3")}>
-          Sync files from Note Companion web and mobile
-        </p>
-      </div>
-
-      {/* Scrollable content */}
-      <div className={tw("flex-1 overflow-y-auto")}>
-      
-
-      <div className={tw("bg-[--background-secondary] border border-[--background-modifier-border] p-6 mb-6")}>
-        <div className={tw("flex gap-3 items-start mb-4")}>
-          <div className={tw("bg-[--interactive-accent-hover] p-2 rounded-full mt-0.5")}>
-            <Cloud className={tw("w-5 h-5 text-[--interactive-accent]")} />
-          </div>
-          <div>
-            <h3 className={tw("font-medium text-lg text-[--text-normal] mb-2")}>
-              How Sync Works
-            </h3>
-            <p className={tw("text-sm leading-relaxed mb-3 text-[--text-muted]")}>
-              Sync allows you to download files uploaded through the Note
-              Companion mobile app or web interface.
-            </p>
-
-            <ol className={tw("list-none pl-0 mb-4")}>
-              <li className={tw("flex items-start gap-2 mb-3")}>
-                <div className={tw("bg-[--interactive-accent-hover] text-[--interactive-accent] rounded-full w-5 h-5 flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5")}>
-                  1
-                </div>
-                <p className={tw("text-sm m-0 text-[--text-muted]")}>
-                  Upload files using the Note Companion mobile app or web app
-                </p>
-              </li>
-              <li className={tw("flex items-start gap-2 mb-3")}>
-                <div className={tw("bg-[--interactive-accent-hover] text-[--interactive-accent] rounded-full w-5 h-5 flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5")}>
-                  2
-                </div>
-                <p className={tw("text-sm m-0 text-[--text-muted]")}>
-                  Files will appear here after processing
-                </p>
-              </li>
-              <li className={tw("flex items-start gap-2 mb-3")}>
-                <div className={tw("bg-[--interactive-accent-hover] text-[--interactive-accent] rounded-full w-5 h-5 flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5")}>
-                  3
-                </div>
-                <p className={tw("text-sm m-0 text-[--text-muted]")}>
-                  Download files directly to your Obsidian vault
-                </p>
-              </li>
-            </ol>
-          </div>
+      {/* Header with icon-only tools */}
+      <div className={tw("px-3 py-1.5 border-b border-[--background-modifier-border] flex items-center justify-between")}>
+        <div>
+          <h2 className={tw("text-sm font-medium text-[--text-normal]")}>Sync Files</h2>
+          <p className={tw("text-xs text-[--text-muted]")}>
+            {files.filter(f => downloadedFiles.has(f.id)).length} of {files.length} synced
+          </p>
         </div>
-      </div>
-
-      {error && (
-        <div className={tw("bg-[--background-secondary] border border-[--background-modifier-error] text-[--text-error] p-5 mb-6 flex items-start gap-3")}>
-          <AlertCircle className={tw("w-5 h-5 flex-shrink-0 mt-0.5")} />
-          <div>
-            <p className={tw("font-medium mb-3")}>{error}</p>
-            <Button
-              className={tw("bg-[--interactive-accent] hover:bg-[--interactive-accent-hover] transition-colors duration-200")}
-              onClick={fetchFiles}
-            >
-              <RefreshCw className={tw("w-4 h-4 mr-2")} /> Retry
-            </Button>
-          </div>
-        </div>
-      )}
-
-      <div className={tw("bg-[--background-secondary] border border-[--background-modifier-border] p-5 mb-6")}>
-        <div className={tw("flex flex-col md:flex-row md:justify-between md:items-center gap-4")}>
-          <div className={tw("flex gap-3")}>
-            <Button 
-              onClick={fetchFiles} 
-              disabled={loading}
-              className={tw("bg-[--interactive-accent] hover:bg-[--interactive-accent-hover] transition-colors duration-200 px-4 py-2 h-auto flex items-center gap-2")}
-            >
-              {loading ? (
-                <>
-                  <RefreshCw className={tw("w-4 h-4 animate-spin")} />
-                  <span>Loading...</span>
-                </>
-              ) : (
-                <>
-                  <RefreshCw className={tw("w-4 h-4")} />
-                  <span>Refresh</span>
-                </>
-              )}
-            </Button>
-            
-            <Button 
-              onClick={downloadAllMissingFiles} 
-              disabled={
-                loading ||
-                syncingAll ||
-                files.filter(
-                  f => f.status === "completed" && !downloadedFiles.has(f.id)
-                ).length === 0
-              }
-              className={tw(`transition-colors duration-200  px-4 py-2 h-auto  flex items-center gap-2 ${
-                loading || syncingAll || files.filter(f => f.status === 'completed' && !downloadedFiles.has(f.id)).length === 0
-                ? "bg-[--background-secondary] text-[--text-muted]"
-                : "bg-[--interactive-accent] hover:bg-[--interactive-accent-hover] text-white"
-              }`)}
-            >
-              {syncingAll ? (
-                <>
-                  <DownloadCloud className={tw("w-4 h-4 animate-pulse")} />
-                  <span>Syncing...</span>
-                </>
-              ) : (
-                <>
-                  <DownloadCloud className={tw("w-4 h-4")} />
-                  <span>Sync All New Files</span>
-                </>
-              )}
-            </Button>
-          </div>
+        
+        {/* Icon-only tools */}
+        <div className={tw("flex items-center gap-2")}>
+          <button
+            onClick={fetchFiles}
+            disabled={loading}
+            className={tw(`p-1.5 text-[--text-muted] hover:text-[--text-normal] transition-colors ${loading ? 'cursor-wait' : ''}`)}
+            title="Refresh file list"
+          >
+            <RefreshCw className={tw(`w-4 h-4 ${loading ? 'animate-spin' : ''}`)} />
+          </button>
           
-          {files.length > 0 && !loading && (
-            <div className={tw("flex items-center bg-[--background-primary-alt] px-4 py-2 flex-wrap")}>
-              <div className={tw("text-sm text-[--text-muted] font-medium mr-3 flex items-center")}>
-                <Check className={tw("w-4 h-4 text-[--text-success] mr-2")} />
-                <span>{files.filter(f => downloadedFiles.has(f.id)).length} of {files.length} files synced</span>
-              </div>
-              {downloadedFiles.size > 0 && (
-                <button 
-                  onClick={clearDownloadHistory}
-                  className={tw("text-xs text-[--text-error] hover:text-[--text-error] transition-colors duration-200 border border-[--background-modifier-error] px-2 py-1 hover:bg-[--background-modifier-error-hover]")}
-                >
-                  Clear History
-                </button>
-              )}
-            </div>
+          <button
+            onClick={downloadAllMissingFiles}
+            disabled={loading || syncingAll || files.filter(f => f.status === 'completed' && !downloadedFiles.has(f.id)).length === 0}
+            className={tw(`p-1.5 transition-colors ${
+              files.filter(f => f.status === 'completed' && !downloadedFiles.has(f.id)).length > 0
+                ? 'text-[--interactive-accent] hover:text-[--interactive-accent-hover]'
+                : 'text-[--text-muted] cursor-not-allowed'
+            }`)}
+            title={`Sync all (${files.filter(f => f.status === 'completed' && !downloadedFiles.has(f.id)).length})`}
+          >
+            <DownloadCloud className={tw(`w-4 h-4 ${syncingAll ? 'animate-pulse' : ''}`)} />
+          </button>
+          
+          {downloadedFiles.size > 0 && (
+            <button
+              onClick={clearDownloadHistory}
+              className={tw("text-xs text-[--text-muted] hover:text-[--text-error] transition-colors px-2")}
+              title="Clear sync history"
+            >
+              Clear
+            </button>
           )}
         </div>
       </div>
 
+      {/* File list - compact rows */}
+      <div className={tw("flex-1 overflow-y-auto")}>
+      
+
+      {error && (
+        <div className={tw("px-3 py-2 bg-[--background-modifier-error] border-l-2 border-[--text-error]")}>
+          <div className={tw("flex items-center gap-2 text-sm text-[--text-error]")}>
+            <AlertCircle className={tw("w-4 h-4")} />
+            <span>{error}</span>
+          </div>
+        </div>
+      )}
+
       {loading ? (
-        <div className="space-y-6">
+        <div className={tw("border-t border-[--background-modifier-border]")}>
           {[1, 2, 3].map(i => (
-            <div key={i} className="bg-white border border-slate-200 p-5 animate-pulse">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <div className="h-5 bg-slate-200 w-48 mb-2"></div>
-                  <div className="h-4 bg-slate-100 w-36"></div>
-                </div>
-                <div className="h-6 bg-slate-200 rounded-full w-20"></div>
+            <div key={i} className={tw("flex items-center px-3 py-2 border-b border-[--background-modifier-border] animate-pulse")}>
+              <div className={tw("w-6 h-6 mr-3 bg-[--background-modifier-border]")}></div>
+              <div className={tw("flex-1")}>
+                <div className={tw("h-4 bg-[--background-modifier-border] w-2/3")}></div>
               </div>
-              <div className="border-t border-slate-100 pt-4 mt-4">
-                <div className="flex justify-between items-center">
-                  <div className="h-9 bg-slate-200 w-28"></div>
-                  <div className="h-4 bg-slate-100 w-24"></div>
-                </div>
-              </div>
+              <div className={tw("h-3 bg-[--background-modifier-border] w-16 mr-4")}></div>
+              <div className={tw("w-4 h-4 bg-[--background-modifier-border]")}></div>
             </div>
           ))}
         </div>
       ) : (
         <>
           {files.length === 0 ? (
-            <div className="bg-white border border-slate-200 p-8 text-center">
-              <div className="inline-flex justify-center items-center w-16 h-16 bg-indigo-50 rounded-full mb-4">
-                <Cloud className="w-8 h-8 text-indigo-500" />
-              </div>
-              <h3 className="text-slate-800 font-medium text-lg mb-3">
-                No synced files found
-              </h3>
-              <p className="text-slate-600 mb-6 max-w-md mx-auto">
-                To see files here, upload documents using Note Companion
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
-                <div className="bg-slate-50 border border-slate-200 p-4 text-left flex flex-col">
-                  <span className="text-sm font-medium text-slate-700 mb-2">Mobile App</span>
-                  <span className="text-xs text-slate-500">Upload files from your phone or tablet</span>
-                </div>
-                <div className="bg-slate-50 border border-slate-200 p-4 text-left flex flex-col">
-                  <span className="text-sm font-medium text-slate-700 mb-2">Web App</span>
-                  <span className="text-xs text-slate-500">Visit notecompanion.ai to upload files</span>
-                </div>
-              </div>
-              <p className="text-xs text-slate-400">
-                Files will appear here once uploaded and processed
+            <div className={tw("flex flex-col items-center justify-center py-12 text-center")}>
+              <Cloud className={tw("w-12 h-12 text-[--text-faint] mb-4")} />
+              <p className={tw("text-sm text-[--text-muted]")}>
+                No files yet. Upload via mobile or web app.
               </p>
             </div>
           ) : (
-            <div className="space-y-6">
+            <div className={tw("border-t border-[--background-modifier-border]")}>
               {files.map(file => (
                 <div
                   key={file.id}
-                  className={`bg-white border   overflow-hidden transition-all duration-200 ${
-                    downloadedFiles.has(file.id)
-                      ? "border-indigo-200 shadow-indigo-50"
-                      : "border-slate-200 hover:border-slate-300"
-                  }`}
+                  onClick={() => file.status === 'completed' && !downloading[file.id] && downloadFile(file)}
+                  className={tw(`flex items-center px-3 py-2 border-b border-[--background-modifier-border] transition-colors group ${
+                    file.status === 'completed' && !downloading[file.id]
+                      ? 'cursor-pointer hover:bg-[--background-modifier-hover]'
+                      : 'cursor-default'
+                  }`)}
                 >
-                  <div className="p-5">
-                    <div className="flex justify-between items-start">
-                      <div className="flex">
-                        {/* Show preview for images or loading state */}
-                        {loadingPreviews[file.id] ? (
-                          <div className="w-12 h-12 mr-3 flex-shrink-0 overflow-hidden border border-slate-200 flex items-center justify-center bg-slate-50 animate-pulse">
-                            <RefreshCw className="w-5 h-5 text-slate-400 animate-spin" />
-                          </div>
-                        ) : file.fileType.startsWith('image/') && previewCache[file.id] ? (
-                          <div className="w-12 h-12 mr-3 flex-shrink-0 overflow-hidden border border-slate-200">
-                            <img 
-                              src={previewCache[file.id].dataUrl} 
-                              alt={file.originalName} 
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        ) : file.fileType === 'application/pdf' && previewCache[file.id] ? (
-                          <div className="w-12 h-12 mr-3 flex-shrink-0 overflow-hidden border border-slate-200 bg-slate-50 flex items-center justify-center">
-                            <div className="bg-rose-100 p-1 rounded">
-                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" className="w-6 h-6 text-rose-700">
-                                <path fill="currentColor" d="M320 464c8.8 0 16-7.2 16-16V160H256c-17.7 0-32-14.3-32-32V48H64c-8.8 0-16 7.2-16 16V448c0 8.8 7.2 16 16 16H320zM0 64C0 28.7 28.7 0 64 0H229.5c17 0 33.3 6.7 45.3 18.7l90.5 90.5c12 12 18.7 28.3 18.7 45.3V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V64z"/>
-                              </svg>
-                            </div>
-                          </div>
-                        ) : (file.fileType.startsWith('image/') || file.fileType === 'application/pdf') && file.status === "completed" ? (
-                          <div 
-                            className="w-12 h-12 mr-3 flex-shrink-0 overflow-hidden border border-slate-200 bg-slate-50 flex items-center justify-center cursor-pointer hover:bg-slate-100 transition-colors duration-200"
-                            onClick={() => fetchPreview(file)}
-                            title="Load preview"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-slate-500">
-                              <circle cx="12" cy="12" r="10" />
-                              <path d="M8 12h8" />
-                              <path d="M12 8v8" />
-                            </svg>
-                          </div>
-                        ) : (
-                          <div className={`p-2  mr-3 flex-shrink-0 ${
-                            downloadedFiles.has(file.id) ? 'bg-indigo-50' : 'bg-slate-50'
-                          }`}>
-                            {getFileIcon(file.fileType, "w-5 h-5 text-slate-700")}
-                          </div>
-                        )}
-                        
-                        <div>
-                          <div className="flex items-center mb-1">
-                            <h3 className="font-medium text-slate-800">{file.originalName}</h3>
-                            {downloadedFiles.has(file.id) && (
-                              <span className="ml-2 px-2 py-0.5 bg-indigo-100 border border-indigo-200 text-indigo-700 text-xs rounded-full flex items-center">
-                                <Check className="w-3 h-3 mr-1" />
-                                Synced
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-xs text-slate-500 flex items-center">
-                            <span className="mr-3">{new Date(file.createdAt).toLocaleString()}</span>
-                            <span className="text-xs font-medium bg-slate-100 px-2 py-0.5 rounded text-slate-600">
-                              {file.fileType.split('/')[1] || file.fileType}
-                            </span>
-                          </p>
-                        </div>
-                      </div>
-                      <div>{getStatusBadge(file.status)}</div>
-                    </div>
-
-                    <div className="border-t border-slate-100 mt-4 pt-4 flex justify-between items-center">
-                      <Button
-                        onClick={() => downloadFile(file)}
-                        disabled={file.status !== "completed" || downloading[file.id]}
-                        className={`px-4 py-2 h-auto  transition-colors duration-200 flex items-center gap-2  ${
-                          file.status !== "completed" || downloading[file.id]
-                            ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                            : downloadedFiles.has(file.id)
-                              ? "bg-slate-100 hover:bg-slate-200 text-slate-700"
-                              : "bg-indigo-600 hover:bg-indigo-700 text-white"
-                        }`}
-                      >
-                        {downloading[file.id] ? (
-                          <>
-                            <DownloadCloud className="w-4 h-4 animate-pulse" />
-                            <span>Downloading...</span>
-                          </>
-                        ) : downloadedFiles.has(file.id) ? (
-                          <>
-                            <Download className="w-4 h-4" />
-                            <span>Download Again</span>
-                          </>
-                        ) : (
-                          <>
-                            <Download className="w-4 h-4" />
-                            <span>Download</span>
-                          </>
-                        )}
-                      </Button>
-                      
-                      <div className="text-xs text-slate-500 flex items-center">
-                        {file.status === "completed" && (
-                          <span className="text-emerald-600 flex items-center">
-                            <Check className="w-3 h-3 mr-1" />
-                            Ready to download
-                          </span>
-                        )}
-                      </div>
-                    </div>
+                  {/* Icon (24x24) */}
+                  <div className={tw("w-6 h-6 mr-3 flex-shrink-0 flex items-center justify-center")}>
+                    {getFileIcon(file.fileType, tw("w-4 h-4 text-[--text-muted]"))}
+                  </div>
+                  
+                  {/* Filename */}
+                  <div className={tw("flex-1 min-w-0")}>
+                    <span className={tw("text-sm text-[--text-normal] truncate block")}>
+                      {file.originalName}
+                    </span>
+                  </div>
+                  
+                  {/* Date */}
+                  <div className={tw("text-xs text-[--text-faint] mr-4 flex-shrink-0")}>
+                    {new Date(file.createdAt).toLocaleDateString()}
+                  </div>
+                  
+                  {/* Status icon */}
+                  <div className={tw("w-5 h-5 flex items-center justify-center flex-shrink-0")}>
+                    {downloading[file.id] ? (
+                      <DownloadCloud className={tw("w-4 h-4 text-[--text-muted] animate-pulse")} />
+                    ) : downloadedFiles.has(file.id) ? (
+                      <Check className={tw("w-4 h-4 text-[--text-success]")} />
+                    ) : file.status === 'completed' ? (
+                      <Download className={tw("w-4 h-4 text-[--text-muted] opacity-0 group-hover:opacity-100 transition-opacity")} />
+                    ) : (
+                      <Clock className={tw("w-4 h-4 text-[--text-warning]")} />
+                    )}
                   </div>
                 </div>
               ))}
