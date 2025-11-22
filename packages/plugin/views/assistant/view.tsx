@@ -116,10 +116,10 @@ function TabButton({
     <button
       onClick={onClick}
       className={tw(
-        "px-3 py-2 text-sm font-medium shadow-none cursor-pointer bg-transparent",
+        "px-3 py-1.5 text-xs font-medium shadow-none cursor-pointer bg-transparent border-b-2 transition-colors",
         isActive
-          ? "bg-[--interactive-accent] text-black"
-          : "bg-[--background-primary] text-[--text-muted] hover:bg-[--background-modifier-hover] hover:text-black"
+          ? "border-[--interactive-accent] text-[--text-normal]"
+          : "border-transparent text-[--text-muted] hover:text-[--text-normal] hover:border-[--background-modifier-border]"
       )}
     >
       {children}
@@ -146,7 +146,8 @@ function AssistantContent({
 
   return (
     <div className={tw("flex flex-col h-full")}>
-      <div className={tw("flex shadow-none w-fit space-x-2 bg-[--background-primary] p-2")}>
+      {/* Flush navigation - segmented control style */}
+      <div className={tw("flex shadow-none border-b border-[--background-modifier-border] bg-[--background-primary]")}>
         <TabButton
           isActive={activeTab === "organizer"}
           onClick={() => setActiveTab("organizer")}
@@ -173,7 +174,8 @@ function AssistantContent({
         </TabButton>
       </div>
 
-      <div className={tw("flex-1 min-h-0")}>
+      {/* Content area - no padding */}
+      <div className={tw("flex-1 min-h-0 overflow-hidden")}>
         <TabContent activeTab={activeTab} plugin={plugin} leaf={leaf} />
       </div>
     </div>

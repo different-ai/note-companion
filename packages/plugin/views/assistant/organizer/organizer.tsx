@@ -137,161 +137,177 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
   // Then check license
   if (!isLicenseValid) {
     return (
-      <div className={tw("flex flex-col gap-4")}>
-        <div className={tw("flex gap-3 items-center")}>
+      <div className={tw("flex flex-col h-full")}>
+        <div className={tw("flex gap-2 items-center px-3 py-2 border-b border-[--background-modifier-border]")}>
           <RefreshButton onRefresh={refreshContext} />
         </div>
-        <LicenseValidator
-          apiKey={plugin.settings.API_KEY}
-          onValidationComplete={() => setIsLicenseValid(true)}
-          plugin={plugin}
-        />
+        <div className={tw("px-3")}>
+          <LicenseValidator
+            apiKey={plugin.settings.API_KEY}
+            onValidationComplete={() => setIsLicenseValid(true)}
+            plugin={plugin}
+          />
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className={tw("flex flex-col gap-4")}>
-        <div className={tw("flex gap-3 items-center")}>
+      <div className={tw("flex flex-col h-full")}>
+        <div className={tw("flex gap-2 items-center px-3 py-2 border-b border-[--background-modifier-border]")}>
           <RefreshButton onRefresh={refreshContext} />
         </div>
-        <EmptyState
-          message={`Error: ${error}. Click refresh to try again.`}
-          showRefresh={false}
-          onRefresh={refreshContext}
-        />
+        <div className={tw("px-3")}>
+          <EmptyState
+            message={`Error: ${error}. Click refresh to try again.`}
+            showRefresh={false}
+            onRefresh={refreshContext}
+          />
+        </div>
       </div>
     );
   }
 
   if (!activeFile) {
     return (
-      <div className={tw("flex flex-col gap-4")}>
-        <div className={tw("flex gap-3 items-center")}>
+      <div className={tw("flex flex-col h-full")}>
+        <div className={tw("flex gap-2 items-center px-3 py-2 border-b border-[--background-modifier-border]")}>
           <RefreshButton onRefresh={refreshContext} />
         </div>
-        <EmptyState message="Open a file " />
+        <div className={tw("px-3")}>
+          <EmptyState message="Open a file " />
+        </div>
       </div>
     );
   }
   
   if (isInIgnoredPatterns) {
     return (
-      <div className={tw("flex flex-col gap-4")}>
-        <div className={tw("flex gap-3 items-center")}>
+      <div className={tw("flex flex-col h-full")}>
+        <div className={tw("flex gap-2 items-center px-3 py-2 border-b border-[--background-modifier-border]")}>
           <RefreshButton onRefresh={refreshContext} />
         </div>
-        <EmptyState message="This file is part of an ignored folder and will not be processed." />
+        <div className={tw("px-3")}>
+          <EmptyState message="This file is part of an ignored folder and will not be processed." />
+        </div>
       </div>
     );
   }
 
   if (isMediaFile) {
     return (
-      <div className={tw("flex flex-col gap-4")}>
-        <div className={tw("flex gap-3 items-center")}>
+      <div className={tw("flex flex-col h-full")}>
+        <div className={tw("flex gap-2 items-center px-3 py-2 border-b border-[--background-modifier-border]")}>
           <RefreshButton onRefresh={refreshContext} />
         </div>
-        <EmptyState message="To process an image or audio file, move it to the Note Companion Inbox Folder (e.g. for image text extraction or audio transcription)." />
+        <div className={tw("px-3")}>
+          <EmptyState message="To process an image or audio file, move it to the Note Companion Inbox Folder (e.g. for image text extraction or audio transcription)." />
+        </div>
       </div>
     );
   }
   
   if (!noteContent.trim()) {
     return (
-      <div className={tw("flex flex-col gap-4")}>
-        <div className={tw("flex gap-3 items-center")}>
+      <div className={tw("flex flex-col h-full")}>
+        <div className={tw("flex gap-2 items-center px-3 py-2 border-b border-[--background-modifier-border]")}>
           <RefreshButton onRefresh={refreshContext} />
         </div>
-        <EmptyState
-          message="This file is empty. Add some content and click refresh to see AI suggestions."
-          showRefresh={false}
-          onRefresh={refreshContext}
-          showDelete={true}
-          onDelete={handleDelete}
-        />
+        <div className={tw("px-3")}>
+          <EmptyState
+            message="This file is empty. Add some content and click refresh to see AI suggestions."
+            showRefresh={false}
+            onRefresh={refreshContext}
+            showDelete={true}
+            onDelete={handleDelete}
+          />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className={tw("flex flex-col gap-4")}>
-      <div className={tw("flex gap-3 items-center")}>
+    <div className={tw("flex flex-col h-full overflow-y-auto")}>
+      {/* Compact header - flush to edges */}
+      <div className={tw("flex gap-2 items-center px-3 py-2 border-b border-[--background-modifier-border] bg-[--background-primary] sticky top-0 z-10")}>
         <RefreshButton onRefresh={refreshContext} />
-        <div className={tw("text-accent")}>{activeFile.basename}</div>
+        <div className={tw("text-xs text-[--text-normal] font-medium truncate")}>{activeFile.basename}</div>
       </div>
 
-      {renderSection(
-        <ClassificationContainer
-          plugin={plugin}
-          file={activeFile}
-          content={noteContent}
-          refreshKey={refreshKey}
-        />,
-        "Error loading classification"
-      )}
+      {/* Content sections - no outer padding */}
+      <div className={tw("flex flex-col")}>
+        {renderSection(
+          <ClassificationContainer
+            plugin={plugin}
+            file={activeFile}
+            content={noteContent}
+            refreshKey={refreshKey}
+          />,
+          "Error loading classification"
+        )}
 
-      <SectionHeader text="Tags" icon="🏷️ " />
-      {renderSection(
-        <SimilarTags
-          plugin={plugin}
-          file={activeFile}
-          content={noteContent}
-          refreshKey={refreshKey}
-        />,
-        "Error loading tags"
-      )}
+        <SectionHeader text="Tags" icon="🏷️ " />
+        {renderSection(
+          <SimilarTags
+            plugin={plugin}
+            file={activeFile}
+            content={noteContent}
+            refreshKey={refreshKey}
+          />,
+          "Error loading tags"
+        )}
 
-      {plugin.settings.enableTitleSuggestions && (
-        <>
-          <SectionHeader text="Titles" icon="💡 " />
-          {renderSection(
-            <RenameSuggestion
-              plugin={plugin}
-              file={activeFile}
-              content={noteContent}
-              refreshKey={refreshKey}
-            />,
-            "Error loading title suggestions"
-          )}
-        </>
-      )}
+        {plugin.settings.enableTitleSuggestions && (
+          <>
+            <SectionHeader text="Titles" icon="💡 " />
+            {renderSection(
+              <RenameSuggestion
+                plugin={plugin}
+                file={activeFile}
+                content={noteContent}
+                refreshKey={refreshKey}
+              />,
+              "Error loading title suggestions"
+            )}
+          </>
+        )}
 
-      <SectionHeader text="Folders" icon="📁 " />
-      {renderSection(
-        <SimilarFolderBox
-          plugin={plugin}
-          file={activeFile}
-          content={noteContent}
-          refreshKey={refreshKey}
-        />,
-        "Error loading folder suggestions"
-      )}
+        <SectionHeader text="Folders" icon="📁 " />
+        {renderSection(
+          <SimilarFolderBox
+            plugin={plugin}
+            file={activeFile}
+            content={noteContent}
+            refreshKey={refreshKey}
+          />,
+          "Error loading folder suggestions"
+        )}
 
-      {plugin.settings.enableAtomicNotes && (
-        <>
-          <SectionHeader text="Atomic notes" icon="✂️ " />
-          {renderSection(
-            <AtomicNotes plugin={plugin} activeFile={activeFile} refreshKey={refreshKey} />,
-            "Error loading atomic notes"
-          )}
-        </>
-      )}
+        {plugin.settings.enableAtomicNotes && (
+          <>
+            <SectionHeader text="Atomic notes" icon="✂️ " />
+            {renderSection(
+              <AtomicNotes plugin={plugin} activeFile={activeFile} refreshKey={refreshKey} />,
+              "Error loading atomic notes"
+            )}
+          </>
+        )}
 
-      {hasAudioEmbed(noteContent) && (
-        <>
-          <SectionHeader text="Audio Transcription" icon="🎙️ " />
-          {renderSection(
-            <TranscriptionButton
-              plugin={plugin}
-              file={activeFile}
-              content={noteContent}
-            />,
-            "Error loading transcription button"
-          )}
-        </>
-      )}
+        {hasAudioEmbed(noteContent) && (
+          <>
+            <SectionHeader text="Audio Transcription" icon="🎙️ " />
+            {renderSection(
+              <TranscriptionButton
+                plugin={plugin}
+                file={activeFile}
+                content={noteContent}
+              />,
+              "Error loading transcription button"
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 };

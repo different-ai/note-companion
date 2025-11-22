@@ -317,44 +317,51 @@ const EssentialInfoDisplay: React.FC<{ record: FileRecord }> = ({ record }) => {
   );
 };
 
-// Main file card component
+// Main file card component - compressed, dense list item
 function FileCard({ record }: { record: FileRecord }) {
   const plugin = usePlugin();
+  const [isExpanded, setIsExpanded] = React.useState(false);
 
   return (
     <motion.div
       layout
-      className="bg-[--background-primary] border border-[--background-modifier-border] rounded-lg"
+      className="border-b border-[--background-modifier-border] hover:bg-[--background-modifier-hover]"
     >
-      <div className="p-4">
-        {/* File header with status indicators */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <div
-                className="cursor-pointer"
-                onClick={() =>
-                  plugin.app.workspace.openLinkText(
-                    record.file?.basename || '',
-                    record.file?.parent?.path || ''
-                  )
-                }
-              >
-                <FileNameDisplay record={record} />
-              </div>
+      <div 
+        className="px-3 py-2 cursor-pointer"
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
+        {/* Compact header - single line */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <div
+              className="cursor-pointer flex items-center gap-2 flex-1 min-w-0"
+              onClick={(e) => {
+                e.stopPropagation();
+                plugin.app.workspace.openLinkText(
+                  record.file?.basename || '',
+                  record.file?.parent?.path || ''
+                );
+              }}
+            >
               <StatusBadge status={record.status} />
+              <FileNameDisplay record={record} />
             </div>
-            <UndoButton record={record} plugin={plugin} />
           </div>
-
-          {/* Essential information display */}
-          <EssentialInfoDisplay record={record} />
+          <UndoButton record={record} plugin={plugin} />
         </div>
 
-        {/* Processing Timeline */}
-        {(record.status === "processing" || record.status === "completed" || record.status === "error") && (
-          <div className="mt-4">
-            <ProcessingTimeline record={record} />
+        {/* Essential info - only when expanded */}
+        {isExpanded && (
+          <div className="mt-2 space-y-2">
+            <EssentialInfoDisplay record={record} />
+            
+            {/* Processing Timeline */}
+            {(record.status === "processing" || record.status === "completed" || record.status === "error") && (
+              <div className="mt-3">
+                <ProcessingTimeline record={record} />
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -734,41 +741,51 @@ export const InboxLogs: React.FC = () => {
   };
 
   return (
-    <div className="space-y-4">
-      {analytics && <InboxAnalytics analytics={analytics} />}
+    <div className="flex flex-col h-full">
+      {/* Analytics - compact, no padding */}
+      {analytics && (
+        <div className="border-b border-[--background-modifier-border]">
+          <InboxAnalytics analytics={analytics} />
+        </div>
+      )}
 
-      <SearchBar
-        onSearch={handleSearch}
-        onStatusFilter={handleStatusFilter}
-        onDateFilter={handleDateFilter}
-        selectedStatus={statusFilter}
-        dateFilter={dateFilter}
-      />
+      {/* Search bar - flush */}
+      <div className="border-b border-[--background-modifier-border] px-3 py-2">
+        <SearchBar
+          onSearch={handleSearch}
+          onStatusFilter={handleStatusFilter}
+          onDateFilter={handleDateFilter}
+          selectedStatus={statusFilter}
+          dateFilter={dateFilter}
+        />
+      </div>
 
-      {/* Enhanced date range indicator */}
+      {/* Date indicator - minimal */}
       {dateFilter.range !== 'all' && (
-        <div className="text-sm text-[--text-muted]">
+        <div className="text-xs text-[--text-muted] px-3 py-1 border-b border-[--background-modifier-border]">
           {dateFilter.range === 'custom' ? (
-            <>Showing records for {moment(dateFilter.startDate).format('MMMM D, YYYY')}</>
+            <>{moment(dateFilter.startDate).format('MMM D, YYYY')}</>
           ) : (
             <>
-              Showing records from{' '}
-              {moment(dateFilter.startDate).format('MMM D, YYYY')}
+              {moment(dateFilter.startDate).format('MMM D')}
               {dateFilter.startDate !== dateFilter.endDate && 
-                ` to ${moment(dateFilter.endDate).format('MMM D, YYYY')}`}
+                ` - ${moment(dateFilter.endDate).format('MMM D')}`}
             </>
           )}
         </div>
       )}
 
-      {filteredRecords.map(record => (
-        <FileCard key={record.id} record={record} />
-      ))}
-      {filteredRecords.length === 0 && (
-        <div className="text-center py-8 text-[--text-muted]">
-          {records.length === 0 ? "No records found" : "No matching records"}
-        </div>
-      )}
+      {/* File list - dense, flush edges */}
+      <div className="flex-1 overflow-y-auto">
+        {filteredRecords.map(record => (
+          <FileCard key={record.id} record={record} />
+        ))}
+        {filteredRecords.length === 0 && (
+          <div className="flex items-center justify-center h-32 text-xs text-[--text-muted]">
+            {records.length === 0 ? "No records found" : "No matching records"}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

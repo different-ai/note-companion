@@ -8,8 +8,8 @@ interface SectionHeaderProps {
 
 export const SectionHeader: React.FC<SectionHeaderProps> = ({ text, icon }) => {
   return (
-    <h6 className={tw("text-sm font-medium text-[--text-normal] mb-2")}>
-      {icon && <span className={tw("mr-2")}>{icon}</span>}
+    <h6 className={tw("text-xs font-semibold text-[--text-muted] uppercase tracking-wide mt-5 mb-2 px-3")}>
+      {icon && <span className={tw("mr-1.5")}>{icon}</span>}
       {text}
     </h6>
   );
