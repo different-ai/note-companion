@@ -311,7 +311,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
 
   return (
     <StyledContainer className="flex flex-col h-full">
-      {/* Chat Header - compact */}
+      {/* Chat Header - compact with clear button */}
       <div className="flex-none border-b border-[--background-modifier-border] px-3 py-2 bg-[--background-primary]">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -340,7 +340,9 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
               </p>
             </div>
           </div>
-   
+          
+          {/* Clear All - global action belongs in header */}
+          <ClearAllButton />
         </div>
       </div>
 
@@ -429,43 +431,60 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
         </div>
       </div>
 
-      {/* Chat Input Section - pinned to bottom, flush edges */}
+      {/* Unified Command Center Footer */}
       <div className="flex-none border-t border-[--background-modifier-border] bg-[--background-primary]">
-        {/* Context items bar - compact */}
-        <div className="flex items-center gap-2 px-3 py-1.5 border-b border-[--background-modifier-border]">
-          <ContextItems />
-          <ClearAllButton />
-        </div>
-
-        {/* Input form - minimal padding */}
-        <form onSubmit={handleSendMessage} className="px-3 py-2">
-          <div className={`flex gap-2 ${error ? "opacity-50 pointer-events-none" : ""}`}>
-            <div className="flex-1 relative" ref={inputRef}>
-              <Tiptap
-                value={input}
-                onChange={handleTiptapChange}
-                onKeyDown={handleKeyDown}
-              />
-              <div className="absolute bottom-2 right-2">
-                <AudioRecorder onTranscriptionComplete={handleTranscriptionComplete} />
-              </div>
-            </div>
-            <SubmitButton isGenerating={isGenerating} />
+        <form onSubmit={handleSendMessage} className="p-3">
+          {/* Row 1: Context attachments - compact chips */}
+          <div className="mb-2">
+            <ContextItems />
           </div>
 
-          {/* Model/search controls - compact single row */}
-          <div className="flex items-center justify-between mt-2 text-xs">
-            <ContextLimitIndicator
-              unifiedContext={contextString}
-              maxContextSize={maxContextSize}
+          {/* Row 2: Input area with embedded send button */}
+          <div className={`relative ${error ? "opacity-50 pointer-events-none" : ""}`} ref={inputRef}>
+            <Tiptap
+              value={input}
+              onChange={handleTiptapChange}
+              onKeyDown={handleKeyDown}
             />
-            <div className="flex items-center gap-2">
-              <SearchToggle selectedModel={selectedModel} />
-              <ModelSelector
-                selectedModel={selectedModel}
-                onModelSelect={setSelectedModel}
-              />
+            {/* Embedded controls - bottom right corner of input */}
+            <div className="absolute bottom-2 right-2 flex items-center gap-1">
+              <AudioRecorder onTranscriptionComplete={handleTranscriptionComplete} />
+              <button
+                type="submit"
+                disabled={isGenerating}
+                className={`w-7 h-7 flex items-center justify-center transition-colors ${
+                  isGenerating
+                    ? "text-[--text-muted] cursor-not-allowed"
+                    : "text-[--interactive-accent] hover:text-[--interactive-accent-hover]"
+                }`}
+                title={isGenerating ? "Stop generating" : "Send message"}
+              >
+                {isGenerating ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-5 h-5">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-5 h-5">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                )}
+              </button>
             </div>
+          </div>
+
+          {/* Row 3: Modifier bar - subtle toggles and status */}
+          <div className="flex items-center justify-between mt-1.5 text-xs text-[--text-muted]">
+            <div className="flex items-center gap-3">
+              <ContextLimitIndicator
+                unifiedContext={contextString}
+                maxContextSize={maxContextSize}
+              />
+              <SearchToggle selectedModel={selectedModel} />
+            </div>
+            <ModelSelector
+              selectedModel={selectedModel}
+              onModelSelect={setSelectedModel}
+            />
           </div>
         </form>
       </div>

@@ -50,11 +50,11 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
   };
 
   return (
-    <div className="border-t border-[--background-modifier-border] p-2 relative">
-      <div className="flex items-center justify-end space-x-2">
+    <div className="relative">
+      <div className="flex items-center justify-end">
         <div
           onClick={() => plugin.settings.showLocalLLMInChat && setIsModelSelectorOpen(!isModelSelectorOpen)}
-          className={`flex items-center space-x-1 text-[--text-muted] hover:text-[--text-normal] text-sm bg-[--background-primary-alt] ${plugin.settings.showLocalLLMInChat ? 'hover:bg-[--background-modifier-hover] cursor-pointer' : ''} px-2 py-1 rounded`}
+          className={`flex items-center gap-1 text-xs text-[--text-muted] ${plugin.settings.showLocalLLMInChat ? 'hover:text-[--text-normal] cursor-pointer' : ''}`}
         >
           <span>{getDisplayName(selectedModel)}</span>
           {plugin.settings.showLocalLLMInChat && (
@@ -62,7 +62,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 20 20"
               fill="currentColor"
-              className={`w-4 h-4 transition-transform ${
+              className={`w-3 h-3 transition-transform ${
                 isModelSelectorOpen ? "rotate-180" : ""
               }`}
             >
@@ -75,7 +75,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
           )}
         </div>
         {isModelSelectorOpen && plugin.settings.showLocalLLMInChat && (
-          <div className="absolute bottom-full right-0 mb-1 bg-[--background-primary] border border-[--background-modifier-border] rounded">
+          <div className="absolute bottom-full right-0 mb-1 bg-[--background-primary] border border-[--background-modifier-border]">
             <div className="py-1">
               <div
                 onClick={() => handleModelSelect("gpt-4.1-mini")}
@@ -90,7 +90,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
                     type="text"
                     value={customModel}
                     onChange={(e) => setCustomModel(e.target.value)}
-                    className="w-full px-2 py-1 text-sm border rounded bg-[--background-primary] text-[--text-normal] border-[--background-modifier-border]"
+                    className="w-full px-2 py-1 text-sm border bg-[--background-primary] text-[--text-normal] border-[--background-modifier-border]"
                     placeholder="Enter model name..."
                   />
                   <div className="flex justify-end mt-2 space-x-2">
