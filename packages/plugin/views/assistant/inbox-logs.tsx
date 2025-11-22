@@ -17,7 +17,7 @@ import {
   Filter,
   Calendar,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+
 import { usePlugin } from "./provider";
 import { Inbox } from "../../inbox";
 import { VALID_MEDIA_EXTENSIONS, VALID_AUDIO_EXTENSIONS, VALID_IMAGE_EXTENSIONS } from "../../constants";
@@ -323,8 +323,7 @@ function FileCard({ record }: { record: FileRecord }) {
   const [isExpanded, setIsExpanded] = React.useState(false);
 
   return (
-    <motion.div
-      layout
+    <div
       className="border-b border-[--background-modifier-border] hover:bg-[--background-modifier-hover]"
     >
       <div 
@@ -365,7 +364,7 @@ function FileCard({ record }: { record: FileRecord }) {
           </div>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }
 

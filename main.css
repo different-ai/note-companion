@@ -812,24 +812,12 @@
 .border-\[--text-warning\] {
   border-color: var(--text-warning);
 }
-.border-amber-200 {
-  --tw-border-opacity: 1;
-  border-color: rgb(253 230 138 / var(--tw-border-opacity, 1));
-}
 .border-destructive {
   border-color: var(--text-error);
-}
-.border-emerald-200 {
-  --tw-border-opacity: 1;
-  border-color: rgb(167 243 208 / var(--tw-border-opacity, 1));
 }
 .border-gray-200 {
   --tw-border-opacity: 1;
   border-color: rgb(229 231 235 / var(--tw-border-opacity, 1));
-}
-.border-indigo-200 {
-  --tw-border-opacity: 1;
-  border-color: rgb(199 210 254 / var(--tw-border-opacity, 1));
 }
 .border-input {
   border-color: var(--background-modifier-form-field);
@@ -837,16 +825,8 @@
 .border-primary {
   border-color: var(--interactive-accent);
 }
-.border-rose-200 {
-  --tw-border-opacity: 1;
-  border-color: rgb(254 205 211 / var(--tw-border-opacity, 1));
-}
 .border-secondary {
   border-color: var(--background-secondary);
-}
-.border-slate-200 {
-  --tw-border-opacity: 1;
-  border-color: rgb(226 232 240 / var(--tw-border-opacity, 1));
 }
 .border-transparent {
   border-color: transparent;
@@ -908,10 +888,6 @@
 .bg-accent {
   background-color: var(--interactive-accent);
 }
-.bg-amber-50 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(255 251 235 / var(--tw-bg-opacity, 1));
-}
 .bg-background {
   background-color: var(--background-primary);
 }
@@ -932,10 +908,6 @@
 .bg-destructive {
   background-color: var(--text-error);
 }
-.bg-emerald-50 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(236 253 245 / var(--tw-bg-opacity, 1));
-}
 .bg-green-100 {
   --tw-bg-opacity: 1;
   background-color: rgb(220 252 231 / var(--tw-bg-opacity, 1));
@@ -948,10 +920,6 @@
   --tw-bg-opacity: 1;
   background-color: rgb(22 163 74 / var(--tw-bg-opacity, 1));
 }
-.bg-indigo-50 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(238 242 255 / var(--tw-bg-opacity, 1));
-}
 .bg-muted {
   background-color: var(--background-secondary);
 }
@@ -962,20 +930,8 @@
   --tw-bg-opacity: 1;
   background-color: rgb(254 242 242 / var(--tw-bg-opacity, 1));
 }
-.bg-rose-50 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(255 241 242 / var(--tw-bg-opacity, 1));
-}
 .bg-secondary {
   background-color: var(--background-secondary);
-}
-.bg-slate-100 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(241 245 249 / var(--tw-bg-opacity, 1));
-}
-.bg-slate-50 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(248 250 252 / var(--tw-bg-opacity, 1));
 }
 .bg-transparent {
   background-color: transparent;
@@ -1253,20 +1209,12 @@
 .text-accent-foreground {
   color: var(--text-on-accent);
 }
-.text-amber-700 {
-  --tw-text-opacity: 1;
-  color: rgb(180 83 9 / var(--tw-text-opacity, 1));
-}
 .text-blue-600 {
   --tw-text-opacity: 1;
   color: rgb(37 99 235 / var(--tw-text-opacity, 1));
 }
 .text-destructive-foreground {
   color: var(--text-on-accent);
-}
-.text-emerald-700 {
-  --tw-text-opacity: 1;
-  color: rgb(4 120 87 / var(--tw-text-opacity, 1));
 }
 .text-foreground {
   color: var(--text-normal);
@@ -1287,10 +1235,6 @@
   --tw-text-opacity: 1;
   color: rgb(22 163 74 / var(--tw-text-opacity, 1));
 }
-.text-indigo-700 {
-  --tw-text-opacity: 1;
-  color: rgb(67 56 202 / var(--tw-text-opacity, 1));
-}
 .text-muted-foreground {
   color: var(--text-muted);
 }
@@ -1304,20 +1248,8 @@
   --tw-text-opacity: 1;
   color: rgb(185 28 28 / var(--tw-text-opacity, 1));
 }
-.text-rose-700 {
-  --tw-text-opacity: 1;
-  color: rgb(190 18 60 / var(--tw-text-opacity, 1));
-}
 .text-secondary-foreground {
   color: var(--text-normal);
-}
-.text-slate-400 {
-  --tw-text-opacity: 1;
-  color: rgb(148 163 184 / var(--tw-text-opacity, 1));
-}
-.text-slate-700 {
-  --tw-text-opacity: 1;
-  color: rgb(51 65 85 / var(--tw-text-opacity, 1));
 }
 .text-white {
   --tw-text-opacity: 1;
@@ -1887,6 +1819,9 @@
 .hover\:bg-\[--background-primary\]:hover {
   background-color: var(--background-primary);
 }
+.hover\:bg-\[--background-secondary\]:hover {
+  background-color: var(--background-secondary);
+}
 .hover\:bg-\[--interactive-accent-hover\]:hover {
   background-color: var(--interactive-accent-hover);
 }
@@ -1903,10 +1838,6 @@
 .hover\:bg-green-700:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(21 128 61 / var(--tw-bg-opacity, 1));
-}
-.hover\:bg-slate-50:hover {
-  --tw-bg-opacity: 1;
-  background-color: rgb(248 250 252 / var(--tw-bg-opacity, 1));
 }
 .hover\:text-\[--interactive-accent-hover\]:hover {
   color: var(--interactive-accent-hover);

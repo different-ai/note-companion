@@ -390,23 +390,23 @@ export function SyncTab({ plugin }: { plugin: FileOrganizer }) {
     switch (status) {
       case "completed":
         className +=
-          " bg-emerald-50 text-emerald-700 border border-emerald-200";
+          " bg-[--text-success] text-[--text-on-accent] border border-[--background-modifier-border]";
         icon = <Check className="w-3 h-3" />;
         break;
       case "processing":
-        className += " bg-indigo-50 text-indigo-700 border border-indigo-200";
+        className += " bg-[--interactive-accent] text-[--text-on-accent] border border-[--background-modifier-border]";
         icon = <RotateCw className="w-3 h-3 animate-spin" />;
         break;
       case "pending":
-        className += " bg-amber-50 text-amber-700 border border-amber-200";
+        className += " bg-[--text-warning] text-[--text-on-accent] border border-[--background-modifier-border]";
         icon = <Clock className="w-3 h-3" />;
         break;
       case "error":
-        className += " bg-rose-50 text-rose-700 border border-rose-200";
+        className += " bg-[--text-error] text-[--text-on-accent] border border-[--background-modifier-border]";
         icon = <AlertCircle className="w-3 h-3" />;
         break;
       default:
-        className += " bg-slate-100 text-slate-700 border border-slate-200";
+        className += " bg-[--background-secondary] text-[--text-muted] border border-[--background-modifier-border]";
         icon = <Cloud className="w-3 h-3" />;
     }
 
@@ -548,37 +548,37 @@ export function SyncTab({ plugin }: { plugin: FileOrganizer }) {
           )}
 
           {totalPages > 1 && (
-            <div className="flex justify-between items-center mt-8 bg-white border border-slate-200 p-4">
+            <div className={tw("flex justify-between items-center mt-8 bg-[--background-primary] border border-[--background-modifier-border] p-4")}>
               <Button
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className={`px-4 py-2 h-auto  transition-colors duration-200 flex items-center gap-2 
-                  ${page === 1 
-                    ? "bg-slate-100 text-slate-400 cursor-not-allowed" 
-                    : "bg-white border border-slate-200 hover:bg-slate-50 text-slate-700"
-                  }`}
+                className={tw(`px-4 py-2 h-auto transition-colors duration-200 flex items-center gap-2 ${
+                  page === 1 
+                    ? "bg-[--background-secondary] text-[--text-faint] cursor-not-allowed" 
+                    : "bg-[--background-primary] border border-[--background-modifier-border] hover:bg-[--background-secondary] text-[--text-normal]"
+                }`)}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={tw("w-4 h-4")}>
                   <path d="M15 18l-6-6 6-6" />
                 </svg>
                 <span>Previous</span>
               </Button>
               
-              <div className="bg-slate-50 border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700">
+              <div className={tw("bg-[--background-secondary] border border-[--background-modifier-border] px-4 py-2 text-sm font-medium text-[--text-normal]")}>
                 Page {page} of {totalPages}
               </div>
               
               <Button
                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className={`px-4 py-2 h-auto  transition-colors duration-200 flex items-center gap-2 
-                  ${page === totalPages 
-                    ? "bg-slate-100 text-slate-400 cursor-not-allowed" 
-                    : "bg-white border border-slate-200 hover:bg-slate-50 text-slate-700"
-                  }`}
+                className={tw(`px-4 py-2 h-auto transition-colors duration-200 flex items-center gap-2 ${
+                  page === totalPages 
+                    ? "bg-[--background-secondary] text-[--text-faint] cursor-not-allowed" 
+                    : "bg-[--background-primary] border border-[--background-modifier-border] hover:bg-[--background-secondary] text-[--text-normal]"
+                }`)}
               >
                 <span>Next</span>
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={tw("w-4 h-4")}>
                   <path d="M9 18l6-6-6-6" />
                 </svg>
               </Button>
