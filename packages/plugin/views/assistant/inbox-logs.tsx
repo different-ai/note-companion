@@ -22,6 +22,7 @@ import { usePlugin } from "./provider";
 import { Inbox } from "../../inbox";
 import { VALID_MEDIA_EXTENSIONS, VALID_AUDIO_EXTENSIONS, VALID_IMAGE_EXTENSIONS } from "../../constants";
 import { TFile, Notice } from "obsidian";
+import { ProcessingTimeline } from "./organizer/components/processing-timeline";
 
 
 // Enhanced log entry display component
@@ -347,6 +348,13 @@ function FileCard({ record }: { record: FileRecord }) {
           {/* Essential information display */}
           <EssentialInfoDisplay record={record} />
         </div>
+
+        {/* Processing Timeline */}
+        {(record.status === "processing" || record.status === "completed" || record.status === "error") && (
+          <div className="mt-4">
+            <ProcessingTimeline record={record} />
+          </div>
+        )}
       </div>
     </motion.div>
   );
