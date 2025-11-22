@@ -58,6 +58,7 @@ export class FileOrganizerSettings {
   hasCatalystAccess = null;
   hasRunOnboarding = false;
   pdfPageLimit = 10; // default to 10 pages
+  enableProcessingNotifications = true; // Show toast notifications during file processing
 }
 
 export const DEFAULT_SETTINGS = new FileOrganizerSettings();

@@ -897,6 +897,18 @@ function shouldSkipAction(context: ProcessingContext, action: Action): boolean {
   }
 }
 
+function getActionDisplayName(action: Action): string {
+  const actionMap: Record<string, string> = {
+    [Action.EXTRACT]: 'Extracting content',
+    [Action.CLASSIFY]: 'Classifying document',
+    [Action.MOVING]: 'Finding destination folder',
+    [Action.RENAME]: 'Generating title',
+    [Action.TAGGING]: 'Adding tags',
+    [Action.FORMATTING]: 'Formatting content',
+  };
+  return actionMap[action] || action.toString();
+}
+
 async function executeStep(
   context: ProcessingContext,
   step: (context: ProcessingContext) => Promise<ProcessingContext>,
@@ -911,6 +923,18 @@ async function executeStep(
 
     // Log the start of the action
     context.recordManager.addAction(context.hash, action);
+    
+    // Show toast notification for processing steps (only for key actions)
+    const shouldNotify = context.plugin.settings.enableProcessingNotifications;
+    if (shouldNotify && [Action.EXTRACT, Action.CLASSIFY, Action.MOVING, Action.RENAME, Action.TAGGING, Action.FORMATTING].includes(action)) {
+      const fileName = context.containerFile?.basename || context.inboxFile.basename;
+      const actionName = getActionDisplayName(action);
+      context.plugin.app.workspace.trigger('file-organizer:processing-step', {
+        fileName,
+        action: actionName,
+        hash: context.hash
+      });
+    }
     
     // Execute the step
     const result = await step(context);
