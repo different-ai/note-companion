@@ -4,6 +4,8 @@ import { makeApiRequest } from "../../../apiUtils";
 import { requestUrl, Notice, TFolder } from "obsidian";
 import FileOrganizer from "../../../index";
 import { Button } from "../../../components/ui/button";
+import { StyledContainer } from "@/components/ui/utils";
+import { tw } from "@/lib/utils";
 
 // Import icons for file types
 import {
@@ -419,50 +421,50 @@ export function SyncTab({ plugin }: { plugin: FileOrganizer }) {
   }
 
   return (
-    <div className="sync-tab-container">
-      <div className="sync-header">
+    <StyledContainer className={tw("p-6 bg-[--background-primary]")}>
+      <div className={tw("mb-8")}>
         <SectionHeader text="Sync Files" icon="📥" />
-        <p className="sync-subtitle">
+        <p className={tw("text-[--text-muted] mt-1 text-sm")}>
           Sync files from Note Companion web and mobile
         </p>
       </div>
 
-      <div className="sync-how-to-card">
-        <div className="sync-card-content">
-          <div className="">
-            <Cloud className="sync-icon" />
+      <div className={tw("bg-[--background-secondary] border border-[--background-modifier-border] rounded-lg p-6 mb-6 shadow-sm")}>
+        <div className={tw("flex gap-3 items-start mb-4")}>
+          <div className={tw("bg-[--interactive-accent-hover] p-2 rounded-full mt-0.5")}>
+            <Cloud className={tw("w-5 h-5 text-[--interactive-accent]")} />
           </div>
           <div>
-            <h3 className="sync-card-title">
+            <h3 className={tw("font-medium text-lg text-[--text-normal] mb-2")}>
               How Sync Works
             </h3>
-            <p className="sync-card-description">
+            <p className={tw("text-sm leading-relaxed mb-3 text-[--text-muted]")}>
               Sync allows you to download files uploaded through the Note
               Companion mobile app or web interface.
             </p>
 
-            <ol className="sync-steps">
-              <li className="sync-step">
-                <div className="sync-step-number">
+            <ol className={tw("list-none pl-0 mb-4")}>
+              <li className={tw("flex items-start gap-2 mb-3")}>
+                <div className={tw("bg-[--interactive-accent-hover] text-[--interactive-accent] rounded-full w-5 h-5 flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5")}>
                   1
                 </div>
-                <p className="sync-step-text">
+                <p className={tw("text-sm m-0 text-[--text-muted]")}>
                   Upload files using the Note Companion mobile app or web app
                 </p>
               </li>
-              <li className="sync-step">
-                <div className="sync-step-number">
+              <li className={tw("flex items-start gap-2 mb-3")}>
+                <div className={tw("bg-[--interactive-accent-hover] text-[--interactive-accent] rounded-full w-5 h-5 flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5")}>
                   2
                 </div>
-                <p className="sync-step-text">
+                <p className={tw("text-sm m-0 text-[--text-muted]")}>
                   Files will appear here after processing
                 </p>
               </li>
-              <li className="sync-step">
-                <div className="sync-step-number">
+              <li className={tw("flex items-start gap-2 mb-3")}>
+                <div className={tw("bg-[--interactive-accent-hover] text-[--interactive-accent] rounded-full w-5 h-5 flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5")}>
                   3
                 </div>
-                <p className="sync-step-text">
+                <p className={tw("text-sm m-0 text-[--text-muted]")}>
                   Download files directly to your Obsidian vault
                 </p>
               </li>
@@ -762,6 +764,6 @@ export function SyncTab({ plugin }: { plugin: FileOrganizer }) {
           )}
         </>
       )}
-    </div>
+    </StyledContainer>
   );
 }
