@@ -104,7 +104,7 @@ export const AttachmentHandler: React.FC<AttachmentHandlerProps> = ({
   return (
     <div className="relative">
       <div
-        className={`relative border-2 border-dashed rounded-lg p-4 transition-colors cursor-pointer
+        className={`relative border-2 border-dashed  p-4 transition-colors cursor-pointer
           ${isDragging 
             ? 'border-[--interactive-accent] bg-[--background-modifier-hover]' 
             : 'border-[--background-modifier-border] hover:border-[--interactive-accent]'

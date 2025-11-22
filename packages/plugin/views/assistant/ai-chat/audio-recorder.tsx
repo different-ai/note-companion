@@ -143,7 +143,7 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
         onClick={isRecording ? stopRecording : startRecording}
         className={cn(
           // box shadow none
-          "bg-transparent opacity-50 cursor-pointer shadow-lg ",
+          "bg-transparent opacity-50 cursor-pointer  ",
           "hover:opacity-100 hover:shadow-none",
           "shadow-none disabled:shadow-none disabled:cursor-not-allowed",
           {

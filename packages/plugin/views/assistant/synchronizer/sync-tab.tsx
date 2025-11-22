@@ -523,7 +523,7 @@ export function SyncTab({ plugin }: { plugin: FileOrganizer }) {
                   f => f.status === "completed" && !downloadedFiles.has(f.id)
                 ).length === 0
               }
-              className={tw(`transition-colors duration-200 shadow-sm px-4 py-2 h-auto rounded-lg flex items-center gap-2 ${
+              className={tw(`transition-colors duration-200  px-4 py-2 h-auto  flex items-center gap-2 ${
                 loading || syncingAll || files.filter(f => f.status === 'completed' && !downloadedFiles.has(f.id)).length === 0
                 ? "bg-[--background-secondary] text-[--text-muted]"
                 : "bg-[--interactive-accent] hover:bg-[--interactive-accent-hover] text-white"
@@ -614,7 +614,7 @@ export function SyncTab({ plugin }: { plugin: FileOrganizer }) {
               {files.map(file => (
                 <div
                   key={file.id}
-                  className={`bg-white border shadow-sm rounded-lg overflow-hidden transition-all duration-200 ${
+                  className={`bg-white border   overflow-hidden transition-all duration-200 ${
                     downloadedFiles.has(file.id)
                       ? "border-indigo-200 shadow-indigo-50"
                       : "border-slate-200 hover:border-slate-300"
@@ -657,7 +657,7 @@ export function SyncTab({ plugin }: { plugin: FileOrganizer }) {
                             </svg>
                           </div>
                         ) : (
-                          <div className={`p-2 rounded-lg mr-3 flex-shrink-0 ${
+                          <div className={`p-2  mr-3 flex-shrink-0 ${
                             downloadedFiles.has(file.id) ? 'bg-indigo-50' : 'bg-slate-50'
                           }`}>
                             {getFileIcon(file.fileType, "w-5 h-5 text-slate-700")}
@@ -689,7 +689,7 @@ export function SyncTab({ plugin }: { plugin: FileOrganizer }) {
                       <Button
                         onClick={() => downloadFile(file)}
                         disabled={file.status !== "completed" || downloading[file.id]}
-                        className={`px-4 py-2 h-auto rounded-lg transition-colors duration-200 flex items-center gap-2 shadow-sm ${
+                        className={`px-4 py-2 h-auto  transition-colors duration-200 flex items-center gap-2  ${
                           file.status !== "completed" || downloading[file.id]
                             ? "bg-slate-100 text-slate-400 cursor-not-allowed"
                             : downloadedFiles.has(file.id)
@@ -735,7 +735,7 @@ export function SyncTab({ plugin }: { plugin: FileOrganizer }) {
               <Button
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className={`px-4 py-2 h-auto rounded-lg transition-colors duration-200 flex items-center gap-2 
+                className={`px-4 py-2 h-auto  transition-colors duration-200 flex items-center gap-2 
                   ${page === 1 
                     ? "bg-slate-100 text-slate-400 cursor-not-allowed" 
                     : "bg-white border border-slate-200 hover:bg-slate-50 text-slate-700"
@@ -754,7 +754,7 @@ export function SyncTab({ plugin }: { plugin: FileOrganizer }) {
               <Button
                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className={`px-4 py-2 h-auto rounded-lg transition-colors duration-200 flex items-center gap-2 
+                className={`px-4 py-2 h-auto  transition-colors duration-200 flex items-center gap-2 
                   ${page === totalPages 
                     ? "bg-slate-100 text-slate-400 cursor-not-allowed" 
                     : "bg-white border border-slate-200 hover:bg-slate-50 text-slate-700"

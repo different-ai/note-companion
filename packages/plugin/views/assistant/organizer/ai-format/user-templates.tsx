@@ -209,7 +209,7 @@ export const UserTemplates: React.FC<UserTemplatesProps> = ({
           </div>
         )}
         <button
-          className={`px-4 py-2 rounded-md transition-colors duration-200 ${
+          className={`px-4 py-2 transition-colors duration-200 ${
             !selectedTemplateName || formatting
               ? "bg-[--background-modifier-border] text-[--text-muted] cursor-not-allowed"
               : "bg-[--interactive-accent] text-white hover:bg-[--interactive-accent-hover]"

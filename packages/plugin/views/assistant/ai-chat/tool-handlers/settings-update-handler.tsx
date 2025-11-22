@@ -17,7 +17,7 @@ const SettingUpdate = ({ setting, value, onValidate, isValidated }: SettingUpdat
     <button
       onClick={onValidate}
       disabled={isValidated}
-      className={`ml-2 px-3 py-1 rounded-md ${
+      className={`ml-2 px-3 py-1  ${
         isValidated 
           ? 'bg-[--interactive-accent] text-[--text-on-accent]' 
           : 'bg-[--interactive-normal] hover:bg-[--interactive-hover] text-[--text-normal]'

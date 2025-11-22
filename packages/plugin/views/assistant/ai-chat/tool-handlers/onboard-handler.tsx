@@ -132,7 +132,7 @@ export function OnboardHandler({
           onClick={handleAnalyze}
           disabled={isAnalyzing}
           className={`
-                px-4 py-2 rounded-md
+                px-4 py-2 
                 ${
                   isAnalyzing
                     ? "bg-[--background-modifier-border] cursor-not-allowed"
