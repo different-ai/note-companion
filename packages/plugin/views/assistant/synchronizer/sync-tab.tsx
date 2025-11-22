@@ -474,36 +474,36 @@ export function SyncTab({ plugin }: { plugin: FileOrganizer }) {
       </div>
 
       {error && (
-        <div className="bg-white border border-rose-200 shadow-sm text-rose-700 p-5 rounded-lg mb-6 flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+        <div className={tw("bg-[--background-secondary] border border-[--background-modifier-error] shadow-sm text-[--text-error] p-5 rounded-lg mb-6 flex items-start gap-3")}>
+          <AlertCircle className={tw("w-5 h-5 flex-shrink-0 mt-0.5")} />
           <div>
-            <p className="font-medium mb-3">{error}</p>
+            <p className={tw("font-medium mb-3")}>{error}</p>
             <Button
-              className="bg-rose-600 hover:bg-rose-700 transition-colors duration-200"
+              className={tw("bg-[--interactive-accent] hover:bg-[--interactive-accent-hover] transition-colors duration-200")}
               onClick={fetchFiles}
             >
-              <RefreshCw className="w-4 h-4 mr-2" /> Retry
+              <RefreshCw className={tw("w-4 h-4 mr-2")} /> Retry
             </Button>
           </div>
         </div>
       )}
 
-      <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm mb-6">
-        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-          <div className="flex gap-3">
+      <div className={tw("bg-[--background-secondary] border border-[--background-modifier-border] rounded-lg p-5 shadow-sm mb-6")}>
+        <div className={tw("flex flex-col md:flex-row md:justify-between md:items-center gap-4")}>
+          <div className={tw("flex gap-3")}>
             <Button 
               onClick={fetchFiles} 
               disabled={loading}
-              className="bg-indigo-600 hover:bg-indigo-700 transition-colors duration-200 shadow-sm px-4 py-2 h-auto rounded-lg flex items-center gap-2"
+              className={tw("bg-[--interactive-accent] hover:bg-[--interactive-accent-hover] transition-colors duration-200 shadow-sm px-4 py-2 h-auto rounded-lg flex items-center gap-2")}
             >
               {loading ? (
                 <>
-                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  <RefreshCw className={tw("w-4 h-4 animate-spin")} />
                   <span>Loading...</span>
                 </>
               ) : (
                 <>
-                  <RefreshCw className="w-4 h-4" />
+                  <RefreshCw className={tw("w-4 h-4")} />
                   <span>Refresh</span>
                 </>
               )}
@@ -518,20 +518,20 @@ export function SyncTab({ plugin }: { plugin: FileOrganizer }) {
                   f => f.status === "completed" && !downloadedFiles.has(f.id)
                 ).length === 0
               }
-              className={`transition-colors duration-200 shadow-sm px-4 py-2 h-auto rounded-lg flex items-center gap-2 ${
+              className={tw(`transition-colors duration-200 shadow-sm px-4 py-2 h-auto rounded-lg flex items-center gap-2 ${
                 loading || syncingAll || files.filter(f => f.status === 'completed' && !downloadedFiles.has(f.id)).length === 0
-                ? "bg-slate-100 text-slate-400"
-                : "bg-emerald-600 hover:bg-emerald-700 text-white"
-              }`}
+                ? "bg-[--background-secondary] text-[--text-muted]"
+                : "bg-[--interactive-accent] hover:bg-[--interactive-accent-hover] text-white"
+              }`)}
             >
               {syncingAll ? (
                 <>
-                  <DownloadCloud className="w-4 h-4 animate-pulse" />
+                  <DownloadCloud className={tw("w-4 h-4 animate-pulse")} />
                   <span>Syncing...</span>
                 </>
               ) : (
                 <>
-                  <DownloadCloud className="w-4 h-4" />
+                  <DownloadCloud className={tw("w-4 h-4")} />
                   <span>Sync All New Files</span>
                 </>
               )}
@@ -539,15 +539,15 @@ export function SyncTab({ plugin }: { plugin: FileOrganizer }) {
           </div>
           
           {files.length > 0 && !loading && (
-            <div className="flex items-center bg-slate-50 px-4 py-2 rounded-lg flex-wrap">
-              <div className="text-sm text-slate-600 font-medium mr-3 flex items-center">
-                <Check className="w-4 h-4 text-emerald-500 mr-2" />
+            <div className={tw("flex items-center bg-[--background-primary-alt] px-4 py-2 rounded-lg flex-wrap")}>
+              <div className={tw("text-sm text-[--text-muted] font-medium mr-3 flex items-center")}>
+                <Check className={tw("w-4 h-4 text-[--text-success] mr-2")} />
                 <span>{files.filter(f => downloadedFiles.has(f.id)).length} of {files.length} files synced</span>
               </div>
               {downloadedFiles.size > 0 && (
                 <button 
                   onClick={clearDownloadHistory}
-                  className="text-xs text-rose-500 hover:text-rose-700 transition-colors duration-200 border border-rose-200 rounded-md px-2 py-1 hover:bg-rose-50"
+                  className={tw("text-xs text-[--text-error] hover:text-[--text-error] transition-colors duration-200 border border-[--background-modifier-error] rounded-md px-2 py-1 hover:bg-[--background-modifier-error-hover]")}
                 >
                   Clear History
                 </button>
