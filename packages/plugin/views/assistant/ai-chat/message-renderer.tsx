@@ -63,10 +63,10 @@ export const MessageRenderer: React.FC<MessageRendererProps> = ({
                     <img
                       src={attachment.url}
                       alt={attachment.name}
-                      className="w-full h-32 object-cover rounded-lg"
+                      className="w-full h-32 object-cover"
                     />
                   ) : (
-                    <div className="w-full h-32 flex items-center justify-center bg-[--background-secondary] rounded-lg">
+                    <div className="w-full h-32 flex items-center justify-center bg-[--background-secondary]">
                       <svg
                         className="h-8 w-8 text-[--text-muted]"
                         fill="none"

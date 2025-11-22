@@ -158,7 +158,7 @@ export function ModifyTextHandler({
 
   if (modifySuccess === null && !pendingChanges) {
     return (
-      <div className="p-4 space-y-2 bg-[--background-secondary] rounded-lg animate-pulse">
+      <div className="p-4 space-y-2 bg-[--background-secondary] animate-pulse">
         <div className="h-4 w-3/4 bg-[--background-modifier-border] rounded"></div>
         <div className="h-4 w-1/2 bg-[--background-modifier-border] rounded"></div>
       </div>
@@ -175,7 +175,7 @@ export function ModifyTextHandler({
           <div className="flex items-center space-x-2">
             <button
               onClick={handleDiscardChanges}
-              className="px-3 py-1 text-sm rounded-md border border-[--background-modifier-border] hover:bg-[--background-modifier-hover] text-[--text-muted]"
+              className="px-3 py-1 text-sm border border-[--background-modifier-border] hover:bg-[--background-modifier-hover] text-[--text-muted]"
               disabled={isApplying}
             >
               Discard
@@ -183,7 +183,7 @@ export function ModifyTextHandler({
             <button
               onClick={handleApplyChanges}
               disabled={isApplying}
-              className="px-3 py-1 text-sm bg-[--interactive-accent] hover:bg-[--interactive-accent-hover] text-[--text-on-accent] rounded-md flex items-center space-x-1"
+              className="px-3 py-1 text-sm bg-[--interactive-accent] hover:bg-[--interactive-accent-hover] text-[--text-on-accent] flex items-center space-x-1"
             >
               {isApplying ? (
                 <>
@@ -201,7 +201,7 @@ export function ModifyTextHandler({
         </div>
 
         {explanation && (
-          <div className="p-3 bg-[--background-primary] border border-[--background-modifier-border] rounded-md">
+          <div className="p-3 bg-[--background-primary] border border-[--background-modifier-border]">
             <div className="text-xs font-medium text-[--text-muted] uppercase tracking-wide mb-1">
               Summary of Changes
             </div>
@@ -211,7 +211,7 @@ export function ModifyTextHandler({
           </div>
         )}
 
-        <div className="border border-[--background-modifier-border] rounded-md overflow-hidden">
+        <div className="border border-[--background-modifier-border] overflow-hidden">
           <div className="bg-[--background-primary] border-b border-[--background-modifier-border] px-3 py-2">
             <div className="text-xs font-medium text-[--text-muted] uppercase tracking-wide">
               Detailed Changes
@@ -227,7 +227,7 @@ export function ModifyTextHandler({
 
   if (modifySuccess) {
     return (
-      <div className="p-4 space-y-3 bg-[--background-primary] border border-[--background-modifier-border] rounded-md">
+      <div className="p-4 space-y-3 bg-[--background-primary] border border-[--background-modifier-border]">
         <div className="flex items-center text-[--text-success] space-x-2">
           <span className="text-lg">✓</span>
           <span className="font-medium">Changes Applied Successfully</span>
@@ -242,7 +242,7 @@ export function ModifyTextHandler({
   }
 
   return (
-    <div className="p-4 space-y-3 bg-[--background-primary] border border-[--background-modifier-error] rounded-md">
+    <div className="p-4 space-y-3 bg-[--background-primary] border border-[--background-modifier-error]">
       <div className="flex items-center text-[--text-error] space-x-2">
         <span className="text-lg">⚠</span>
         <span className="font-medium">Failed to Apply Changes</span>

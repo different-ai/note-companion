@@ -92,7 +92,7 @@ export function ExecuteActionsHandler({ toolInvocation, handleAddResult, app }: 
   };
 
   return (
-    <div className="flex flex-col space-y-4 p-4 border border-[--background-modifier-border] rounded-md">
+    <div className="flex flex-col space-y-4 p-4 border border-[--background-modifier-border]">
       <div className="text-[--text-normal]">
         Ready to process {toolInvocation.args.filePaths.length} file(s) based on content analysis
       </div>
@@ -116,7 +116,7 @@ export function ExecuteActionsHandler({ toolInvocation, handleAddResult, app }: 
       )}
       {!isDone && (
         <button
-          className="px-4 py-2 bg-[--interactive-accent] text-[--text-on-accent] rounded-md hover:bg-[--interactive-accent-hover] disabled:opacity-50"
+          className="px-4 py-2 bg-[--interactive-accent] text-[--text-on-accent] hover:bg-[--interactive-accent-hover] disabled:opacity-50"
           onClick={handleExecute}
           disabled={isProcessing}
         >

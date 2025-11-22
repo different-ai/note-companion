@@ -180,7 +180,7 @@ const AttachmentPreview: React.FC<{ attachment: Attachment; onRemove: (id: strin
   onRemove,
 }) => {
   return (
-    <div className="flex items-center justify-between p-2 bg-[--background-secondary] rounded-lg">
+    <div className="flex items-center justify-between p-2 bg-[--background-secondary]">
       <div className="flex items-center space-x-2">
         {attachment.contentType.startsWith('image/') ? (
           <img

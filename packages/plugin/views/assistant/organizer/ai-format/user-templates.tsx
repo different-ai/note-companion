@@ -146,7 +146,7 @@ export const UserTemplates: React.FC<UserTemplatesProps> = ({
   const renderContent = () => {
     if (contentLoadStatus === "error" || classificationStatus === "error") {
       return (
-        <div className="text-[--text-error] p-2 rounded-md bg-[--background-modifier-error]">
+        <div className="text-[--text-error] p-2 bg-[--background-modifier-error]">
           Unable to process the content. Please try again later.
         </div>
       );
@@ -161,7 +161,7 @@ export const UserTemplates: React.FC<UserTemplatesProps> = ({
       <div className="flex flex-col space-y-2">
         <div className="relative" ref={dropdownRef}>
           <button
-            className="w-full flex items-center justify-between px-3 py-2 bg-[--background-secondary] text-[--text-normal] rounded-md hover:bg-[--background-modifier-hover] transition-colors duration-200"
+            className="w-full flex items-center justify-between px-3 py-2 bg-[--background-secondary] text-[--text-normal] hover:bg-[--background-modifier-hover] transition-colors duration-200"
             onClick={() => setShowDropdown(!showDropdown)}
           >
             <span>{getDisplayText()}</span>
@@ -181,7 +181,7 @@ export const UserTemplates: React.FC<UserTemplatesProps> = ({
             </svg>
           </button>
           {showDropdown && (
-            <div className="absolute z-10 w-full mt-1 bg-[--background-primary] border border-[--background-modifier-border] rounded-md">
+            <div className="absolute z-10 w-full mt-1 bg-[--background-primary] border border-[--background-modifier-border]">
               {dropdownTemplates.length > 0 ? (
                 dropdownTemplates.map((templateName, index) => (
                   <div
@@ -204,7 +204,7 @@ export const UserTemplates: React.FC<UserTemplatesProps> = ({
           )}
         </div>
         {isFileTooLarge && (
-          <div className="text-[--text-error] p-2 rounded-md bg-[--background-modifier-error]">
+          <div className="text-[--text-error] p-2 bg-[--background-modifier-error]">
             File is too large to format.
           </div>
         )}

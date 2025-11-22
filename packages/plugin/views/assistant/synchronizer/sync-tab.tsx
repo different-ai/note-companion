@@ -434,7 +434,7 @@ export function SyncTab({ plugin }: { plugin: FileOrganizer }) {
       <div className={tw("flex-1 overflow-y-auto")}>
       
 
-      <div className={tw("bg-[--background-secondary] border border-[--background-modifier-border] rounded-lg p-6 mb-6 shadow-sm")}>
+      <div className={tw("bg-[--background-secondary] border border-[--background-modifier-border] p-6 mb-6")}>
         <div className={tw("flex gap-3 items-start mb-4")}>
           <div className={tw("bg-[--interactive-accent-hover] p-2 rounded-full mt-0.5")}>
             <Cloud className={tw("w-5 h-5 text-[--interactive-accent]")} />
@@ -479,7 +479,7 @@ export function SyncTab({ plugin }: { plugin: FileOrganizer }) {
       </div>
 
       {error && (
-        <div className={tw("bg-[--background-secondary] border border-[--background-modifier-error] shadow-sm text-[--text-error] p-5 rounded-lg mb-6 flex items-start gap-3")}>
+        <div className={tw("bg-[--background-secondary] border border-[--background-modifier-error] text-[--text-error] p-5 mb-6 flex items-start gap-3")}>
           <AlertCircle className={tw("w-5 h-5 flex-shrink-0 mt-0.5")} />
           <div>
             <p className={tw("font-medium mb-3")}>{error}</p>
@@ -493,13 +493,13 @@ export function SyncTab({ plugin }: { plugin: FileOrganizer }) {
         </div>
       )}
 
-      <div className={tw("bg-[--background-secondary] border border-[--background-modifier-border] rounded-lg p-5 shadow-sm mb-6")}>
+      <div className={tw("bg-[--background-secondary] border border-[--background-modifier-border] p-5 mb-6")}>
         <div className={tw("flex flex-col md:flex-row md:justify-between md:items-center gap-4")}>
           <div className={tw("flex gap-3")}>
             <Button 
               onClick={fetchFiles} 
               disabled={loading}
-              className={tw("bg-[--interactive-accent] hover:bg-[--interactive-accent-hover] transition-colors duration-200 shadow-sm px-4 py-2 h-auto rounded-lg flex items-center gap-2")}
+              className={tw("bg-[--interactive-accent] hover:bg-[--interactive-accent-hover] transition-colors duration-200 px-4 py-2 h-auto flex items-center gap-2")}
             >
               {loading ? (
                 <>
@@ -544,7 +544,7 @@ export function SyncTab({ plugin }: { plugin: FileOrganizer }) {
           </div>
           
           {files.length > 0 && !loading && (
-            <div className={tw("flex items-center bg-[--background-primary-alt] px-4 py-2 rounded-lg flex-wrap")}>
+            <div className={tw("flex items-center bg-[--background-primary-alt] px-4 py-2 flex-wrap")}>
               <div className={tw("text-sm text-[--text-muted] font-medium mr-3 flex items-center")}>
                 <Check className={tw("w-4 h-4 text-[--text-success] mr-2")} />
                 <span>{files.filter(f => downloadedFiles.has(f.id)).length} of {files.length} files synced</span>
@@ -552,7 +552,7 @@ export function SyncTab({ plugin }: { plugin: FileOrganizer }) {
               {downloadedFiles.size > 0 && (
                 <button 
                   onClick={clearDownloadHistory}
-                  className={tw("text-xs text-[--text-error] hover:text-[--text-error] transition-colors duration-200 border border-[--background-modifier-error] rounded-md px-2 py-1 hover:bg-[--background-modifier-error-hover]")}
+                  className={tw("text-xs text-[--text-error] hover:text-[--text-error] transition-colors duration-200 border border-[--background-modifier-error] px-2 py-1 hover:bg-[--background-modifier-error-hover]")}
                 >
                   Clear History
                 </button>
@@ -565,18 +565,18 @@ export function SyncTab({ plugin }: { plugin: FileOrganizer }) {
       {loading ? (
         <div className="space-y-6">
           {[1, 2, 3].map(i => (
-            <div key={i} className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm animate-pulse">
+            <div key={i} className="bg-white border border-slate-200 p-5 animate-pulse">
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <div className="h-5 bg-slate-200 rounded-md w-48 mb-2"></div>
-                  <div className="h-4 bg-slate-100 rounded-md w-36"></div>
+                  <div className="h-5 bg-slate-200 w-48 mb-2"></div>
+                  <div className="h-4 bg-slate-100 w-36"></div>
                 </div>
                 <div className="h-6 bg-slate-200 rounded-full w-20"></div>
               </div>
               <div className="border-t border-slate-100 pt-4 mt-4">
                 <div className="flex justify-between items-center">
-                  <div className="h-9 bg-slate-200 rounded-md w-28"></div>
-                  <div className="h-4 bg-slate-100 rounded-md w-24"></div>
+                  <div className="h-9 bg-slate-200 w-28"></div>
+                  <div className="h-4 bg-slate-100 w-24"></div>
                 </div>
               </div>
             </div>
@@ -585,7 +585,7 @@ export function SyncTab({ plugin }: { plugin: FileOrganizer }) {
       ) : (
         <>
           {files.length === 0 ? (
-            <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-8 text-center">
+            <div className="bg-white border border-slate-200 p-8 text-center">
               <div className="inline-flex justify-center items-center w-16 h-16 bg-indigo-50 rounded-full mb-4">
                 <Cloud className="w-8 h-8 text-indigo-500" />
               </div>
@@ -596,11 +596,11 @@ export function SyncTab({ plugin }: { plugin: FileOrganizer }) {
                 To see files here, upload documents using Note Companion
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
-                <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 text-left flex flex-col">
+                <div className="bg-slate-50 border border-slate-200 p-4 text-left flex flex-col">
                   <span className="text-sm font-medium text-slate-700 mb-2">Mobile App</span>
                   <span className="text-xs text-slate-500">Upload files from your phone or tablet</span>
                 </div>
-                <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 text-left flex flex-col">
+                <div className="bg-slate-50 border border-slate-200 p-4 text-left flex flex-col">
                   <span className="text-sm font-medium text-slate-700 mb-2">Web App</span>
                   <span className="text-xs text-slate-500">Visit notecompanion.ai to upload files</span>
                 </div>
@@ -625,11 +625,11 @@ export function SyncTab({ plugin }: { plugin: FileOrganizer }) {
                       <div className="flex">
                         {/* Show preview for images or loading state */}
                         {loadingPreviews[file.id] ? (
-                          <div className="w-12 h-12 mr-3 flex-shrink-0 rounded-lg overflow-hidden border border-slate-200 flex items-center justify-center bg-slate-50 animate-pulse">
+                          <div className="w-12 h-12 mr-3 flex-shrink-0 overflow-hidden border border-slate-200 flex items-center justify-center bg-slate-50 animate-pulse">
                             <RefreshCw className="w-5 h-5 text-slate-400 animate-spin" />
                           </div>
                         ) : file.fileType.startsWith('image/') && previewCache[file.id] ? (
-                          <div className="w-12 h-12 mr-3 flex-shrink-0 rounded-lg overflow-hidden border border-slate-200">
+                          <div className="w-12 h-12 mr-3 flex-shrink-0 overflow-hidden border border-slate-200">
                             <img 
                               src={previewCache[file.id].dataUrl} 
                               alt={file.originalName} 
@@ -637,7 +637,7 @@ export function SyncTab({ plugin }: { plugin: FileOrganizer }) {
                             />
                           </div>
                         ) : file.fileType === 'application/pdf' && previewCache[file.id] ? (
-                          <div className="w-12 h-12 mr-3 flex-shrink-0 rounded-lg overflow-hidden border border-slate-200 bg-slate-50 flex items-center justify-center">
+                          <div className="w-12 h-12 mr-3 flex-shrink-0 overflow-hidden border border-slate-200 bg-slate-50 flex items-center justify-center">
                             <div className="bg-rose-100 p-1 rounded">
                               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" className="w-6 h-6 text-rose-700">
                                 <path fill="currentColor" d="M320 464c8.8 0 16-7.2 16-16V160H256c-17.7 0-32-14.3-32-32V48H64c-8.8 0-16 7.2-16 16V448c0 8.8 7.2 16 16 16H320zM0 64C0 28.7 28.7 0 64 0H229.5c17 0 33.3 6.7 45.3 18.7l90.5 90.5c12 12 18.7 28.3 18.7 45.3V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V64z"/>
@@ -646,7 +646,7 @@ export function SyncTab({ plugin }: { plugin: FileOrganizer }) {
                           </div>
                         ) : (file.fileType.startsWith('image/') || file.fileType === 'application/pdf') && file.status === "completed" ? (
                           <div 
-                            className="w-12 h-12 mr-3 flex-shrink-0 rounded-lg overflow-hidden border border-slate-200 bg-slate-50 flex items-center justify-center cursor-pointer hover:bg-slate-100 transition-colors duration-200"
+                            className="w-12 h-12 mr-3 flex-shrink-0 overflow-hidden border border-slate-200 bg-slate-50 flex items-center justify-center cursor-pointer hover:bg-slate-100 transition-colors duration-200"
                             onClick={() => fetchPreview(file)}
                             title="Load preview"
                           >
@@ -731,7 +731,7 @@ export function SyncTab({ plugin }: { plugin: FileOrganizer }) {
           )}
 
           {totalPages > 1 && (
-            <div className="flex justify-between items-center mt-8 bg-white border border-slate-200 shadow-sm rounded-lg p-4">
+            <div className="flex justify-between items-center mt-8 bg-white border border-slate-200 p-4">
               <Button
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1}
@@ -747,7 +747,7 @@ export function SyncTab({ plugin }: { plugin: FileOrganizer }) {
                 <span>Previous</span>
               </Button>
               
-              <div className="bg-slate-50 border border-slate-200 px-4 py-2 rounded-lg text-sm font-medium text-slate-700">
+              <div className="bg-slate-50 border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700">
                 Page {page} of {totalPages}
               </div>
               

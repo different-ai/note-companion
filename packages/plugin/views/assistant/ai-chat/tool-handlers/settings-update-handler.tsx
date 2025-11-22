@@ -9,7 +9,7 @@ interface SettingUpdateProps {
 }
 
 const SettingUpdate = ({ setting, value, onValidate, isValidated }: SettingUpdateProps) => (
-  <div className="flex items-center justify-between p-2 border border-[--background-modifier-border] rounded-md mb-2">
+  <div className="flex items-center justify-between p-2 border border-[--background-modifier-border] mb-2">
     <div className="flex-1">
       <div className="font-medium text-[--text-normal]">{setting}</div>
       <div className="text-sm text-[--text-muted] break-all">{value}</div>

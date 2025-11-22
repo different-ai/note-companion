@@ -50,7 +50,7 @@ export const SearchRenameHandler: React.FC<ToolHandlerProps> = ({ toolInvocation
   };
 
   return (
-    <div className="flex flex-col space-y-4 p-4 border border-[--background-modifier-border] rounded-md">
+    <div className="flex flex-col space-y-4 p-4 border border-[--background-modifier-border]">
       <div className="text-[--text-normal]">
         Searching for files matching: "{toolInvocation.args.query}"
       </div>
@@ -80,7 +80,7 @@ export const SearchRenameHandler: React.FC<ToolHandlerProps> = ({ toolInvocation
           <div className="flex space-x-2">
             <button
               onClick={handleSearch}
-              className="px-4 py-2 bg-[--interactive-accent] text-[--text-on-accent] rounded-md hover:bg-[--interactive-accent-hover]"
+              className="px-4 py-2 bg-[--interactive-accent] text-[--text-on-accent] hover:bg-[--interactive-accent-hover]"
               disabled={matchedFiles.length === 0}
             >
               Use These Files
@@ -94,7 +94,7 @@ export const SearchRenameHandler: React.FC<ToolHandlerProps> = ({ toolInvocation
                   })
                 )
               }
-              className="px-4 py-2 bg-[--background-modifier-border] text-[--text-normal] rounded-md hover:bg-[--background-modifier-border-hover]"
+              className="px-4 py-2 bg-[--background-modifier-border] text-[--text-normal] hover:bg-[--background-modifier-border-hover]"
             >
               Cancel
             </button>

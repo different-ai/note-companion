@@ -64,14 +64,14 @@ export function SourcesSection({ groundingMetadata }: SourcesSectionProps) {
         {displayedSources.map((source) => (
           <div
             key={source.id}
-            className="flex items-center p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-colors"
+            className="flex items-center p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-colors"
           >
             <div className="flex-shrink-0 mr-4">
               <div className="relative">
                 <img
                   src={getFaviconUrl(source.domain)}
                   alt={source.domain}
-                  className="w-8 h-8 rounded-lg"
+                  className="w-8 h-8"
                 />
                 <div className="absolute -top-2 -right-2 w-5 h-5 flex items-center justify-center bg-blue-100 dark:bg-blue-900 rounded-full text-xs font-medium text-blue-600 dark:text-blue-400">
                   {source.id}

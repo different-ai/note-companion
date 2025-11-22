@@ -57,13 +57,13 @@ export function AppendContentHandler({
   };
 
   return (
-    <div className="flex flex-col space-y-4 p-4 border border-[--background-modifier-border] rounded-md">
+    <div className="flex flex-col space-y-4 p-4 border border-[--background-modifier-border]">
       <div className="text-[--text-normal]">
         {toolInvocation.args.message ||
           "Would you like to append the following content?"}
       </div>
 
-      <div className="bg-[--background-secondary] p-3 rounded-md">
+      <div className="bg-[--background-secondary] p-3">
         <pre className="text-sm text-[--text-muted] whitespace-pre-wrap">
           {toolInvocation.args.content}
         </pre>
@@ -73,7 +73,7 @@ export function AppendContentHandler({
         <div className="flex space-x-2">
           <button
             onClick={handleAppendContent}
-            className="px-4 py-2 bg-[--interactive-accent] text-[--text-on-accent] rounded-md hover:bg-[--interactive-accent-hover]"
+            className="px-4 py-2 bg-[--interactive-accent] text-[--text-on-accent] hover:bg-[--interactive-accent-hover]"
           >
             Append Content
           </button>
@@ -86,7 +86,7 @@ export function AppendContentHandler({
                 })
               )
             }
-            className="px-4 py-2 bg-[--background-modifier-border] text-[--text-normal] rounded-md hover:bg-[--background-modifier-border-hover]"
+            className="px-4 py-2 bg-[--background-modifier-border] text-[--text-normal] hover:bg-[--background-modifier-border-hover]"
           >
             Cancel
           </button>

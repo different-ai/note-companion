@@ -437,7 +437,7 @@ const InboxAnalytics: React.FC<{
   );
 
   return (
-    <div className="bg-[--background-secondary] rounded-lg ">
+    <div className="bg-[--background-secondary] ">
       <div className="space-y-2">
         {/* Main flow row */}
         <div className="grid grid-cols-3 gap-2">
@@ -596,7 +596,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   ];
 
   return (
-    <div className="bg-[--background-primary] p-4 rounded-lg border border-[--background-modifier-border] space-y-3">
+    <div className="bg-[--background-primary] p-4 border border-[--background-modifier-border] space-y-3">
       {/* Search input row */}
       <div className="pl-10 relative flex-1">
         <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-[--text-muted]" />

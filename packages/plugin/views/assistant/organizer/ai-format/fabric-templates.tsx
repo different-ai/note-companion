@@ -262,7 +262,7 @@ export const FabricClassificationBox: React.FC<
   const renderFabricContent = () => {
     if (loadStatus === "error") {
       return (
-        <div className="text-[--text-error] p-2 rounded-md bg-[--background-modifier-error]">
+        <div className="text-[--text-error] p-2 bg-[--background-modifier-error]">
           Unable to load Fabric patterns. Please download them from the
           customization tab.
         </div>
@@ -273,7 +273,7 @@ export const FabricClassificationBox: React.FC<
       <div className="flex flex-col space-y-2">
         <div className="relative" ref={fabricDropdownRef}>
           <button
-            className="w-full flex items-center justify-between px-3 py-2 bg-[--background-secondary] text-[--text-normal] rounded-md hover:bg-[--background-modifier-hover] transition-colors duration-200"
+            className="w-full flex items-center justify-between px-3 py-2 bg-[--background-secondary] text-[--text-normal] hover:bg-[--background-modifier-hover] transition-colors duration-200"
             onClick={() => setShowFabricDropdown(!showFabricDropdown)}
           >
             <span>{getFabricDisplayText()}</span>
@@ -293,7 +293,7 @@ export const FabricClassificationBox: React.FC<
             </svg>
           </button>
           {showFabricDropdown && (
-            <div className="absolute z-10 w-full mt-1 bg-[--background-primary] border border-[--background-modifier-border] rounded-md shadow-lg">
+            <div className="absolute z-10 w-full mt-1 bg-[--background-primary] border border-[--background-modifier-border]">
               {availableFabricPatterns.length > 0 ? (
                 availableFabricPatterns.map((pattern, index) => (
                   <div
@@ -341,7 +341,7 @@ export const FabricClassificationBox: React.FC<
       <div className="font-semibold pb-2">Fabric</div>
       {renderFabricContent()}
       {errorMessage && (
-        <div className="mt-2 text-[--text-error] p-2 rounded-md bg-[--background-modifier-error]">
+        <div className="mt-2 text-[--text-error] p-2 bg-[--background-modifier-error]">
           {errorMessage}
         </div>
       )}

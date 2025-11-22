@@ -89,7 +89,7 @@ export function OnboardingWizard({ plugin, onComplete }: OnboardingWizardProps) 
   return (
     <StyledContainer>
       <motion.div
-        className={tw("max-w-xl mx-auto bg-white rounded-lg shadow-md p-6")}
+        className={tw("max-w-xl mx-auto bg-white p-6")}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
@@ -150,7 +150,7 @@ export function OnboardingWizard({ plugin, onComplete }: OnboardingWizardProps) 
             </div>
             
             {error && (
-              <div className={tw("bg-red-50 text-red-700 p-3 rounded-md text-sm")}>
+              <div className={tw("bg-red-50 text-red-700 p-3 text-sm")}>
                 {error}
               </div>
             )}
@@ -244,7 +244,7 @@ export function OnboardingWizard({ plugin, onComplete }: OnboardingWizardProps) 
               Note Companion is now set up and ready to help you organize your vault.
             </p>
             
-            <div className={tw("bg-[--background-primary-alt] p-4 rounded-lg border border-[--background-modifier-border]")}>
+            <div className={tw("bg-[--background-primary-alt] p-4 border border-[--background-modifier-border]")}>
               <h4 className={tw("font-medium text-sm mb-2")}>We'll create these folders for you:</h4>
               <ul className={tw("text-sm space-y-2")}>
                 <li><strong>_NoteCompanion/Inbox</strong>: Files waiting to be processed</li>

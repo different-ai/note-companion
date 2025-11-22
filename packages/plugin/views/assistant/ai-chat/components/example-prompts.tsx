@@ -72,7 +72,7 @@ export const ExamplePrompts: React.FC<{
         <button
           key={index}
           onClick={() => onExampleClick(example.prompt)}
-          className="text-left p-4 rounded-lg border-2 border-[--background-modifier-border] hover:border-[--interactive-accent] bg-[--background-primary] hover:bg-[--background-primary] shadow-none transition-colors flex items-start gap-4 group w-full"
+          className="text-left p-4 border-2 border-[--background-modifier-border] hover:border-[--interactive-accent] bg-[--background-primary] hover:bg-[--background-primary] shadow-none transition-colors flex items-start gap-4 group w-full"
         >
           <div className="text-[--text-muted] group-hover:text-[--interactive-accent] text-xl">
             {example.icon}

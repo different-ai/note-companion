@@ -23,7 +23,7 @@ export function FloatingActionButton({
       whileTap={{ scale: 0.95 }}
     >
       <Button
-        className="rounded-full shadow-lg flex items-center gap-2"
+        className="rounded-full flex items-center gap-2"
         onClick={onClick}
         size="lg"
       >

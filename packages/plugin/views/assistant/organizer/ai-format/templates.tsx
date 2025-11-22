@@ -121,7 +121,7 @@ export const ClassificationContainer: React.FC<ClassificationBoxProps> = ({
             id="formatBehavior"
             value={formatBehavior}
             onChange={handleFormatBehaviorChange}
-            className="px-2 py-1 rounded-md border border-[--background-modifier-border]"
+            className="px-2 py-1 border border-[--background-modifier-border]"
           >
             <option value="override">Replace</option>
             <option value="newFile">New File</option>
@@ -131,7 +131,7 @@ export const ClassificationContainer: React.FC<ClassificationBoxProps> = ({
             {backupFile && (
               <button
                 onClick={handleRevert}
-                className="px-3 py-1 text-sm rounded-md bg-[--background-modifier-error] text-[--text-on-accent] hover:opacity-90 transition-opacity"
+                className="px-3 py-1 text-sm bg-[--background-modifier-error] text-[--text-on-accent] hover:opacity-90 transition-opacity"
               >
                 Revert
               </button>

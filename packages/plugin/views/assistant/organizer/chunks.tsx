@@ -86,7 +86,7 @@ export const AtomicNotes: React.FC<DocumentChunksProps> = ({ plugin, activeFile,
   }, [chunks, renderMarkdown]);
 
   const renderChunk = (chunk: { concept: string; content: string }, index: number) => (
-    <div key={index} className="chunk-container p-4 border rounded-md mb-2">
+    <div key={index} className="chunk-container p-4 border mb-2">
       <div 
         className="chunk-markdown-content mb-3"
         data-content={chunk.content}

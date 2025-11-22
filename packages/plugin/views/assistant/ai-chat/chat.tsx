@@ -348,7 +348,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       <div className="flex-1 overflow-y-auto px-3 py-2 bg-[--background-primary]">
         <div className="flex flex-col space-y-4">
           {errorMessage && (
-            <div className="bg-[--background-secondary] border border-[--background-modifier-border] rounded-lg p-4 mb-4">
+            <div className="bg-[--background-secondary] border border-[--background-modifier-border] p-4 mb-4">
               <div className="flex items-start gap-3">
                 <div className="flex-shrink-0 mt-0.5">
                   <AlertCircle className="w-5 h-5 text-[--text-error]" />

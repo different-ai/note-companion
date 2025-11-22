@@ -75,7 +75,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
           )}
         </div>
         {isModelSelectorOpen && plugin.settings.showLocalLLMInChat && (
-          <div className="absolute bottom-full right-0 mb-1 bg-[--background-primary] border border-[--background-modifier-border] rounded shadow-lg">
+          <div className="absolute bottom-full right-0 mb-1 bg-[--background-primary] border border-[--background-modifier-border] rounded">
             <div className="py-1">
               <div
                 onClick={() => handleModelSelect("gpt-4.1-mini")}

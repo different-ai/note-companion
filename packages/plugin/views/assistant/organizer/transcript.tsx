@@ -56,7 +56,7 @@ export const TranscriptionButton: React.FC<TranscriptionButtonProps> = ({ plugin
 
   return (
     <button
-      className="flex items-center gap-2 bg-[--interactive-accent] text-[--text-on-accent] px-4 py-2 rounded-md hover:bg-[--interactive-accent-hover] disabled:opacity-50"
+      className="flex items-center gap-2 bg-[--interactive-accent] text-[--text-on-accent] px-4 py-2 hover:bg-[--interactive-accent-hover] disabled:opacity-50"
       onClick={handleTranscribe}
       disabled={transcribing}
     >
