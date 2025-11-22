@@ -513,9 +513,26 @@ export function SyncTab({ plugin }: { plugin: FileOrganizer }) {
                       : 'cursor-default'
                   }`)}
                 >
-                  {/* Icon (24x24) */}
-                  <div className={tw("w-6 h-6 mr-3 flex-shrink-0 flex items-center justify-center")}>
-                    {getFileIcon(file.fileType, tw("w-4 h-4 text-[--text-muted]"))}
+                  {/* Icon/Thumbnail (24x24) */}
+                  <div className={tw("w-6 h-6 mr-3 flex-shrink-0 overflow-hidden")}>
+                    {file.fileType.startsWith('image/') && file.previewUrl ? (
+                      <img 
+                        src={file.previewUrl} 
+                        alt={file.originalName}
+                        className={tw("w-full h-full object-cover")}
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                          if (fallback) fallback.style.display = 'flex';
+                        }}
+                      />
+                    ) : null}
+                    <div 
+                      className={tw("flex items-center justify-center w-full h-full")}
+                      style={{ display: file.fileType.startsWith('image/') && file.previewUrl ? 'none' : 'flex' }}
+                    >
+                      {getFileIcon(file.fileType, tw("w-4 h-4 text-[--text-muted]"))}
+                    </div>
                   </div>
                   
                   {/* Filename */}
