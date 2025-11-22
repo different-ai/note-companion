@@ -1078,6 +1078,9 @@
 .pt-1 {
   padding-top: 0.25rem;
 }
+.pt-2 {
+  padding-top: 0.5rem;
+}
 .pt-4 {
   padding-top: 1rem;
 }
@@ -1383,12 +1386,14 @@
 .fo2k-view {
   padding: 0 !important;
   height: 100% !important;
+  width: 100% !important;
   display: flex !important;
   flex-direction: column !important;
 }
 .fo-container {
   all: initial;
-  display: block;
+  display: flex;
+  flex-direction: column;
   font-family:
     -apple-system,
     BlinkMacSystemFont,
@@ -1402,6 +1407,7 @@
   color: var(--text-normal);
   background: var(--background-primary);
   height: 100%;
+  width: 100%;
 }
 .fo-container *,
 .fo-container *::before,

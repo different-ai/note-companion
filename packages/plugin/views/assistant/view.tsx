@@ -62,10 +62,10 @@ function TabContent({
   }
 
   return (
-    <div className={tw("flex flex-col h-full")}>
+    <div className={tw("flex flex-col h-full w-full")}>
       <div
         className={tw(
-          "flex-1 min-h-0",
+          "flex-1 min-h-0 w-full",
           activeTab === "organizer" ? "block" : "hidden"
         )}
       >
@@ -74,7 +74,7 @@ function TabContent({
 
       <div
         className={tw(
-          "flex-1 min-h-0 flex flex-col",
+          "flex-1 min-h-0 w-full flex flex-col",
           activeTab === "inbox" ? "block" : "hidden"
         )}
       >
@@ -84,8 +84,8 @@ function TabContent({
 
       <div
         className={tw(
-          "flex-1 min-h-0",
-          activeTab === "chat" ? "flex" : "hidden"
+          "flex-1 min-h-0 w-full",
+          activeTab === "chat" ? "flex flex-col" : "hidden"
         )}
       >
         <AIChatSidebar plugin={plugin} apiKey={plugin.settings.API_KEY} />
@@ -93,7 +93,7 @@ function TabContent({
 
       <div
         className={tw(
-          "flex-1 min-h-0",
+          "flex-1 min-h-0 w-full",
           activeTab === "sync" ? "block" : "hidden"
         )}
       >
@@ -145,9 +145,9 @@ function AssistantContent({
   }, [onTabChange]);
 
   return (
-    <div className={tw("flex flex-col h-full")}>
+    <div className={tw("flex flex-col h-full w-full")}>
       {/* Native tab navigation */}
-      <div className={tw("flex gap-2 px-3 border-b border-[--background-modifier-border] bg-[--background-primary]")}>
+      <div className={tw("flex gap-2 px-3 pt-2 border-b border-[--background-modifier-border] bg-[--background-primary]")}>
         <TabButton
           isActive={activeTab === "organizer"}
           onClick={() => setActiveTab("organizer")}
@@ -175,7 +175,7 @@ function AssistantContent({
       </div>
 
       {/* Content area - no padding */}
-      <div className={tw("flex-1 min-h-0 overflow-hidden")}>
+      <div className={tw("flex-1 min-h-0 w-full overflow-hidden")}>
         <TabContent activeTab={activeTab} plugin={plugin} leaf={leaf} />
       </div>
     </div>

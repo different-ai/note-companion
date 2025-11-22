@@ -40,7 +40,7 @@ const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ plugin, apiKey }) => {
   }, [conversations]); // Include conversations in dependencies since startNewConversation uses it
 
   return (
-    <div className="flex flex-col h-full bg-[--background-primary]">
+    <div className="flex flex-col h-full w-full bg-[--background-primary]">
       <div className="relative flex-none h-10 bg-[--background-primary]">
         <Button
           onClick={startNewConversation}
@@ -63,7 +63,7 @@ const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ plugin, apiKey }) => {
           </svg>
         </Button>
       </div>
-      <div className="flex-1 min-h-0 flex flex-col">
+      <div className="flex-1 min-h-0 w-full">
         <ChatComponent
           key={currentConversationIndex}
           plugin={plugin}

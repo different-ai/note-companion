@@ -6,6 +6,7 @@
 .fo2k-view {
   padding: 0 !important;
   height: 100% !important;
+  width: 100% !important;
   display: flex !important;
   flex-direction: column !important;
 }
@@ -15,13 +16,15 @@
  */
 .fo-container {
   all: initial;
-  display: block;
+  display: flex;
+  flex-direction: column;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   font-size: 14px;
   line-height: 1.5;
   color: var(--text-normal);
   background: var(--background-primary);
   height: 100%;
+  width: 100%;
 }
 
 .fo-container *,
