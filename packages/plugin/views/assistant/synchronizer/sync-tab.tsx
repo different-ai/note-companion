@@ -421,13 +421,18 @@ export function SyncTab({ plugin }: { plugin: FileOrganizer }) {
   }
 
   return (
-    <StyledContainer className={tw("p-6 bg-[--background-primary]")}>
-      <div className={tw("mb-8")}>
+    <StyledContainer className={tw("bg-[--background-primary] h-full flex flex-col")}>
+      {/* Header - compact, flush */}
+      <div className={tw("px-3 py-2 border-b border-[--background-modifier-border]")}>
         <SectionHeader text="Sync Files" icon="📥" />
-        <p className={tw("text-[--text-muted] mt-1 text-sm")}>
+        <p className={tw("text-[--text-muted] text-xs px-3")}>
           Sync files from Note Companion web and mobile
         </p>
       </div>
+
+      {/* Scrollable content */}
+      <div className={tw("flex-1 overflow-y-auto")}>
+      
 
       <div className={tw("bg-[--background-secondary] border border-[--background-modifier-border] rounded-lg p-6 mb-6 shadow-sm")}>
         <div className={tw("flex gap-3 items-start mb-4")}>
@@ -764,6 +769,7 @@ export function SyncTab({ plugin }: { plugin: FileOrganizer }) {
           )}
         </>
       )}
+      </div>
     </StyledContainer>
   );
 }

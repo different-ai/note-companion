@@ -311,8 +311,8 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
 
   return (
     <StyledContainer className="flex flex-col h-full">
-      {/* Chat Header */}
-      <div className="flex-none border-b border-[--background-modifier-border] p-4 bg-[--background-primary]">
+      {/* Chat Header - compact */}
+      <div className="flex-none border-b border-[--background-modifier-border] px-3 py-2 bg-[--background-primary]">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="h-10 w-10 rounded-full bg-[--background-secondary] flex items-center justify-center">
@@ -344,8 +344,8 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
         </div>
       </div>
 
-      {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto p-4 bg-[--background-primary]">
+      {/* Chat Messages - flush to edges */}
+      <div className="flex-1 overflow-y-auto px-3 py-2 bg-[--background-primary]">
         <div className="flex flex-col space-y-4">
           {errorMessage && (
             <div className="bg-[--background-secondary] border border-[--background-modifier-border] rounded-lg p-4 mb-4">
@@ -429,77 +429,45 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
         </div>
       </div>
 
-      {/* Chat Input Section */}
-      <div className="flex-none border-t border-[--background-modifier-border] p-4 bg-[--background-primary]">
-        <div className="flex items-center space-x-2 mb-4">
+      {/* Chat Input Section - pinned to bottom, flush edges */}
+      <div className="flex-none border-t border-[--background-modifier-border] bg-[--background-primary]">
+        {/* Context items bar - compact */}
+        <div className="flex items-center gap-2 px-3 py-1.5 border-b border-[--background-modifier-border]">
           <ContextItems />
           <ClearAllButton />
         </div>
 
-                {/* Tip about adding @file, @tag, or @folder */}
-                <div className="text-[--text-muted] text-sm mt-2 mb-2 ml-2">
-          Tip: Enter <code>@note</code>, <code>@tag</code>, or{" "}
-          <code>@folder</code> to add items to context.
-        </div>
-
-        <form onSubmit={handleSendMessage} className="flex flex-col space-y-4">
-          <div className={`flex flex-grow ${error ? "opacity-50 pointer-events-none" : ""}`}>
-            <div className="overflow-y-auto relative w-full" ref={inputRef}>
+        {/* Input form - minimal padding */}
+        <form onSubmit={handleSendMessage} className="px-3 py-2">
+          <div className={`flex gap-2 ${error ? "opacity-50 pointer-events-none" : ""}`}>
+            <div className="flex-1 relative" ref={inputRef}>
               <Tiptap
                 value={input}
                 onChange={handleTiptapChange}
                 onKeyDown={handleKeyDown}
               />
-
-              <div className="absolute bottom-0 right-12 h-full flex items-center space-x-2">
+              <div className="absolute bottom-2 right-2">
                 <AudioRecorder onTranscriptionComplete={handleTranscriptionComplete} />
               </div>
             </div>
             <SubmitButton isGenerating={isGenerating} />
           </div>
 
-          {/* Enhancement Options */}
-          <div className="grid grid-cols-3 gap-4">
-            <Button
-              variant="outline"
-              className="flex items-center justify-center space-x-2 bg-[--background-primary-alt]"
-              onClick={() => handleExampleClick("Can you summarize this for me?")}
-            >
-              <span role="img" aria-label="summary" className="text-lg">📝</span>
-              <span>Quick Summary</span>
-            </Button>
-            <Button
-              variant="outline"
-              className="flex items-center justify-center space-x-2 bg-[--background-primary-alt]"
-              onClick={() => handleExampleClick("What are the key points?")}
-            >
-              <span role="img" aria-label="key points" className="text-lg">🎯</span>
-              <span>Key Points</span>
-            </Button>
-            <Button
-              variant="outline"
-              className="flex items-center justify-center space-x-2 bg-[--background-primary-alt]"
-              onClick={() => handleExampleClick("Extract action items from this.")}
-            >
-              <span role="img" aria-label="action items" className="text-lg">✅</span>
-              <span>Action Items</span>
-            </Button>
+          {/* Model/search controls - compact single row */}
+          <div className="flex items-center justify-between mt-2 text-xs">
+            <ContextLimitIndicator
+              unifiedContext={contextString}
+              maxContextSize={maxContextSize}
+            />
+            <div className="flex items-center gap-2">
+              <SearchToggle selectedModel={selectedModel} />
+              <ModelSelector
+                selectedModel={selectedModel}
+                onModelSelect={setSelectedModel}
+              />
+            </div>
           </div>
         </form>
-
-        <div className="flex items-center justify-between mt-4">
-          <ContextLimitIndicator
-            unifiedContext={contextString}
-            maxContextSize={maxContextSize}
-          />
-          <div className="flex items-center space-x-2">
-            <SearchToggle selectedModel={selectedModel} />
-            <ModelSelector
-              selectedModel={selectedModel}
-              onModelSelect={setSelectedModel}
-            />
-          </div>
-        </div>
       </div>
     </StyledContainer>
   );
