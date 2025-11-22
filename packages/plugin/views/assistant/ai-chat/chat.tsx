@@ -3,6 +3,7 @@ import { useChat, UseChatOptions } from "@ai-sdk/react";
 import { moment } from "obsidian";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, AlertCircle } from "lucide-react";
+import { StyledContainer } from "@/components/ui/utils";
 
 import FileOrganizer from "../../..";
 import { GroundingMetadata, DataChunk } from "./types/grounding";
@@ -34,7 +35,6 @@ import {
 import { ExamplePrompts } from "./components/example-prompts";
 import { AttachmentHandler } from './components/attachment-handler';
 import { LocalAttachment } from './types/attachments';
-import { AlertCircle } from "lucide-react";
 
 interface ChatComponentProps {
   plugin: FileOrganizer;
@@ -310,7 +310,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <StyledContainer className="flex flex-col h-full">
       {/* Chat Header */}
       <div className="flex-none border-b border-[--background-modifier-border] p-4 bg-[--background-primary]">
         <div className="flex items-center justify-between">
@@ -501,6 +501,6 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
           </div>
         </div>
       </div>
-    </div>
+    </StyledContainer>
   );
 };
