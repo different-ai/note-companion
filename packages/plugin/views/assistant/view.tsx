@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf } from "obsidian";
+import { ItemView, WorkspaceLeaf, TFile } from "obsidian";
 import * as React from "react";
 import { Root, createRoot } from "react-dom/client";
 import { AssistantView } from "./organizer/organizer";
@@ -10,6 +10,7 @@ import AIChatSidebar from "./ai-chat/container";
 import ReactMarkdown from 'react-markdown';
 import { SyncTab } from "./synchronizer/sync-tab";
 import { StyledContainer } from "../../components/ui/utils";
+import { tw } from "../../lib/utils";
 
 export const ORGANIZER_VIEW_TYPE = "fo2k.assistant.sidebar2";
 
@@ -54,44 +55,47 @@ function TabContent({
 
   function renderNoteContent(content: string) {
     return (
-      <div className="markdown-preview">
+      <div className={tw("markdown-preview")}>
         <ReactMarkdown>{content}</ReactMarkdown>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className={tw("flex flex-col h-full")}>
       <div
-        className={`flex-1 min-h-0 ${
+        className={tw(
+          "flex-1 min-h-0",
           activeTab === "organizer" ? "block" : "hidden"
-        }`}
+        )}
       >
         <AssistantView plugin={plugin} leaf={leaf} />
       </div>
 
       <div
-        className={`flex-1 min-h-0 flex flex-col ${
+        className={tw(
+          "flex-1 min-h-0 flex flex-col",
           activeTab === "inbox" ? "block" : "hidden"
-        }`}
+        )}
       >
         <SectionHeader text="Inbox Processing" icon="📥 " />
         <InboxLogs />
       </div>
 
       <div
-        className={`flex-1 min-h-0 ${
+        className={tw(
+          "flex-1 min-h-0",
           activeTab === "chat" ? "flex" : "hidden"
-        }`}
+        )}
       >
         <AIChatSidebar plugin={plugin} apiKey={plugin.settings.API_KEY} />
       </div>
 
-
       <div
-        className={`flex-1 min-h-0 ${
+        className={tw(
+          "flex-1 min-h-0",
           activeTab === "sync" ? "block" : "hidden"
-        }`}
+        )}
       >
         <SyncTab plugin={plugin} />
       </div>
@@ -111,14 +115,12 @@ function TabButton({
   return (
     <button
       onClick={onClick}
-      className={`
-                px-3 py-2 text-sm font-medium shadow-none cursor-pointer bg-transparent
-                ${
-                  isActive
-                    ? "bg-[--interactive-accent] text-black"
-                    : "bg-[--background-primary] text-[--text-muted] hover:bg-[--background-modifierhover] hover:text-black"
-                }
-      `}
+      className={tw(
+        "px-3 py-2 text-sm font-medium shadow-none cursor-pointer bg-transparent",
+        isActive
+          ? "bg-[--interactive-accent] text-black"
+          : "bg-[--background-primary] text-[--text-muted] hover:bg-[--background-modifier-hover] hover:text-black"
+      )}
     >
       {children}
     </button>
@@ -143,8 +145,8 @@ function AssistantContent({
   }, [onTabChange]);
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex shadow-none w-fit space-x-2 bg-[--background-primary] p-2">
+    <div className={tw("flex flex-col h-full")}>
+      <div className={tw("flex shadow-none w-fit space-x-2 bg-[--background-primary] p-2")}>
         <TabButton
           isActive={activeTab === "organizer"}
           onClick={() => setActiveTab("organizer")}
@@ -171,7 +173,7 @@ function AssistantContent({
         </TabButton>
       </div>
 
-      <div className="flex-1 min-h-0">
+      <div className={tw("flex-1 min-h-0")}>
         <TabContent activeTab={activeTab} plugin={plugin} leaf={leaf} />
       </div>
     </div>

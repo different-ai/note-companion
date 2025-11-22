@@ -1,8 +1,9 @@
 import { EventEmitter } from 'events';
 import { ErrorService, ErrorSeverity } from './error-service';
-import { MAX_CONCURRENT_TASKS } from '../constants';
 import { IdService } from './id-service';
 import { TFile } from "obsidian";
+
+const MAX_CONCURRENT_TASKS = 5;
 
 interface QueueItem<T> {
   hash: string;
