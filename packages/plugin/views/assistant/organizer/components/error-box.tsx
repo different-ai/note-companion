@@ -16,7 +16,7 @@ export const ErrorBox: React.FC<ErrorBoxProps> = ({
     <motion.div
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="p-4 bg-[--background-primary-alt] rounded-lg shadow-md"
+      className="p-4 bg-[--background-primary-alt] border-b border-[--background-modifier-border]"
     >
       <div className="space-y-3">
         <div className="flex items-start justify-between">

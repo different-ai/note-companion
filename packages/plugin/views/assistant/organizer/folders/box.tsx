@@ -185,7 +185,7 @@ export const SimilarFolderBox: React.FC<SimilarFolderBoxProps> = ({
   };
 
   return (
-    <div className="bg-[--background-primary-alt] text-[--text-normal] p-4 rounded-lg shadow-md">
+    <div className="bg-[--background-primary-alt] text-[--text-normal] p-4 border-b border-[--background-modifier-border]">
       {renderContent()}
     </div>
   );

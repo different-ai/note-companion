@@ -131,7 +131,7 @@ export const ProcessingTimeline: React.FC<ProcessingTimelineProps> = ({ record }
   }
 
   return (
-    <StyledContainer className={tw("bg-[--background-secondary] border border-[--background-modifier-border] rounded-lg p-4")}>
+    <StyledContainer className={tw("bg-[--background-secondary] border-b border-[--background-modifier-border] p-4")}>
       <div className={tw("flex items-center justify-between mb-4")}>
         <h4 className={tw("text-sm font-medium text-[--text-normal]")}>Processing Timeline</h4>
         <div className={tw("text-xs text-[--text-muted]")}>

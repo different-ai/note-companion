@@ -112,7 +112,7 @@ export const ClassificationContainer: React.FC<ClassificationBoxProps> = ({
   return (
     <div>
       <div className="font-semibold my-3">🗳️ AI Templates</div>
-      <div className="bg-[--background-primary-alt] text-[--text-normal] p-4 rounded-lg space-y-4 shadow-lg">
+      <div className="bg-[--background-primary-alt] text-[--text-normal] p-4 space-y-4 border-b border-[--background-modifier-border]">
         <div className="flex items-center space-x-2">
           <label htmlFor="formatBehavior" className="font-medium">
             Format Behavior:

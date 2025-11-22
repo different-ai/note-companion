@@ -83,7 +83,7 @@ export const RenameSuggestion: React.FC<RenameSuggestionProps> = ({
   };
 
   return (
-    <div className="bg-[--background-primary-alt] text-[--text-normal] p-4 rounded-lg shadow-md">
+    <div className="bg-[--background-primary-alt] text-[--text-normal] p-4 border-b border-[--background-modifier-border]">
       {loading ? (
         <SkeletonLoader count={3} rows={4} width="70%" />
       ) : error ? (
