@@ -55,13 +55,44 @@ The project is a **monorepo** with four main packages:
 
 **Problem:** Obsidian plugin environment has CSS conflicts with standard frameworks.
 
-**Solution:** Use isolated styling approach with Tailwind CSS:
+**Solution:** Use **theme-agnostic, native Obsidian styling** approach:
+
+---
+
+#### The Obsidian Native Protocol
+
+**Role:** You are an Obsidian Plugin UI Specialist. Your goal is to generate HTML/CSS that is **indistinguishable from the core application**.
+
+**Golden Rule:** "Invisible Design." If the component looks like a distinct 'widget,' you have failed. It must look like it shipped with the core app.
+
+---
+
+#### The 3 Immutable Laws
+
+**1. No Hardcoded Colors**
+- ❌ FORBIDDEN: Hex codes (`#fff`, `#333`), standard colors (`red`, `blue`, `gray-800`)
+- ✅ REQUIRED: Obsidian CSS variables (`var(--text-normal)`, `var(--background-primary)`)
+- **Why:** Hardcoded colors break user themes. A "Minimal" theme user will see your component as bloated. A "Cyberpunk" theme user will see it as broken.
+
+**2. No "Container Drift"**
+- ❌ FORBIDDEN: Cards with shadows, distinct background colors, heavy borders
+- ✅ REQUIRED: Whitespace and subtle borders (`1px solid var(--background-modifier-border)`)
+- **Why:** Obsidian uses flat, borderless design. Drop shadows and colored containers look foreign.
+
+**3. Density is Quality**
+- ❌ FORBIDDEN: "Airy" layouts with excessive padding (>24px empty space)
+- ✅ REQUIRED: Tight lists (32px row height), small fonts, high information density
+- **Why:** Obsidian is an IDE for thought. Users expect dense, efficient layouts like VS Code.
+
+---
 
 #### Configuration
 - Tailwind configured with custom Obsidian CSS variables
 - Preflight disabled to avoid global style conflicts
 - Component isolation through `StyledContainer` wrapper
 - **NO PREFIX needed** - removed `fo-` prefix to allow JIT compilation
+
+---
 
 #### Implementation Pattern (REQUIRED)
 
@@ -74,7 +105,8 @@ import { tw } from "../../lib/utils";
 export function MyComponent() {
   return (
     <StyledContainer>
-      <div className={tw("bg-white rounded-lg p-4")}>
+      {/* Use Obsidian CSS variables, not hardcoded colors */}
+      <div className={tw("bg-[--background-primary] text-[--text-normal] p-2")}>
         {/* Component content */}
       </div>
     </StyledContainer>
@@ -82,25 +114,159 @@ export function MyComponent() {
 }
 ```
 
-#### Key Rules
+---
+
+#### The Translation Layer (Web → Obsidian)
+
+When building standard web components, translate them to Obsidian equivalents:
+
+| Standard Web Pattern | Obsidian Native Equivalent | Implementation Rule |
+|---------------------|---------------------------|---------------------|
+| **Card** (Box w/ Shadow) | List Item (Flat row) | No background. `border-bottom: 1px`. Hover effect only. |
+| **Dropdown** `<select>` | Suggester Modal | Do not build a `<select>`. Use read-only input that triggers modal. |
+| **Primary Button** | Action Icon | Prefer clickable icon (`var(--icon-size)`) in header over big text button. |
+| **Tag / Badge** | Pill | `var(--tag-background)`, `var(--tag-color)`, `border-radius: var(--radius-s)`. |
+| **H1-H3 Titles** | Section Headers | `font-size: var(--font-ui-smaller)`, `font-weight: 600`, Uppercase, Muted color. |
+
+---
+
+#### The CSS Variable Cheat Sheet
+
+**Use these variables strictly. Do not deviate.**
+
+**1. Backgrounds & Surfaces**
+```css
+--background-primary         /* Main pane */
+--background-secondary       /* Sidebar/Settings */
+--background-modifier-form-field  /* Inputs/Textareas */
+--background-modifier-hover  /* CRITICAL for interactivity */
+--background-modifier-active-hover  /* Active/Selected state */
+--background-modifier-border /* Separators (1px solid) */
+```
+
+**2. Typography & Text**
+```css
+--text-normal      /* Standard text */
+--text-muted       /* Subtitles/Meta (timestamps, file paths) */
+--text-error       /* Errors */
+--text-accent      /* Accents/Links (use sparingly) */
+--font-interface   /* Font family (Never set font-family manually) */
+--font-ui-smaller  /* Smaller UI text */
+```
+
+**3. Borders & Icons**
+```css
+--background-modifier-border  /* Separator: 1px solid */
+--radius-s        /* Small radius (usually 4px) */
+--icon-size       /* Standard icon size */
+```
+
+**4. Interactive Elements**
+```css
+--interactive-accent       /* Clickable elements */
+--interactive-accent-hover /* Hover state */
+--tag-background          /* Tag background */
+--tag-color               /* Tag text */
+```
+
+---
+
+#### Key Rules (Revised)
+
 1. **Always** wrap component root in `StyledContainer`
-2. **Always** use `tw()` function (alias for `cn()`) for className merging
-3. **Never** use hardcoded CSS class names like `card` or `chat-component`
-4. **Prefer** existing UI components from `components/ui/`
+2. **Always** use `tw()` function for className merging
+3. **Always** use Obsidian CSS variables (e.g., `bg-[--background-primary]`)
+4. **Never** use hardcoded colors (`bg-white`, `bg-gray-800`, `#fff`)
+5. **Never** use heavy shadows (`shadow-lg`, `drop-shadow`)
+6. **Never** use excessive spacing (max 24px)
+7. **Prefer** existing UI components from `components/ui/`
+8. **Prefer** flat, borderless design with subtle hover states
+
+---
+
+#### Examples: Bad vs Good
+
+**❌ BAD - Looks like a SaaS Dashboard:**
+```tsx
+<div className="bg-white shadow-lg rounded-xl p-6 m-4">
+  <h2 className="text-2xl font-bold text-gray-900 mb-4">My Card</h2>
+  <button className="bg-blue-500 text-white px-6 py-3 rounded-lg">
+    Click Me
+  </button>
+</div>
+```
+
+**✅ GOOD - Looks like Obsidian Core:**
+```tsx
+<div className="border-b border-[--background-modifier-border] p-2 hover:bg-[--background-modifier-hover]">
+  <div className="text-[--font-ui-smaller] font-semibold text-[--text-muted] uppercase mb-1">
+    Section Header
+  </div>
+  <div className="flex items-center gap-2">
+    <span className="text-[--text-normal]">Content</span>
+    <button className="clickable-icon" aria-label="Action">
+      <svg className="w-[--icon-size] h-[--icon-size]">...</svg>
+    </button>
+  </div>
+</div>
+```
+
+---
+
+#### The "0.001% Test" (Self-Correction)
+
+Before outputting code, ask yourself:
+
+✅ **Does this look like it belongs in VS Code?** → Keep it.  
+❌ **Does this look like a SaaS dashboard?** → Reject it.  
+❌ **Is there more than 24px of empty space anywhere?** → Tighten it.  
+❌ **Did I use `bg-blue-500` or `shadow-lg`?** → Replace with Obsidian variables.  
+✅ **Can I distinguish this from core Obsidian UI in a screenshot?** → If yes, you failed.
+
+---
 
 #### Available UI Components
-- Button
-- Card
+
+**Pre-built Components** (use these when possible):
+- Button (with Obsidian styling)
+- Card (flat, no shadow)
 - Dialog
-- Badge
-- etc.
+- Badge (uses `--tag-background`)
+
+**When to Build Custom:**
+- Only if no existing component fits
+- Follow Obsidian CSS variable rules strictly
+- Test with multiple themes (Minimal, Default, Cyberpunk)
+
+---
 
 #### Troubleshooting Style Conflicts
+
 1. Verify `StyledContainer` wrapper is present
 2. Check all classNames use `tw()` function
-3. Look for hardcoded class names
-4. Add reset styles to `.fo-container` in styles.css if needed
-5. Use browser dev tools to verify Tailwind classes apply
+3. Replace hardcoded colors with Obsidian CSS variables
+4. Remove shadows and heavy borders
+5. Reduce spacing to match Obsidian density
+6. Test with different themes (Settings → Appearance → Themes)
+7. Use browser dev tools to inspect and verify CSS variables apply
+8. Compare side-by-side with core Obsidian UI elements
+
+---
+
+#### Testing Theme Compatibility
+
+**Required Theme Tests:**
+1. **Default Theme** - Base compatibility
+2. **Minimal Theme** - Tests for bloat/overstyling
+3. **Cyberpunk/Colorful Theme** - Tests for color handling
+4. **Dark Theme** - Tests for contrast issues
+
+**How to Test:**
+1. Install theme via Settings → Appearance → Themes
+2. Enable theme
+3. Open your plugin component
+4. Verify it blends seamlessly with surrounding UI
+5. Check hover states, borders, and text colors
 
 ---
 
@@ -338,57 +504,498 @@ const allToolCalls = steps.flatMap(step => step.toolCalls);
 
 ---
 
-### 6. Chatbot Integration
+### 6. Chatbot Integration & Local Tool Execution (CRITICAL PATTERN)
 
-**Architecture:** Hybrid approach
+**Architecture:** Hybrid approach with **server-defined, client-executed tools**
 
 - **Frontend:** Inside Obsidian plugin (`packages/plugin/views/ai-chat/`)
 - **Backend:** Web application APIs
 - **Communication:** Streaming via Vercel AI SDK
+- **Tool Execution:** **Local** (client-side) with Obsidian API access
 
-**Frontend Pattern:**
-```typescript
-// packages/plugin/views/ai-chat/components/Chat.tsx
-import { useChat } from '@ai-sdk/react'
+---
 
-export function Chat() {
-  const { messages, input, handleInputChange, handleSubmit } = useChat({
-    api: '/api/chat',
-    id: 'obsidian-chat',
-    onResponse: (response) => {
-      // Handle streaming responses
-    }
-  })
-}
+#### Local Tool Execution Pattern
+
+**Key Concept:** Tools are **defined on the server** (so the AI knows about them) but **executed on the client** (where Obsidian vault access exists).
+
+**Why This Pattern?**
+- ✅ **Security:** Vault data never leaves the user's machine
+- ✅ **Architecture:** Clean separation - server handles AI, client handles Obsidian
+- ✅ **User Control:** User can see and control tool execution
+- ✅ **Privacy:** No vault contents sent to server during tool execution
+
+---
+
+#### The Complete Flow
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ 1. Server: Tool Definition (tools.ts)                       │
+│    - Define tool schema (description, parameters)           │
+│    - NO execute function (client-executed)                  │
+└────────────────┬────────────────────────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 2. Server: AI Model Decision (route.ts)                     │
+│    - AI analyzes user message                               │
+│    - Decides to call tool (e.g., "getSearchQuery")          │
+│    - Streams tool call to client                            │
+└────────────────┬────────────────────────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 3. Client: Receive Tool Call (chat.tsx)                     │
+│    - useChat hook receives toolInvocations                  │
+│    - React renders ToolInvocationHandler                    │
+└────────────────┬────────────────────────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 4. Client: Route to Handler (tool-invocation-handler.tsx)   │
+│    - Maps toolName to specific handler component            │
+│    - Passes app (Obsidian API) and addToolResult callback   │
+└────────────────┬────────────────────────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 5. Client: Execute Tool (e.g., search-handler.tsx)          │
+│    - useEffect runs on mount                                │
+│    - Executes using Obsidian API (app.vault.read, etc.)     │
+│    - Calls addToolResult(result) when complete              │
+└────────────────┬────────────────────────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 6. Client: Send Result Back (chat.tsx)                      │
+│    - addToolResult sends to server via stream               │
+└────────────────┬────────────────────────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 7. Server: AI Continues (route.ts)                          │
+│    - Receives tool result                                   │
+│    - Generates next response based on result                │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-**Backend Pattern:**
-```typescript
-// packages/web/api/chat/route.ts
-import { StreamingTextResponse, LangChainStream } from 'ai'
+---
 
-export async function POST(request: Request) {
-  const { messages, context } = await request.json()
-  const { stream, handlers } = LangChainStream()
+#### Implementation Examples
+
+**1. Server: Tool Definition** (`packages/web/app/api/(newai)/chat/tools.ts`)
+
+```typescript
+import { z } from "zod";
+
+export const chatTools = {
+  getSearchQuery: {
+    description: "Extract semantic search queries to find relevant notes based on content and meaning",
+    parameters: z.object({
+      query: z.string().describe("The semantic search query to find relevant notes"),
+    }),
+    // NO execute function - this tool runs on client
+  },
   
-  const result = streamText({
-    model: myProvider.languageModel(selectedModel),
-    messages,
-    tools: {
-      createNote,
-      updateNote,
-      searchVault
-    }
-  })
+  appendContentToFile: {
+    description: "Add new content to existing notes while preserving structure and formatting",
+    parameters: z.object({
+      content: z.string().describe("The formatted content to append to the file"),
+      message: z.string().describe("Clear explanation of what content will be added"),
+      fileName: z.string().optional().describe("Optional specific file to append to"),
+    }),
+    // NO execute function - this tool runs on client
+  },
+} as const;
+```
 
-  return new StreamingTextResponse(stream)
+**Key Points:**
+- ✅ Only `description` and `parameters` defined
+- ❌ NO `execute` function on server
+- ✅ AI model sees these tools and can decide to call them
+- ✅ Zod schemas validate parameters
+
+---
+
+**2. Server: Pass Tools to AI** (`packages/web/app/api/(newai)/chat/route.ts`)
+
+```typescript
+import { streamText, createDataStreamResponse } from "ai";
+import { chatTools } from "./tools";
+
+export async function POST(req: NextRequest) {
+  return createDataStreamResponse({
+    execute: async (dataStream) => {
+      const { messages, newUnifiedContext } = await req.json();
+      
+      const result = await streamText({
+        model: getModel("gpt-4o-mini"),
+        system: getChatSystemPrompt(contextString, currentDatetime),
+        maxSteps: 3,  // Allow multi-step tool usage
+        messages: messages,
+        tools: chatTools,  // Pass tools to AI
+        // NO onToolCall - tools execute on client
+      });
+      
+      result.mergeIntoDataStream(dataStream);
+    }
+  });
 }
 ```
 
-**Obsidian-Specific Tools:**
-- `createNote` - Create note in vault
-- `updateNote` - Modify existing note
-- `searchVault` - Search vault contents
+**Key Points:**
+- ✅ `tools: chatTools` registers tools with AI
+- ✅ `maxSteps: 3` allows multiple tool calls
+- ❌ NO `onToolCall` handler (server doesn't execute)
+- ✅ AI streams tool calls to client automatically
+
+---
+
+**3. Client: Receive & Route Tool Calls** (`packages/plugin/views/assistant/ai-chat/chat.tsx`)
+
+```typescript
+import { useChat } from "@ai-sdk/react";
+import ToolInvocationHandler from "./tool-handlers/tool-invocation-handler";
+
+export const ChatComponent = ({ plugin }) => {
+  const { messages, addToolResult } = useChat({
+    api: `${plugin.getServerUrl()}/api/chat`,
+    maxSteps: 2,
+    headers: {
+      Authorization: `Bearer ${plugin.getApiKey()}`,
+    },
+  });
+
+  return (
+    <div>
+      {messages.map((message) => (
+        <div key={message.id}>
+          {/* Render message content */}
+          {message.content}
+          
+          {/* Render tool invocations */}
+          {message.toolInvocations?.map((toolInvocation) => (
+            <ToolInvocationHandler
+              key={toolInvocation.toolCallId}
+              toolInvocation={toolInvocation}
+              addToolResult={addToolResult}  // Callback to send results back
+              app={plugin.app}               // Obsidian API access
+            />
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+};
+```
+
+**Key Points:**
+- ✅ `useChat` hook automatically receives tool calls
+- ✅ `message.toolInvocations` contains pending tool calls
+- ✅ `addToolResult` callback sends results back to AI
+- ✅ `app` provides Obsidian API access
+
+---
+
+**4. Client: Route to Specific Handler** (`packages/plugin/views/assistant/ai-chat/tool-handlers/tool-invocation-handler.tsx`)
+
+```typescript
+import { SearchHandler } from "./search-handler";
+import { AppendContentHandler } from "./append-content-handler";
+
+function ToolInvocationHandler({ toolInvocation, addToolResult, app }) {
+  const handleAddResult = (result: string) =>
+    addToolResult({ toolCallId: toolInvocation.toolCallId, result });
+
+  const handlers = {
+    getSearchQuery: () => (
+      <SearchHandler
+        toolInvocation={toolInvocation}
+        handleAddResult={handleAddResult}
+        app={app}
+      />
+    ),
+    appendContentToFile: () => (
+      <AppendContentHandler
+        toolInvocation={toolInvocation}
+        handleAddResult={handleAddResult}
+      />
+    ),
+    // ... other handlers
+  };
+
+  return handlers[toolInvocation.toolName]?.() || null;
+}
+```
+
+**Key Points:**
+- ✅ Maps `toolName` to specific handler component
+- ✅ Passes `app` for Obsidian API access
+- ✅ Wraps `addToolResult` with `toolCallId`
+
+---
+
+**5. Client: Execute Tool** (`packages/plugin/views/assistant/ai-chat/tool-handlers/search-handler.tsx`)
+
+```typescript
+import React, { useRef } from "react";
+
+export function SearchHandler({ toolInvocation, handleAddResult, app }) {
+  const hasFetchedRef = useRef(false);
+
+  const searchNotes = async (query: string) => {
+    const files = app.vault.getMarkdownFiles();  // Obsidian API
+    const searchTerms = query.toLowerCase().split(/\s+/);
+
+    const searchResults = await Promise.all(
+      files.map(async (file) => {
+        const content = await app.vault.read(file);  // Obsidian API
+        const lowerContent = content.toLowerCase();
+
+        const allTermsPresent = searchTerms.every((term) =>
+          new RegExp(`(^|\\W)${term}(\\W|$)`, "i").test(lowerContent)
+        );
+
+        if (allTermsPresent) {
+          return {
+            title: file.basename,
+            content: content,
+            path: file.path,
+          };
+        }
+        return null;
+      })
+    );
+
+    return searchResults.filter((result) => result !== null);
+  };
+
+  React.useEffect(() => {
+    const handleSearchNotes = async () => {
+      // Only execute once, and only if no result yet
+      if (!hasFetchedRef.current && !("result" in toolInvocation)) {
+        hasFetchedRef.current = true;
+        const { query } = toolInvocation.args;  // Get AI's arguments
+        
+        try {
+          // Execute using Obsidian API
+          const searchResults = await searchNotes(query);
+          
+          // Send result back to AI
+          handleAddResult(JSON.stringify(searchResults));
+        } catch (error) {
+          handleAddResult(JSON.stringify({ error: error.message }));
+        }
+      }
+    };
+
+    handleSearchNotes();
+  }, [toolInvocation, handleAddResult, app]);
+
+  return (
+    <div className="text-sm text-[--text-muted]">
+      {!("result" in toolInvocation)
+        ? "Searching through your notes..."
+        : "Search complete"}
+    </div>
+  );
+}
+```
+
+**Key Points:**
+- ✅ `useEffect` triggers execution on mount
+- ✅ `hasFetchedRef` prevents duplicate execution
+- ✅ Checks `!("result" in toolInvocation)` to avoid re-execution
+- ✅ Accesses `toolInvocation.args` for AI's parameters
+- ✅ Uses `app.vault` Obsidian API to access files
+- ✅ Calls `handleAddResult(JSON.stringify(result))` to send back
+- ✅ UI shows progress/completion state
+
+---
+
+#### Current Available Tools
+
+**Search & Discovery:**
+- `getSearchQuery` - Semantic search through vault
+- `searchByName` - Search by file name pattern
+- `getLastModifiedFiles` - Get recently modified files
+
+**Content Manipulation:**
+- `appendContentToFile` - Add content to existing files
+- `addTextToDocument` - Add sections to documents
+- `modifyDocumentText` - Edit document content
+
+**File Organization:**
+- `moveFiles` - Organize files into folders
+- `renameFiles` - Rename files intelligently
+- `executeActionsOnFileBasedOnPrompt` - Complex file operations
+
+**Vault Management:**
+- `analyzeVaultStructure` - Analyze vault organization
+- `generateSettings` - Create organization settings
+
+**Media:**
+- `getYoutubeVideoId` - Import YouTube transcripts
+
+---
+
+#### Adding New Local Tools
+
+**Step 1:** Define on server (`tools.ts`)
+```typescript
+export const chatTools = {
+  // ... existing tools
+  
+  myNewTool: {
+    description: "What this tool does",
+    parameters: z.object({
+      param1: z.string().describe("Description"),
+      param2: z.number().optional().describe("Description"),
+    }),
+  },
+};
+```
+
+**Step 2:** Add handler mapping (`tool-invocation-handler.tsx`)
+```typescript
+const handlers = {
+  // ... existing handlers
+  
+  myNewTool: () => (
+    <MyNewToolHandler
+      toolInvocation={toolInvocation}
+      handleAddResult={handleAddResult}
+      app={app}
+    />
+  ),
+};
+```
+
+**Step 3:** Create handler component (`my-new-tool-handler.tsx`)
+```typescript
+export function MyNewToolHandler({ toolInvocation, handleAddResult, app }) {
+  const hasFetchedRef = useRef(false);
+
+  React.useEffect(() => {
+    const execute = async () => {
+      if (!hasFetchedRef.current && !("result" in toolInvocation)) {
+        hasFetchedRef.current = true;
+        const { param1, param2 } = toolInvocation.args;
+        
+        try {
+          // Execute using Obsidian API
+          const result = await doSomething(app, param1, param2);
+          handleAddResult(JSON.stringify(result));
+        } catch (error) {
+          handleAddResult(JSON.stringify({ error: error.message }));
+        }
+      }
+    };
+    execute();
+  }, [toolInvocation, handleAddResult, app]);
+
+  return <div>Executing...</div>;
+}
+```
+
+**Step 4:** Add title to `getToolTitle()` (`tool-invocation-handler.tsx`)
+```typescript
+const toolTitles = {
+  // ... existing titles
+  myNewTool: "My New Tool",
+};
+```
+
+---
+
+#### Important Patterns
+
+**1. Prevent Double Execution**
+```typescript
+const hasFetchedRef = useRef(false);
+if (!hasFetchedRef.current && !("result" in toolInvocation)) {
+  hasFetchedRef.current = true;
+  // execute only once
+}
+```
+
+**2. Access Tool Arguments**
+```typescript
+const { arg1, arg2 } = toolInvocation.args;
+```
+
+**3. Send Results Back**
+```typescript
+// Success
+handleAddResult(JSON.stringify(result));
+
+// Error
+handleAddResult(JSON.stringify({ error: error.message }));
+```
+
+**4. Show UI Progress**
+```typescript
+return (
+  <div>
+    {!("result" in toolInvocation)
+      ? "Processing..."
+      : "Complete"}
+  </div>
+);
+```
+
+**5. Access Obsidian API**
+```typescript
+// Read files
+const files = app.vault.getMarkdownFiles();
+const content = await app.vault.read(file);
+
+// Write files
+await app.vault.create(path, content);
+await app.vault.modify(file, newContent);
+
+// Move/rename
+await app.fileManager.renameFile(file, newPath);
+```
+
+---
+
+#### Testing Local Tools
+
+1. Start dev server: `cd packages/web && pnpm dev`
+2. Start plugin dev: `cd packages/plugin && pnpm dev`
+3. Open Obsidian with plugin installed
+4. Open AI chat panel
+5. Trigger tool: "Search for notes about X"
+6. Observe:
+   - Server logs show AI decision
+   - Client UI shows tool executing
+   - Result sent back and AI continues
+
+---
+
+#### Debugging Local Tools
+
+**Server Side:**
+```typescript
+console.log("Tool definitions:", chatTools);
+console.log("AI decided to call:", toolCall.toolName);
+```
+
+**Client Side:**
+```typescript
+console.log("Tool invocation:", toolInvocation);
+console.log("Tool args:", toolInvocation.args);
+console.log("Tool result:", result);
+```
+
+**Common Issues:**
+- ❌ Tool not defined on server → AI can't see it
+- ❌ Handler not mapped → Tool call ignored
+- ❌ No `hasFetchedRef` → Executes multiple times
+- ❌ Forgot `JSON.stringify()` → Invalid result format
+- ❌ No error handling → Silent failures
 
 ---
 

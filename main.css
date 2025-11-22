@@ -1036,6 +1036,9 @@
   padding-top: 0.875rem;
   padding-bottom: 0.875rem;
 }
+.pb-0 {
+  padding-bottom: 0px;
+}
 .pb-2 {
   padding-bottom: 0.5rem;
 }
@@ -1790,6 +1793,30 @@
 }
 .placeholder\:text-muted-foreground::placeholder {
   color: var(--text-muted);
+}
+.after\:absolute::after {
+  content: var(--tw-content);
+  position: absolute;
+}
+.after\:bottom-0::after {
+  content: var(--tw-content);
+  bottom: 0px;
+}
+.after\:left-0::after {
+  content: var(--tw-content);
+  left: 0px;
+}
+.after\:right-0::after {
+  content: var(--tw-content);
+  right: 0px;
+}
+.after\:h-0\.5::after {
+  content: var(--tw-content);
+  height: 0.125rem;
+}
+.after\:bg-\[--interactive-accent\]::after {
+  content: var(--tw-content);
+  background-color: var(--interactive-accent);
 }
 .hover\:border-\[--background-modifier-border-hover\]:hover {
   border-color: var(--background-modifier-border-hover);

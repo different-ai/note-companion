@@ -507,19 +507,19 @@ export function SyncTab({ plugin }: { plugin: FileOrganizer }) {
                 <div
                   key={file.id}
                   onClick={() => file.status === 'completed' && !downloading[file.id] && downloadFile(file)}
-                  className={tw(`flex items-center px-3 py-2 border-b border-[--background-modifier-border] transition-colors group ${
+                  className={tw(`flex items-center gap-3 px-3 py-2 border-b border-[--background-modifier-border] transition-colors group ${
                     file.status === 'completed' && !downloading[file.id]
                       ? 'cursor-pointer hover:bg-[--background-modifier-hover]'
                       : 'cursor-default'
                   }`)}
                 >
-                  {/* Icon/Thumbnail (24x24) */}
-                  <div className={tw("w-6 h-6 mr-3 flex-shrink-0 overflow-hidden")}>
-                    {file.fileType.startsWith('image/') && file.previewUrl ? (
+                  {/* Thumbnail (larger for images) */}
+                  <div className={tw("mr-3 flex-shrink-0 overflow-hidden")}>
+                    {file.fileType.startsWith('image/') ? (
                       <img 
-                        src={file.previewUrl} 
+                        src={file.previewUrl || file.blobUrl} 
                         alt={file.originalName}
-                        className={tw("w-full h-full object-cover")}
+                        className={tw("w-16 h-16 object-cover border border-[--background-modifier-border]")}
                         onError={(e) => {
                           e.currentTarget.style.display = 'none';
                           const fallback = e.currentTarget.nextElementSibling as HTMLElement;
@@ -528,23 +528,24 @@ export function SyncTab({ plugin }: { plugin: FileOrganizer }) {
                       />
                     ) : null}
                     <div 
-                      className={tw("flex items-center justify-center w-full h-full")}
-                      style={{ display: file.fileType.startsWith('image/') && file.previewUrl ? 'none' : 'flex' }}
+                      className={tw("flex items-center justify-center w-6 h-6")}
+                      style={{ display: file.fileType.startsWith('image/') ? 'none' : 'flex' }}
                     >
                       {getFileIcon(file.fileType, tw("w-4 h-4 text-[--text-muted]"))}
                     </div>
                   </div>
                   
-                  {/* Filename */}
-                  <div className={tw("flex-1 min-w-0")}>
-                    <span className={tw("text-sm text-[--text-normal] truncate block")}>
+                  {/* File info */}
+                  <div className={tw("flex-1 min-w-0 flex flex-col justify-center")}>
+                    <div className={tw("text-sm text-[--text-normal] truncate font-medium")}>
                       {file.originalName}
-                    </span>
-                  </div>
-                  
-                  {/* Date */}
-                  <div className={tw("text-xs text-[--text-faint] mr-4 flex-shrink-0")}>
-                    {new Date(file.createdAt).toLocaleDateString()}
+                    </div>
+                    <div className={tw("text-xs text-[--text-muted] flex items-center gap-2")}>
+                      <span>{new Date(file.createdAt).toLocaleDateString()}</span>
+                      {file.fileType.startsWith('image/') && (
+                        <span className={tw("text-[--text-faint]")}>• Image</span>
+                      )}
+                    </div>
                   </div>
                   
                   {/* Status icon */}
