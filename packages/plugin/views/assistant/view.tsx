@@ -116,10 +116,10 @@ function TabButton({
     <button
       onClick={onClick}
       className={tw(
-        "px-3 py-1.5 text-xs font-medium shadow-none cursor-pointer bg-transparent border-b-2 transition-colors",
+        "px-4 py-2 text-sm bg-transparent border-b-2 transition-colors -mb-px",
         isActive
-          ? "border-[--interactive-accent] text-[--text-normal]"
-          : "border-transparent text-[--text-muted] hover:text-[--text-normal] hover:border-[--background-modifier-border]"
+          ? "border-[--interactive-accent] text-[--interactive-accent]"
+          : "border-transparent text-[--text-muted] hover:text-[--text-normal]"
       )}
     >
       {children}
@@ -146,8 +146,8 @@ function AssistantContent({
 
   return (
     <div className={tw("flex flex-col h-full")}>
-      {/* Flush navigation - segmented control style */}
-      <div className={tw("flex shadow-none border-b border-[--background-modifier-border] bg-[--background-primary]")}>
+      {/* Native tab navigation */}
+      <div className={tw("flex gap-2 px-3 border-b border-[--background-modifier-border] bg-[--background-primary]")}>
         <TabButton
           isActive={activeTab === "organizer"}
           onClick={() => setActiveTab("organizer")}

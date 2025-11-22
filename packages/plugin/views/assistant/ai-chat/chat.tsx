@@ -311,44 +311,27 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
 
   return (
     <StyledContainer className="flex flex-col h-full">
-      {/* Chat Header - compact with clear button */}
-      <div className="flex-none border-b border-[--background-modifier-border] px-3 py-2 bg-[--background-primary]">
+      {/* Chat Header - minimal */}
+      <div className="flex-none border-b border-[--background-modifier-border] px-3 py-1.5 bg-[--background-primary]">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="h-10 w-10 rounded-full bg-[--background-secondary] flex items-center justify-center">
-              <span role="img" aria-label="ai" className="text-lg">🤖</span>
-            </div>
-            <div>
-              <h2 className="text-lg font-medium text-[--text-normal]">AI Assistant</h2>
-              <p className="text-sm text-[--text-muted] flex items-center gap-2">
-                {isGenerating ? (
-                  <>
-                    <span className="inline-block w-2 h-2 bg-[--text-accent] rounded-full animate-pulse"></span>
-                    <span>Thinking...</span>
-                  </>
-                ) : errorMessage ? (
-                  <>
-                    <span className="inline-block w-2 h-2 bg-[--text-error] rounded-full"></span>
-                    <span>Error occurred</span>
-                  </>
-                ) : (
-                  <>
-                    <span className="inline-block w-2 h-2 bg-[--interactive-success] rounded-full"></span>
-                    <span>Ready to help</span>
-                  </>
-                )}
-              </p>
-            </div>
+          <div className="flex items-center gap-2">
+            <h2 className="text-sm font-medium text-[--text-normal]">Chat</h2>
+            {isGenerating && (
+              <div className="flex items-center gap-1.5 text-xs text-[--text-muted]">
+                <span className="inline-block w-1.5 h-1.5 bg-[--text-accent] rounded-full animate-pulse"></span>
+                <span>Thinking</span>
+              </div>
+            )}
           </div>
           
-          {/* Clear All - global action belongs in header */}
+          {/* Clear All - icon only */}
           <ClearAllButton />
         </div>
       </div>
 
-      {/* Chat Messages - flush to edges */}
+      {/* Chat Messages - compressed spacing */}
       <div className="flex-1 overflow-y-auto px-3 py-2 bg-[--background-primary]">
-        <div className="flex flex-col space-y-4">
+        <div className="flex flex-col space-y-1">
           {errorMessage && (
             <div className="bg-[--background-secondary] border border-[--background-modifier-border] p-4 mb-4">
               <div className="flex items-start gap-3">
@@ -407,18 +390,12 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
           )}
 
           {isGenerating && (
-            <div className="flex items-start gap-3 p-4">
-              <div className="flex-shrink-0 mt-1">
-                <div className="w-8 h-8 rounded-full bg-[--background-secondary] flex items-center justify-center">
-                  <div className="w-2 h-2 bg-[--text-accent] rounded-full animate-pulse"></div>
-                </div>
-              </div>
-              <div className="flex-grow">
-                <div className="text-sm font-medium text-[--text-normal] mb-2">AI is thinking...</div>
-                <div className="space-y-2">
-                  <div className="h-2 bg-[--background-modifier-border] rounded animate-pulse" style={{ width: '75%' }}></div>
-                  <div className="h-2 bg-[--background-modifier-border] rounded animate-pulse" style={{ width: '50%' }}></div>
-                  <div className="h-2 bg-[--background-modifier-border] rounded animate-pulse" style={{ width: '60%' }}></div>
+            <div className="flex items-start gap-2 py-1.5">
+              <div className="w-4 text-xs text-[--text-faint]">AI</div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 text-sm text-[--text-muted]">
+                  <div className="w-1.5 h-1.5 bg-[--text-accent] rounded-full animate-pulse"></div>
+                  <span>Thinking...</span>
                 </div>
               </div>
             </div>

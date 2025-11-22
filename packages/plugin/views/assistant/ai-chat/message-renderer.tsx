@@ -29,23 +29,27 @@ export const MessageRenderer: React.FC<MessageRendererProps> = ({
 
   return (
     <motion.div
-      className="flex items-start mb-4"
-      initial={{ opacity: 0, y: 10 }}
+      className="flex items-start gap-2 py-1.5 group"
+      initial={{ opacity: 0, y: 5 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
+      transition={{ duration: 0.2 }}
     >
-      <Avatar role={message.role as "user" | "assistant"} />
-      <div className="flex-grow">
-        <motion.div className="text-[--text-normal] w-full">
+      {/* Tiny role indicator - text only */}
+      <div className="flex-shrink-0 w-4 text-xs text-[--text-faint] pt-0.5">
+        {message.role === "user" ? "You" : "AI"}
+      </div>
+      
+      <div className="flex-1 min-w-0">
+        <div className="text-sm text-[--text-normal]">
           {message.role === "user" ? (
             <UserMarkdown content={message.content} />
           ) : (
             <AIMarkdown content={message.content} app={plugin.app} />
           )}
-        </motion.div>
+        </div>
 
         {message.role === "assistant" && (
-          <div className="relative flex justify-end mt-2 space-x-2 mr-3">
+          <div className="flex gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
             <AppendButton content={message.content} />
             <CopyButton content={message.content} />
           </div>
