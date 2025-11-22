@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Remove Obsidian's default view padding for our plugin */
+.fo2k-view {
+  padding: 0 !important;
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
 /* 
  * Style isolation for all plugin components using fo- prefix
  */
@@ -13,6 +21,7 @@
   line-height: 1.5;
   color: var(--text-normal);
   background: var(--background-primary);
+  height: 100%;
 }
 
 .fo-container *,

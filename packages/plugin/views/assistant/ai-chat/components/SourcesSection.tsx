@@ -49,11 +49,11 @@ export function SourcesSection({ groundingMetadata }: SourcesSectionProps) {
   return (
     <div className="mt-6 space-y-4 m-2 z-50">
       <div className="flex justify-between items-center">
-        <h3 className="text-base font-medium text-gray-900 dark:text-gray-100">Sources</h3>
+        <h3 className="text-base font-medium text-[--text-normal]">Sources</h3>
         {sources.length > 3 && (
           <button
             onClick={() => setShowAll(!showAll)}
-            className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+            className="text-sm text-[--text-accent] hover:text-[--text-accent-hover]"
           >
             {showAll ? 'Show less' : 'Show all'}
           </button>
@@ -64,7 +64,7 @@ export function SourcesSection({ groundingMetadata }: SourcesSectionProps) {
         {displayedSources.map((source) => (
           <div
             key={source.id}
-            className="flex items-center p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-colors"
+            className="flex items-center p-4 bg-[--background-primary] border border-[--background-modifier-border] hover:border-[--background-modifier-border-hover] transition-colors"
           >
             <div className="flex-shrink-0 mr-4">
               <div className="relative">
@@ -73,23 +73,23 @@ export function SourcesSection({ groundingMetadata }: SourcesSectionProps) {
                   alt={source.domain}
                   className="w-8 h-8"
                 />
-                <div className="absolute -top-2 -right-2 w-5 h-5 flex items-center justify-center bg-blue-100 dark:bg-blue-900 rounded-full text-xs font-medium text-blue-600 dark:text-blue-400">
+                <div className="absolute -top-2 -right-2 w-5 h-5 flex items-center justify-center bg-[--background-secondary] border border-[--background-modifier-border] rounded-full text-xs font-medium text-[--text-accent]">
                   {source.id}
                 </div>
               </div>
             </div>
             <div className="flex-grow min-w-0">
-              <h4 className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">
+              <h4 className="font-medium text-sm text-[--text-normal] truncate">
                 <a 
                   href={source.url} 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="text-blue-600 hover:underline"
+                  className="text-[--text-accent] hover:underline"
                 >
                   {source.title || source.domain}
                 </a>
               </h4>
-              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+              <p className="text-xs text-[--text-muted] truncate">
                 {source.domain}
               </p>
             </div>
