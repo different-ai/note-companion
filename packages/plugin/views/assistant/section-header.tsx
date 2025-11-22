@@ -1,4 +1,5 @@
 import * as React from "react";
+import { tw } from "@/lib/utils";
 
 interface SectionHeaderProps {
   text: string;
@@ -7,8 +8,8 @@ interface SectionHeaderProps {
 
 export const SectionHeader: React.FC<SectionHeaderProps> = ({ text, icon }) => {
   return (
-    <h6 className="text-sm font-medium ">
-      {icon && <span className="assistant-section-icon">{icon}</span>}
+    <h6 className={tw("text-sm font-medium text-[--text-normal] mb-2")}>
+      {icon && <span className={tw("mr-2")}>{icon}</span>}
       {text}
     </h6>
   );
