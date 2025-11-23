@@ -198,6 +198,8 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     reload,
     setMessages,
   } = useChat({
+    // Send context with EVERY request, not just the first one
+    body: chatBody,
     onDataChunk: (chunk: DataChunk) => {
       if (chunk.type === "metadata" && chunk.data?.groundingMetadata) {
         setGroundingMetadata(chunk.data.groundingMetadata);

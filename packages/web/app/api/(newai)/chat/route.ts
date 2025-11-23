@@ -52,19 +52,12 @@ export async function POST(req: NextRequest) {
           chosenModelName = deepSearch ? "gpt-4o-responses" : "gpt-4o-mini-responses";
           console.log(`Search grounding enabled - using ${chosenModelName} (deep: ${deepSearch})`);
 
-          const systemPrompt = getChatSystemPrompt(contextString, currentDatetime);
-          
-          console.log("===== SERVER DEBUG =====");
-          console.log("Model:", chosenModelName);
-          console.log("Messages count:", messages.length);
-          console.log("Last user message:", messages[messages.length - 1]?.content?.substring(0, 200));
-          console.log("System prompt (first 500 chars):", systemPrompt.substring(0, 500));
-          console.log("System prompt (last 1000 chars - should show editor context):", systemPrompt.slice(-1000));
-          console.log("========================");
-
           const result = await streamText({
             model: getModel(chosenModelName),
-            system: systemPrompt,
+            system: getChatSystemPrompt(
+              contextString,
+              currentDatetime
+            ),
             maxSteps: 3,
             messages: messages,
             tools: {
@@ -108,19 +101,12 @@ export async function POST(req: NextRequest) {
           console.log(`Chat using model: ${chosenModelName} (no search)`);
           const model = getModel(chosenModelName);
 
-          const systemPrompt = getChatSystemPrompt(contextString, currentDatetime);
-          
-          console.log("===== SERVER DEBUG (NO SEARCH) =====");
-          console.log("Model:", chosenModelName);
-          console.log("Messages count:", messages.length);
-          console.log("Last user message:", messages[messages.length - 1]?.content?.substring(0, 200));
-          console.log("System prompt (first 500 chars):", systemPrompt.substring(0, 500));
-          console.log("System prompt (last 1000 chars - should show editor context):", systemPrompt.slice(-1000));
-          console.log("====================================");
-
           const result = await streamText({
             model,
-            system: systemPrompt,
+            system: getChatSystemPrompt(
+              contextString,
+              currentDatetime
+            ),
             maxSteps: 3,
             messages: messages,
             tools: chatTools, // Regular tools, no web search
