@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { handleAuthorization } from "@/lib/handleAuthorization";
+import { handleAuthorizationV2 } from "@/lib/handleAuthorizationV2";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { getModel } from "@/lib/models";
 import { z } from "zod";
@@ -7,7 +7,7 @@ import { generateObject } from "ai";
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await handleAuthorization(request);
+    const { userId } = await handleAuthorizationV2(request);
     const { content, fileName, folders, customInstructions, count = 3 } =
       await request.json();
     const model = getModel(process.env.MODEL_NAME);

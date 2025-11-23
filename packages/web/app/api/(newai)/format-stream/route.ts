@@ -2,14 +2,14 @@ import { streamText } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { NextResponse, NextRequest } from "next/server";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
-import { handleAuthorization } from "@/lib/handleAuthorization";
+import { handleAuthorizationV2 } from "@/lib/handleAuthorizationV2";
 import { getModel } from '@/lib/models';
 
 export const maxDuration = 60;
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await handleAuthorization(request);
+    const { userId } = await handleAuthorizationV2(request);
     const { content, formattingInstruction } = await request.json();
     const model = getModel(process.env.MODEL_NAME);
 
