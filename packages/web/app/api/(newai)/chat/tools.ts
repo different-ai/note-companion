@@ -36,7 +36,7 @@ export const chatTools = {
     parameters: z.object({
       content: z.string().describe("The formatted content to append to the file"),
       message: z.string().describe("Clear explanation of what content will be added"),
-      fileName: z.string().default("").describe("Optional specific file to append to (leave empty to use current file)"),
+      fileName: z.string().describe("Specific file to append to, or empty string to use current file"),
     }),
   },
   addTextToDocument: {
