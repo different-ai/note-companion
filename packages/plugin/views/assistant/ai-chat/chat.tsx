@@ -159,9 +159,15 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     [contextString, editorContextString]
   );
 
+  // Calculate datetime ONCE per component mount, not on every render
+  const currentDatetime = React.useMemo(
+    () => window.moment().format("YYYY-MM-DDTHH:mm:ssZ"),
+    [] // Empty deps = only calculate once
+  );
+
   // MEMOIZE chatBody to prevent infinite loop from RAF updates
   const chatBody = React.useMemo(() => ({
-    currentDatetime: window.moment().format("YYYY-MM-DDTHH:mm:ssZ"),
+    currentDatetime,
     newUnifiedContext: fullContext,
     model: plugin.settings.selectedModel,
     enableSearchGrounding: plugin.settings.enableSearchGrounding || 
@@ -169,6 +175,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
                           selectedModel === 'gpt-4o-mini-search-preview',
     deepSearch: plugin.settings.enableDeepSearch,
   }), [
+    currentDatetime,
     fullContext, 
     plugin.settings.selectedModel,
     plugin.settings.enableSearchGrounding,
@@ -191,8 +198,13 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     reload,
     setMessages,
   } = useChat({
-    // Send context with EVERY request, not just the first one
-    body: chatBody,
+    // Inject chatBody into every request without modifying messages
+    experimental_prepareRequestBody: ({ messages }) => {
+      return {
+        messages,
+        ...chatBody, // Spread chatBody to include context in every request
+      };
+    },
     onDataChunk: (chunk: DataChunk) => {
       if (chunk.type === "metadata" && chunk.data?.groundingMetadata) {
         setGroundingMetadata(chunk.data.groundingMetadata);
