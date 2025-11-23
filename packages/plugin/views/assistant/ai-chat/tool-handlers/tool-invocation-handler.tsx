@@ -7,6 +7,7 @@ import { SearchHandler } from "./search-handler";
 import { DateRangeHandler } from "./date-range-handler";
 import { LastModifiedHandler } from "./last-modified-handler";
 import { OpenFileHandler } from "./open-file-handler";
+import { ReplaceSelectionHandler } from "./replace-selection-handler";
 
 import { SettingsUpdateHandler } from "./settings-update-handler";
 import { AppendContentHandler } from "./append-content-handler";
@@ -61,6 +62,7 @@ function ToolInvocationHandler({
       renameFiles: "Renaming Files",
       searchByName: "Search Files by Name",
       openFile: "Opening File",
+      replaceSelection: "Replacing Selection",
       executeActionsOnFileBasedOnPrompt: "Execute Actions on Files",
       addTextToDocument: "Adding Text to Document",
       modifyDocumentText: "Modifying Document Text",
@@ -114,6 +116,13 @@ function ToolInvocationHandler({
       ),
       openFile: () => (
         <OpenFileHandler
+          toolInvocation={toolInvocation}
+          handleAddResult={handleAddResult}
+          app={app}
+        />
+      ),
+      replaceSelection: () => (
+        <ReplaceSelectionHandler
           toolInvocation={toolInvocation}
           handleAddResult={handleAddResult}
           app={app}

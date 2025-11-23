@@ -35,6 +35,7 @@ import {
 import { ExamplePrompts } from "./components/example-prompts";
 import { AttachmentHandler } from './components/attachment-handler';
 import { LocalAttachment } from './types/attachments';
+import { useEditorSelection, formatEditorContextForAI } from "./use-editor-selection";
 
 interface ChatComponentProps {
   plugin: FileOrganizer;
@@ -64,6 +65,9 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
 
   const uniqueReferences = getUniqueReferences();
   logger.debug("uniqueReferences", uniqueReferences);
+
+  // Track editor selection for contextual understanding
+  const editorContext = useEditorSelection(app);
 
   const contextItems = {
     files,
@@ -130,10 +134,18 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     plugin.settings.selectedModel
   );
 
+  // Format editor context for AI
+  const editorContextString = formatEditorContextForAI(editorContext);
+  
+  // Combine vault context with editor context
+  const fullContext = editorContextString 
+    ? `${contextString}\n\n${editorContextString}`
+    : contextString;
+
   const chatBody = {
     currentDatetime: window.moment().format("YYYY-MM-DDTHH:mm:ssZ"),
 
-    newUnifiedContext: contextString,
+    newUnifiedContext: fullContext,
     model: plugin.settings.selectedModel, // Pass selected model to server
     enableSearchGrounding: plugin.settings.enableSearchGrounding || 
                           selectedModel === 'gpt-4o-search-preview' || 

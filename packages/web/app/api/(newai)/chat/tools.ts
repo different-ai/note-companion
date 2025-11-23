@@ -25,6 +25,13 @@ export const chatTools = {
       filePath: z.string().describe("The full path of the file to open (e.g., 'folder/note.md')"),
     }),
   },
+  replaceSelection: {
+    description: "Replace the currently selected text in the editor. Use when user says 'change this', 'rewrite this', 'fix this', etc. The AI will receive the selected text in <editor_context> tags.",
+    parameters: z.object({
+      newText: z.string().describe("The new text to replace the current selection with"),
+      message: z.string().describe("Brief explanation of what was changed (e.g., 'Made text more concise', 'Fixed grammar')"),
+    }),
+  },
   getYoutubeVideoId: {
     description: "Extract YouTube video ID to import and organize video content into notes",
     parameters: z.object({
