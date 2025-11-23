@@ -25,13 +25,6 @@ export const chatTools = {
       filePath: z.string().describe("The full path of the file to open (e.g., 'folder/note.md')"),
     }),
   },
-  replaceSelection: {
-    description: "Replace currently selected text. If <editor_context><selection> exists, user wants you to modify that text. Examples: 'Nobel' selected + 'use synonym' → replaceSelection('Award'), 'research' selected + 'use synonym' → replaceSelection('study'), 'teh' selected + 'fix' → replaceSelection('the'). DO NOT ask for clarification.",
-    parameters: z.object({
-      newText: z.string().describe("The replacement text. For synonyms, choose a word with SIMILAR meaning (Award ≈ Prize, study ≈ research, investigation ≈ research). For fixes, correct the error."),
-      message: z.string().describe("Brief explanation like 'Replaced with synonym', 'Fixed typo', 'Made concise'"),
-    }),
-  },
   getYoutubeVideoId: {
     description: "Extract YouTube video ID to import and organize video content into notes",
     parameters: z.object({
