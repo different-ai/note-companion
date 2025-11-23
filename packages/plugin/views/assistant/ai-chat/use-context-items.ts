@@ -7,6 +7,7 @@ interface BaseContextItem {
   id: string;
   reference: string;
   createdAt: number;
+  ephemeral?: boolean; // If true, context is cleared after next AI message
 }
 
 // Specific item types
@@ -44,14 +45,17 @@ interface TagContextItem extends BaseContextItem {
 
 
 
-// Add new search result type
+// Add new search result type (reference-based, no full content)
 interface SearchContextItem extends BaseContextItem {
   type: "search";
   query: string;
+  resultCount: number;
   results: Array<{
     path: string;
     title: string;
-    content: string;
+    contentPreview: string; // Only preview, not full content
+    contentLength: number;
+    wordCount: number;
   }>;
 }
 
@@ -91,6 +95,7 @@ interface ContextItemsState extends ContextCollections {
   setCurrentFile: (file: FileContextItem | null) => void;
   toggleCurrentFile: () => void;
   clearAll: () => void;
+  clearEphemeral: () => void; // Clear all ephemeral context items
   toggleLightweightMode: () => void;
 
   // Processing methods
@@ -259,6 +264,29 @@ export const useContextItems = create<ContextItemsState>((set, get) => ({
       currentFile: null,
     }),
 
+  // Clear only ephemeral context items
+  clearEphemeral: () =>
+    set(state => ({
+      files: Object.fromEntries(
+        Object.entries(state.files).filter(([_, item]) => !item.ephemeral)
+      ),
+      folders: Object.fromEntries(
+        Object.entries(state.folders).filter(([_, item]) => !item.ephemeral)
+      ),
+      youtubeVideos: Object.fromEntries(
+        Object.entries(state.youtubeVideos).filter(([_, item]) => !item.ephemeral)
+      ),
+      tags: Object.fromEntries(
+        Object.entries(state.tags).filter(([_, item]) => !item.ephemeral)
+      ),
+      searchResults: Object.fromEntries(
+        Object.entries(state.searchResults).filter(([_, item]) => !item.ephemeral)
+      ),
+      textSelections: Object.fromEntries(
+        Object.entries(state.textSelections).filter(([_, item]) => !item.ephemeral)
+      ),
+    })),
+
   // Add new processing methods
   processFolderFiles: async (app, folderPath) => {
     const folderRef = app.vault.getFolderByPath(folderPath);
@@ -326,6 +354,7 @@ export const addFileContext = (file: {
   path: string;
   title: string;
   content: string;
+  ephemeral?: boolean; // Optional ephemeral flag
 }) => {
   const store = useContextItems.getState();
   const reference = `File: ${file.path}`;
@@ -341,6 +370,36 @@ export const addFileContext = (file: {
     content: file.content,
     reference,
     createdAt: Date.now(),
+    ephemeral: file.ephemeral,
+  });
+};
+
+// New helper: Add file reference WITHOUT full content (metadata-only, ephemeral)
+export const addFileReference = (file: {
+  path: string;
+  title: string;
+  contentPreview?: string;
+  contentLength?: number;
+  wordCount?: number;
+  modified?: number;
+  modifiedDate?: string;
+}) => {
+  const store = useContextItems.getState();
+  const reference = `File: ${file.path}`;
+
+  // Remove any existing items with same reference first
+  store.removeByReference(reference);
+
+  // Store metadata only, mark as ephemeral
+  store.addFile({
+    id: file.path,
+    type: "file",
+    path: file.path,
+    title: file.title,
+    content: file.contentPreview || "", // Only preview stored
+    reference,
+    createdAt: Date.now(),
+    ephemeral: true, // Always ephemeral for references
   });
 };
 
@@ -403,15 +462,23 @@ export const addTagContext = async (
 
 export const addSearchContext = (
   query: string,
-  results: Array<{ path: string; title: string; content: string }>
+  results: Array<{ 
+    path: string; 
+    title: string; 
+    contentPreview: string;
+    contentLength: number;
+    wordCount: number;
+  }>
 ) => {
   useContextItems.getState().addSearchResults({
     id: `search-${Date.now()}`,
     type: "search",
     query,
+    resultCount: results.length,
     results,
     reference: `Search: "${query}"`,
     createdAt: Date.now(),
+    ephemeral: true, // Search results are ephemeral - cleared after next message
   });
 };
 
@@ -451,6 +518,11 @@ export type {
   SearchContextItem,
   ProcessedFile,
   TextSelectionContextItem,
+};
+
+// Export helper to clear ephemeral context
+export const clearEphemeralContext = () => {
+  useContextItems.getState().clearEphemeral();
 };
 
 // Add this helper function

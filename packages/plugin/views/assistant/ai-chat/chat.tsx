@@ -22,7 +22,7 @@ import { ModelType } from "./types";
 import { AudioRecorder } from "./audio-recorder";
 import { logger } from "../../../services/logger";
 import { SubmitButton } from "./submit-button";
-import { getUniqueReferences, useContextItems } from "./use-context-items";
+import { getUniqueReferences, useContextItems, clearEphemeralContext } from "./use-context-items";
 import { ContextItems } from "./components/context-items";
 import { ClearAllButton } from "./components/clear-all-button";
 import { NewChatButton } from "./components/new-chat-button";
@@ -241,6 +241,8 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     },
     onFinish: () => {
       setErrorMessage(null);
+      // Clear ephemeral context after AI response
+      clearEphemeralContext();
     },
   } as UseChatOptions);
 

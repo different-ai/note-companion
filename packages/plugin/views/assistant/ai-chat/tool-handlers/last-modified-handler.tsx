@@ -1,7 +1,7 @@
 import React, { useRef } from "react";
 import { App } from "obsidian";
 import { logger } from "../../../../services/logger";
-import { addFileContext, useContextItems } from "../use-context-items";
+import { addFileReference, useContextItems } from "../use-context-items";
 import { ToolHandlerProps } from "./types";
 
 interface LastModifiedArgs {
@@ -70,16 +70,21 @@ export function LastModifiedHandler({
           // Clear existing context before adding new results
           clearAll();
           
-          // Add each file to context with full content for UI
+          // Add ONLY metadata to context (reference-based, ephemeral)
+          // Full content is NOT stored in context
           searchResults.forEach(file => {
-            addFileContext({
+            addFileReference({
               path: file.path,
               title: file.title,
-              content: file.content,
+              contentPreview: file.contentPreview,
+              contentLength: file.contentLength,
+              wordCount: file.wordCount,
+              modified: file.modified,
+              modifiedDate: file.modifiedDate,
             });
           });
           
-          // Send minimal data to AI (without full content)
+          // Send minimal data to AI (metadata only, no full content)
           const minimalResults = searchResults.map(({ content, ...rest }) => rest);
           
           handleAddResult(JSON.stringify({

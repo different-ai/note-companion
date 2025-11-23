@@ -63,12 +63,13 @@ export function SearchHandler({
         try {
           const searchResults = await searchNotes(query);
           
-          // Add search results to context (with full content for UI)
-          addSearchContext(query, searchResults);
+          // Add ONLY metadata to context (reference-based, ephemeral)
+          // Full content is NOT stored in context
+          const contextResults = searchResults.map(({ content, ...metadata }) => metadata);
+          addSearchContext(query, contextResults);
           
-          // Send minimal data to AI (without full content)
-          const minimalResults = searchResults.map(({ content, ...rest }) => rest);
-          handleAddResult(JSON.stringify(minimalResults));
+          // Send same minimal data to AI (metadata only)
+          handleAddResult(JSON.stringify(contextResults));
         } catch (error) {
           logger.error("Error searching notes:", error);
           handleAddResult(JSON.stringify({ error: error.message }));
