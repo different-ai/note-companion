@@ -198,13 +198,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     reload,
     setMessages,
   } = useChat({
-    // Inject chatBody into every request without modifying messages
-    experimental_prepareRequestBody: ({ messages }) => {
-      return {
-        messages,
-        ...chatBody, // Spread chatBody to include context in every request
-      };
-    },
+    // NO body or prepareRequestBody - causes infinite loops!
     onDataChunk: (chunk: DataChunk) => {
       if (chunk.type === "metadata" && chunk.data?.groundingMetadata) {
         setGroundingMetadata(chunk.data.groundingMetadata);
