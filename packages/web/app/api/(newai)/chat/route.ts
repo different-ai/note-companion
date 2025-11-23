@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
             maxSteps: 3,
             messages: messages,
             tools: {
-              // ...chatTools,
+              ...chatTools,
               web_search_preview: openai.tools.webSearchPreview({
                 searchContextSize: deepSearch ? "high" : "medium",
               }),
