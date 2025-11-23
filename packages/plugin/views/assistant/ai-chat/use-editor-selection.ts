@@ -98,8 +98,11 @@ export function useEditorSelection(app: App): EditorSelectionResult {
 
         // Freeze snapshot when there's a selection
         // This preserves the selection even when editor loses focus
+        // Clear frozen context when there's no selection (user moved cursor)
         if (hasSelection) {
           setFrozenContext(newContext);
+        } else {
+          setFrozenContext(EMPTY_CONTEXT);
         }
       } catch (error) {
         console.error("Error getting editor context:", error);
