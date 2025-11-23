@@ -15,6 +15,9 @@ export function SearchHandler({
   const hasFetchedRef = useRef(false);
 
   const searchNotes = async (query: string) => {
+    const MAX_RESULTS = 10;
+    const PREVIEW_LENGTH = 500;
+    
     const files = app.vault.getMarkdownFiles();
     const searchTerms = query.toLowerCase().split(/\s+/);
 
@@ -31,17 +34,24 @@ export function SearchHandler({
         if (allTermsPresent) {
           return {
             title: file.basename,
-            content: content,
+            contentPreview: content.slice(0, PREVIEW_LENGTH) + (content.length > PREVIEW_LENGTH ? '...' : ''),
+            contentLength: content.length,
+            wordCount: content.split(/\s+/).length,
             path: file.path,
+            // Keep full content for context UI, but don't send to AI
+            content: content,
           };
         }
         return null;
       })
     );
 
-    return searchResults.filter((result): result is NonNullable<typeof result> => 
+    const filteredResults = searchResults.filter((result): result is NonNullable<typeof result> => 
       result !== null
     );
+    
+    // Limit to MAX_RESULTS
+    return filteredResults.slice(0, MAX_RESULTS);
   };
 
   React.useEffect(() => {
@@ -53,10 +63,12 @@ export function SearchHandler({
         try {
           const searchResults = await searchNotes(query);
           
-          // Add search results to context
+          // Add search results to context (with full content for UI)
           addSearchContext(query, searchResults);
           
-          handleAddResult(JSON.stringify(searchResults));
+          // Send minimal data to AI (without full content)
+          const minimalResults = searchResults.map(({ content, ...rest }) => rest);
+          handleAddResult(JSON.stringify(minimalResults));
         } catch (error) {
           logger.error("Error searching notes:", error);
           handleAddResult(JSON.stringify({ error: error.message }));
