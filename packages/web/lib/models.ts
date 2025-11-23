@@ -22,9 +22,9 @@ const models = {
   "gpt-4.1-mini": openaiClient("gpt-4.1-mini"),
   "gpt-4o-mini": openaiClient("gpt-4o-mini"),
   "gpt-4o": openaiClient("gpt-4o"),
-  // Models with built-in web search capabilities
-  "gpt-4o-search-preview": openaiClient("gpt-4o-search-preview"),
-  "gpt-4o-mini-search-preview": openaiClient("gpt-4o-mini-search-preview"),
+  // Responses API models (support web search tool)
+  "gpt-4o-mini-responses": openaiClient.responses("gpt-4o-mini"),
+  "gpt-4o-responses": openaiClient.responses("gpt-4o"),
 };
 
 export const getModel = (name: string) => {
