@@ -119,8 +119,8 @@ export const chatTools = {
     description: "Update or add YAML frontmatter properties to files. Can add new properties, update existing ones, or delete properties.",
     parameters: z.object({
       filePath: z.string().describe("Path to the file to update"),
-      updates: z.record(z.any()).describe("Object with properties to add/update (e.g., {status: 'in-progress', priority: 'high'})"),
-      deletions: z.array(z.string()).describe("Array of property names to remove from frontmatter"),
+      updates: z.record(z.union([z.string(), z.number(), z.boolean(), z.array(z.string())])).describe("Object with properties to add/update (e.g., {status: 'in-progress', priority: 'high'})"),
+      deletions: z.array(z.string()).describe("Array of property names to remove from frontmatter (empty array if none)"),
       message: z.string().describe("Clear explanation of what changes will be made"),
     }),
   },
