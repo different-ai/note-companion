@@ -1245,23 +1245,25 @@ export default class FileOrganizer extends Plugin {
   // Create all necessary folders for the plugin to function properly
   public async checkAndCreateRequiredFolders(): Promise<void> {
     try {
-      // Ensure all required folders exist
-      await checkAndCreateFolders(
-        this.app.vault, 
-        [
-          this.settings.pathToWatch,
-          this.settings.defaultDestinationPath,
-          this.settings.referencePath,
-          this.settings.attachmentsPath,
-          this.settings.logFolderPath,
-          this.settings.backupFolderPath,
-          this.settings.templatePaths,
-          this.settings.fabricPaths,
-          this.settings.bypassedFilePath,
-          this.settings.errorFilePath,
-          this.settings.syncFolderPath,
-        ]
-      );
+      // Ensure all required folders exist - using app instead of app.vault
+      const folderPaths = [
+        this.settings.pathToWatch,
+        this.settings.defaultDestinationPath,
+        this.settings.referencePath,
+        this.settings.attachmentsPath,
+        this.settings.logFolderPath,
+        this.settings.backupFolderPath,
+        this.settings.templatePaths,
+        this.settings.fabricPaths,
+        this.settings.bypassedFilePath,
+        this.settings.errorFilePath,
+        this.settings.syncFolderPath,
+      ];
+      
+      // Create each folder individually using ensureFolderExists
+      for (const folderPath of folderPaths) {
+        await ensureFolderExists(this.app, folderPath);
+      }
       
       // Show success message
       new Notice("All required folders have been created successfully!", 3000);
