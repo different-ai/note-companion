@@ -145,43 +145,36 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     plugin.settings.selectedModel
   );
 
-  // Format editor context for AI
-  const editorContextString = formatEditorContextForAI(editorContext);
+  // Format editor context for AI - MEMOIZED to prevent infinite loop
+  const editorContextString = React.useMemo(
+    () => formatEditorContextForAI(editorContext),
+    [editorContext.selectedText, editorContext.filePath] // Only recalc when selection or file changes
+  );
   
-  // Debug: Log what we're sending
-  console.log("===== EDITOR SELECTION DEBUG =====");
-  console.log("Has selection:", editorContext.hasSelection);
-  console.log("Selected text:", editorContext.selectedText);
-  console.log("File path:", editorContext.filePath);
-  console.log("Formatted context:", editorContextString);
-  console.log("==================================");
-  
-  logger.debug("Editor context:", {
-    hasSelection: editorContext.hasSelection,
-    selectedText: editorContext.selectedText,
-    formattedContext: editorContextString,
-  });
-  
-  // Combine vault context with editor context
-  const fullContext = editorContextString 
-    ? `${contextString}\n\n${editorContextString}`
-    : contextString;
-  
-  // Debug full context being sent
-  console.log("===== FULL CONTEXT BEING SENT =====");
-  console.log(fullContext.slice(-500)); // Last 500 chars to see editor context
-  console.log("====================================");
+  // Combine vault context with editor context - MEMOIZED
+  const fullContext = React.useMemo(
+    () => editorContextString 
+      ? `${contextString}\n\n${editorContextString}`
+      : contextString,
+    [contextString, editorContextString]
+  );
 
-  const chatBody = {
+  // MEMOIZE chatBody to prevent infinite loop from RAF updates
+  const chatBody = React.useMemo(() => ({
     currentDatetime: window.moment().format("YYYY-MM-DDTHH:mm:ssZ"),
-
     newUnifiedContext: fullContext,
-    model: plugin.settings.selectedModel, // Pass selected model to server
+    model: plugin.settings.selectedModel,
     enableSearchGrounding: plugin.settings.enableSearchGrounding || 
                           selectedModel === 'gpt-4o-search-preview' || 
                           selectedModel === 'gpt-4o-mini-search-preview',
     deepSearch: plugin.settings.enableDeepSearch,
-  };
+  }), [
+    fullContext, 
+    plugin.settings.selectedModel,
+    plugin.settings.enableSearchGrounding,
+    plugin.settings.enableDeepSearch,
+    selectedModel
+  ]);
 
   const [groundingMetadata, setGroundingMetadata] =
     useState<GroundingMetadata | null>(null);
