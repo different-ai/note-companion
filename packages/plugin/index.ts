@@ -39,7 +39,6 @@ import { DashboardView, DASHBOARD_VIEW_TYPE } from "./views/assistant/dashboard/
 import Jimp from "jimp/es/index";
 
 import { FileOrganizerSettings, DEFAULT_SETTINGS } from "./settings";
-import { checkAndCreateFolders } from "./fileUtils";
 
 import { registerEventHandlers } from "./handlers/eventHandlers";
 import {
@@ -54,7 +53,6 @@ import {
 } from "./fileUtils";
 
 import { checkLicenseKey } from "./apiUtils";
-import { makeApiRequest } from "./apiUtils";
 
 import {
   VALID_IMAGE_EXTENSIONS,
@@ -62,7 +60,6 @@ import {
   VALID_MEDIA_EXTENSIONS,
 } from "./constants";
 import { initializeInboxQueue, Inbox } from "./inbox";
-import { validateFile } from "./utils";
 import { logger } from "./services/logger";
 import { addTextSelectionContext } from "./views/assistant/ai-chat/use-context-items";
 
