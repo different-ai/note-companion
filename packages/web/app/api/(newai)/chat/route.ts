@@ -41,13 +41,15 @@ export async function POST(req: NextRequest) {
 
         dataStream.writeData("initialized call");
 
-        // Always enable search grounding by default
-        const shouldUseSearch = true; // Changed from enableSearchGrounding to always true
+        // Use search-enabled models when requested or when deep search is enabled
+        // Deep search automatically enables search grounding
+        const shouldUseSearch = enableSearchGrounding || deepSearch;
         
         if (shouldUseSearch) {
-          console.log("Search grounding enabled (always on)");
-          chosenModelName = "gpt-4o-mini"; // Using standard model
-          console.log(`Using model for search: ${chosenModelName}`);
+          // Use OpenAI's search-preview models with built-in web search
+          // Deep search uses the more powerful gpt-4o-search-preview
+          chosenModelName = deepSearch ? "gpt-4o-search-preview" : "gpt-4o-mini-search-preview";
+          console.log(`Search grounding enabled - using ${chosenModelName} (deep: ${deepSearch})`);
 
           const result = await streamText({
             model: getModel(chosenModelName),
@@ -57,12 +59,7 @@ export async function POST(req: NextRequest) {
             ),
             maxSteps: 3,
             messages: messages,
-            tools: {
-              ...chatTools,
-              web_search_preview: openai.tools.webSearchPreview({
-                searchContextSize: deepSearch ? "high" : "medium",
-              }),
-            },
+            tools: chatTools, // Web search is built into the model, just use regular tools
             onFinish: async ({
               usage,
               sources,

@@ -13,11 +13,18 @@ const getBaseUrl = (): string => {
 
 const baseURL = getBaseUrl();
 
+const openaiClient = createOpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  baseURL,
+});
+
 const models = {
-  "gpt-4.1-mini": createOpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-    baseURL,
-  })("gpt-4.1-mini"),
+  "gpt-4.1-mini": openaiClient("gpt-4.1-mini"),
+  "gpt-4o-mini": openaiClient("gpt-4o-mini"),
+  "gpt-4o": openaiClient("gpt-4o"),
+  // Models with built-in web search capabilities
+  "gpt-4o-search-preview": openaiClient("gpt-4o-search-preview"),
+  "gpt-4o-mini-search-preview": openaiClient("gpt-4o-mini-search-preview"),
 };
 
 export const getModel = (name: string) => {
