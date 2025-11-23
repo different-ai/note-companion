@@ -203,6 +203,17 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
         setGroundingMetadata(chunk.data.groundingMetadata);
       }
     },
+    // Inject selection into user message before sending
+    experimental_prepareRequestBody: ({ messages }) => {
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage && lastMessage.role === 'user' && editorContext.hasSelection) {
+        // Prepend selection to the user's message content
+        const selectionNote = `[SELECTED TEXT: "${editorContext.selectedText.trim()}"]\n\n`;
+        lastMessage.content = selectionNote + lastMessage.content;
+        console.log("Injected selection into message:", lastMessage.content);
+      }
+      return { messages };
+    },
     maxSteps: 2,
     api: `${plugin.getServerUrl()}/api/chat`,
     experimental_throttle: 100,
