@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { App, MarkdownView, EditorPosition, EditorSelection } from "obsidian";
 
 export interface EditorSelectionContext {
@@ -110,7 +110,18 @@ export function useEditorSelection(app: App): EditorSelectionResult {
     // Update immediately on mount
     updateContext();
 
-    // Listen to editor changes
+    // Use requestAnimationFrame for real-time selection tracking
+    // This polls the editor selection continuously while component is mounted
+    let rafId: number;
+    const pollSelection = () => {
+      updateContext();
+      rafId = requestAnimationFrame(pollSelection);
+    };
+    
+    // Start polling
+    rafId = requestAnimationFrame(pollSelection);
+    
+    // Listen to editor changes (for document content)
     const editorChangeRef = app.workspace.on("editor-change", () => {
       updateContext();
     });
@@ -127,6 +138,9 @@ export function useEditorSelection(app: App): EditorSelectionResult {
 
     // Cleanup
     return () => {
+      // Cancel animation frame polling
+      cancelAnimationFrame(rafId);
+      
       app.workspace.offref(editorChangeRef);
       app.workspace.offref(activeLeafChangeRef);
       app.workspace.offref(fileOpenRef);
