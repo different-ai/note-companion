@@ -1,9 +1,9 @@
 import { z } from "zod";
 
 const settingsSchema = z.object({
-  renameInstructions: z.string().default(""),
-  customFolderInstructions: z.string().default(""),
-  imageInstructions: z.string().default(""),
+  renameInstructions: z.string().describe("Instructions for how to rename files (leave empty for no renaming)"),
+  customFolderInstructions: z.string().describe("Instructions for custom folder organization (leave empty for defaults)"),
+  imageInstructions: z.string().describe("Instructions for image file handling (leave empty for defaults)"),
 });
 
 export const chatTools = {
@@ -43,15 +43,15 @@ export const chatTools = {
     description: "Add new sections or content to notes with proper formatting and structure",
     parameters: z.object({
       content: z.string().describe("The formatted text content to add"),
-      path: z.string().default("").describe("Optional path to the document. If not provided, uses current document"),
+      path: z.string().describe("Optional path to the document. If not provided, uses current document"),
     }),
   },
   modifyDocumentText: {
     description: "Edit existing note content while maintaining consistency and structure. Can modify selected text or entire document.",
     parameters: z.object({
       content: z.string().describe("The new formatted content to replace existing content"),
-      path: z.string().default("").describe("Optional path to the document. If not provided, uses current document"),
-      instructions: z.string().default("").describe("Optional specific instructions for how to modify the content"),
+      path: z.string().describe("Optional path to the document. If not provided, uses current document"),
+      instructions: z.string().describe("Optional specific instructions for how to modify the content"),
     }),
   },
   generateSettings: {
@@ -62,7 +62,7 @@ export const chatTools = {
     description: "Analyze vault organization and provide actionable improvement suggestions (used in onboarding), help me set up my vault organization settings",
     parameters: z.object({
       path: z.string().describe("Path to analyze. Use '/' for all files or specific folder path"),
-      maxDepth: z.number().default(0).describe("Maximum folder depth to analyze (0 = unlimited)"),
+      maxDepth: z.number().describe("Maximum folder depth to analyze (0 = unlimited)"),
     }),
   },
 
@@ -74,9 +74,9 @@ export const chatTools = {
           sourcePath: z.string().describe("Source path (e.g., '/' for root, or specific folder path)"),
           destinationPath: z.string().describe("Destination folder path"),
           pattern: z.object({
-            namePattern: z.string().default("").describe("File name pattern to match (e.g., 'untitled-*', 'daily-*')"),
-            extension: z.string().default("").describe("File extension to match"),
-          }).default({ namePattern: "", extension: "" }),
+            namePattern: z.string().describe("File name pattern to match (e.g., 'untitled-*', 'daily-*', or empty for all files)"),
+            extension: z.string().describe("File extension to match (or empty for all extensions)"),
+          }),
         })
       ),
       message: z.string().describe("Clear explanation of the proposed file organization"),
@@ -107,11 +107,11 @@ export const chatTools = {
     description: "Extract comprehensive metadata from files including frontmatter, tags, links, headings, and creation/modification dates",
     parameters: z.object({
       filePaths: z.array(z.string()).describe("Paths of files to extract metadata from"),
-      includeContent: z.boolean().default("").describe("Whether to include file content (default: false)"),
-      includeFrontmatter: z.boolean().default("").describe("Include YAML frontmatter (default: true)"),
-      includeTags: z.boolean().default("").describe("Include all tags (default: true)"),
-      includeLinks: z.boolean().default("").describe("Include internal links and embeds (default: true)"),
-      includeBacklinks: z.boolean().default("").describe("Include backlinks from other notes (default: false)"),
+      includeContent: z.boolean().describe("Whether to include file content (default: false)"),
+      includeFrontmatter: z.boolean().describe("Include YAML frontmatter (default: true)"),
+      includeTags: z.boolean().describe("Include all tags (default: true)"),
+      includeLinks: z.boolean().describe("Include internal links and embeds (default: true)"),
+      includeBacklinks: z.boolean().describe("Include backlinks from other notes (default: false)"),
     }),
   },
 
@@ -119,8 +119,8 @@ export const chatTools = {
     description: "Update or add YAML frontmatter properties to files. Can add new properties, update existing ones, or delete properties.",
     parameters: z.object({
       filePath: z.string().describe("Path to the file to update"),
-      updates: z.record(z.any()).default("").describe("Object with properties to add/update (e.g., {status: 'in-progress', priority: 'high'})"),
-      deletions: z.array(z.string()).default("").describe("Array of property names to remove from frontmatter"),
+      updates: z.record(z.any()).describe("Object with properties to add/update (e.g., {status: 'in-progress', priority: 'high'})"),
+      deletions: z.array(z.string()).describe("Array of property names to remove from frontmatter"),
       message: z.string().describe("Clear explanation of what changes will be made"),
     }),
   },
@@ -131,7 +131,7 @@ export const chatTools = {
       filePaths: z.array(z.string()).describe("Files to tag"),
       tags: z.array(z.string()).describe("Tags to add (without # symbol, e.g., ['project', 'important'])"),
       location: z.enum(["frontmatter", "inline", "both"]).describe("Where to add tags: frontmatter (YAML tags array), inline (in content), or both"),
-      inlinePosition: z.enum(["top", "bottom"]).default("").describe("Position for inline tags (default: 'bottom')"),
+      inlinePosition: z.enum(["top", "bottom"]).describe("Position for inline tags (default: 'bottom')"),
       message: z.string().describe("Explanation of tagging strategy"),
     }),
   },
@@ -140,7 +140,7 @@ export const chatTools = {
     description: "Get all files that link to specified files (backlinks/incoming links). Useful for understanding note relationships and knowledge graph connections.",
     parameters: z.object({
       filePaths: z.array(z.string()).describe("Files to get backlinks for"),
-      includeUnresolved: z.boolean().default("").describe("Include unresolved/broken links (default: false)"),
+      includeUnresolved: z.boolean().describe("Include unresolved/broken links (default: false)"),
     }),
   },
 
@@ -148,8 +148,8 @@ export const chatTools = {
     description: "Get all outgoing links and embeds from files. Useful for understanding note dependencies and content structure.",
     parameters: z.object({
       filePaths: z.array(z.string()).describe("Files to analyze for outgoing links"),
-      includeEmbeds: z.boolean().default("").describe("Include embedded files/images (default: true)"),
-      resolvedOnly: z.boolean().default("").describe("Only include resolved links (default: false)"),
+      includeEmbeds: z.boolean().describe("Include embedded files/images (default: true)"),
+      resolvedOnly: z.boolean().describe("Only include resolved links (default: false)"),
     }),
   },
 
@@ -157,8 +157,8 @@ export const chatTools = {
     description: "Extract document heading structure (H1-H6). Useful for understanding note organization and navigation.",
     parameters: z.object({
       filePaths: z.array(z.string()).describe("Files to extract headings from"),
-      minLevel: z.number().min(1).max(6).default("").describe("Minimum heading level (default: 1)"),
-      maxLevel: z.number().min(1).max(6).default("").describe("Maximum heading level (default: 6)"),
+      minLevel: z.number().min(1).max(6).describe("Minimum heading level (default: 1)"),
+      maxLevel: z.number().min(1).max(6).describe("Maximum heading level (default: 6)"),
     }),
   },
 
@@ -169,10 +169,10 @@ export const chatTools = {
         z.object({
           fileName: z.string().describe("Name for the new file (without .md extension)"),
           content: z.string().describe("The markdown content for the new file"),
-          folder: z.string().default("").describe("Folder path where file should be created (default: root)"),
+          folder: z.string().describe("Folder path where file should be created (default: root)"),
         })
       ).describe("Array of files to create"),
-      linkInCurrentFile: z.boolean().default("").describe("Whether to add links to these new files in the current active file (default: true)"),
+      linkInCurrentFile: z.boolean().describe("Whether to add links to these new files in the current active file (default: true)"),
       message: z.string().describe("Clear explanation of what files are being created and why"),
     }),
   },
@@ -182,7 +182,7 @@ export const chatTools = {
     parameters: z.object({
       filePaths: z.array(z.string()).describe("Full paths of files to delete"),
       reason: z.string().describe("Clear explanation of why these files should be deleted"),
-      permanentDelete: z.boolean().default("").describe("If true, permanently delete instead of moving to trash (default: false)"),
+      permanentDelete: z.boolean().describe("If true, permanently delete instead of moving to trash (default: false)"),
     }),
   },
 
@@ -191,9 +191,9 @@ export const chatTools = {
     parameters: z.object({
       sourceFiles: z.array(z.string()).describe("Paths of files to merge (in order)"),
       outputFileName: z.string().describe("Name for the merged file (without .md extension)"),
-      outputFolder: z.string().default("").describe("Folder for output file (default: root)"),
-      separator: z.string().default("").describe("Content separator between merged files (default: '\\n\\n---\\n\\n')"),
-      deleteSource: z.boolean().default("").describe("Delete source files after merge (default: false)"),
+      outputFolder: z.string().describe("Folder for output file (default: root)"),
+      separator: z.string().describe("Content separator between merged files (default: '\\n\\n---\\n\\n')"),
+      deleteSource: z.boolean().describe("Delete source files after merge (default: false)"),
       message: z.string().describe("Clear explanation of what's being merged and why"),
     }),
   },
@@ -203,7 +203,7 @@ export const chatTools = {
     parameters: z.object({
       templateName: z.string().describe("Name for the template file (without .md extension)"),
       templateContent: z.string().describe("Template content with placeholders like {{title}}, {{date}}, {{tags}}, etc."),
-      templateFolder: z.string().default("").describe("Folder to store template (default: 'Templates')"),
+      templateFolder: z.string().describe("Folder to store template (default: 'Templates')"),
       description: z.string().describe("Description of what this template is for"),
       message: z.string().describe("Clear explanation of the template purpose and usage"),
     }),
@@ -215,8 +215,8 @@ export const chatTools = {
       filePaths: z.array(z.string()).describe("Files to perform find/replace on"),
       find: z.string().describe("Text pattern to find (can be regex if useRegex is true)"),
       replace: z.string().describe("Replacement text"),
-      useRegex: z.boolean().default("").describe("Treat find pattern as regex (default: false)"),
-      caseSensitive: z.boolean().default("").describe("Case-sensitive search (default: true)"),
+      useRegex: z.boolean().describe("Treat find pattern as regex (default: false)"),
+      caseSensitive: z.boolean().describe("Case-sensitive search (default: true)"),
       message: z.string().describe("Clear explanation of what will be changed"),
     }),
   },
@@ -226,8 +226,8 @@ export const chatTools = {
     parameters: z.object({
       filePaths: z.array(z.string()).describe("Files to export"),
       format: z.enum(["pdf", "html", "txt"]).describe("Export format"),
-      outputFolder: z.string().default("").describe("Folder for exported files (default: 'Exports')"),
-      includeMetadata: z.boolean().default("").describe("Include frontmatter in export (default: false)"),
+      outputFolder: z.string().describe("Folder for exported files (default: 'Exports')"),
+      includeMetadata: z.boolean().describe("Include frontmatter in export (default: false)"),
       message: z.string().describe("Clear explanation of export operation"),
     }),
   },
