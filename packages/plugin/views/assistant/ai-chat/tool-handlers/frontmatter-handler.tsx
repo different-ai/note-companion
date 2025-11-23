@@ -4,7 +4,7 @@ import { ToolHandlerProps } from "./types";
 
 interface FrontmatterArgs {
   filePath: string;
-  updates?: Record<string, any>;
+  updatesJson?: string;
   deletions?: string[];
   message: string;
 }
@@ -74,9 +74,21 @@ export function FrontmatterHandler({
         const args = toolInvocation.args as FrontmatterArgs;
 
         try {
+          // Parse updatesJson string into object
+          let updates: Record<string, any> | undefined;
+          if (args.updatesJson) {
+            try {
+              const parsed = JSON.parse(args.updatesJson);
+              updates = Object.keys(parsed).length > 0 ? parsed : undefined;
+            } catch (e) {
+              // Invalid JSON, skip updates
+              updates = undefined;
+            }
+          }
+
           const result = await updateFrontmatter(
             args.filePath,
-            args.updates,
+            updates,
             args.deletions
           );
           handleAddResult(JSON.stringify(result));
