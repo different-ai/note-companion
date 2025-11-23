@@ -124,4 +124,15 @@ export const chatTools = {
       message: z.string().describe("Clear explanation of what changes will be made"),
     }),
   },
+
+  addTags: {
+    description: "Add tags to files either in frontmatter or inline in content. Useful for categorizing and organizing notes.",
+    parameters: z.object({
+      filePaths: z.array(z.string()).describe("Files to tag"),
+      tags: z.array(z.string()).describe("Tags to add (without # symbol, e.g., ['project', 'important'])"),
+      location: z.enum(["frontmatter", "inline", "both"]).describe("Where to add tags: frontmatter (YAML tags array), inline (in content), or both"),
+      inlinePosition: z.enum(["top", "bottom"]).optional().describe("Position for inline tags (default: 'bottom')"),
+      message: z.string().describe("Explanation of tagging strategy"),
+    }),
+  },
 } as const; 
