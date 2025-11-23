@@ -19,6 +19,7 @@ import { ModifyTextHandler } from "./modify-text-handler";
 import { MetadataHandler } from "./metadata-handler";
 import { FrontmatterHandler } from "./frontmatter-handler";
 import { TagsHandler } from "./tags-handler";
+import { BacklinksHandler } from "./backlinks-handler";
 
 interface ToolInvocationHandlerProps {
   toolInvocation: ToolInvocation;
@@ -59,6 +60,7 @@ function ToolInvocationHandler({
       getFileMetadata: "File Metadata Extraction",
       updateFrontmatter: "Update Frontmatter",
       addTags: "Add Tags",
+      getBacklinks: "Get Backlinks",
     };
     return toolTitles[toolName] ;
   };
@@ -172,6 +174,13 @@ function ToolInvocationHandler({
       ),
       addTags: () => (
         <TagsHandler
+          toolInvocation={toolInvocation}
+          handleAddResult={handleAddResult}
+          app={app}
+        />
+      ),
+      getBacklinks: () => (
+        <BacklinksHandler
           toolInvocation={toolInvocation}
           handleAddResult={handleAddResult}
           app={app}

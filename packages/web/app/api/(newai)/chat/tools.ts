@@ -135,4 +135,12 @@ export const chatTools = {
       message: z.string().describe("Explanation of tagging strategy"),
     }),
   },
+
+  getBacklinks: {
+    description: "Get all files that link to specified files (backlinks/incoming links). Useful for understanding note relationships and knowledge graph connections.",
+    parameters: z.object({
+      filePaths: z.array(z.string()).describe("Files to get backlinks for"),
+      includeUnresolved: z.boolean().optional().describe("Include unresolved/broken links (default: false)"),
+    }),
+  },
 } as const; 
