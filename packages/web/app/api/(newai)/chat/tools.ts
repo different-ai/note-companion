@@ -152,4 +152,13 @@ export const chatTools = {
       resolvedOnly: z.boolean().optional().describe("Only include resolved links (default: false)"),
     }),
   },
+
+  getHeadings: {
+    description: "Extract document headings and structure to understand content organization. Useful for analyzing note structure and creating tables of contents.",
+    parameters: z.object({
+      filePaths: z.array(z.string()).describe("Files to extract headings from"),
+      minLevel: z.number().min(1).max(6).optional().describe("Minimum heading level (1-6, default: 1)"),
+      maxLevel: z.number().min(1).max(6).optional().describe("Maximum heading level (1-6, default: 6)"),
+    }),
+  },
 } as const; 

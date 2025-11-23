@@ -21,6 +21,7 @@ import { FrontmatterHandler } from "./frontmatter-handler";
 import { TagsHandler } from "./tags-handler";
 import { BacklinksHandler } from "./backlinks-handler";
 import { OutgoingLinksHandler } from "./outgoing-links-handler";
+import { HeadingsHandler } from "./headings-handler";
 
 interface ToolInvocationHandlerProps {
   toolInvocation: ToolInvocation;
@@ -63,6 +64,7 @@ function ToolInvocationHandler({
       addTags: "Add Tags",
       getBacklinks: "Get Backlinks",
       getOutgoingLinks: "Get Outgoing Links",
+      getHeadings: "Get Document Structure",
     };
     return toolTitles[toolName] ;
   };
@@ -190,6 +192,13 @@ function ToolInvocationHandler({
       ),
       getOutgoingLinks: () => (
         <OutgoingLinksHandler
+          toolInvocation={toolInvocation}
+          handleAddResult={handleAddResult}
+          app={app}
+        />
+      ),
+      getHeadings: () => (
+        <HeadingsHandler
           toolInvocation={toolInvocation}
           handleAddResult={handleAddResult}
           app={app}
