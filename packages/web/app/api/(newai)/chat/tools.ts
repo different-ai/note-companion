@@ -101,4 +101,17 @@ export const chatTools = {
       userPrompt: z.string().describe("Specific instructions for file organization strategy"),
     }),
   },
+
+  // New Metadata & Analysis Tools
+  getFileMetadata: {
+    description: "Extract comprehensive metadata from files including frontmatter, tags, links, headings, and creation/modification dates",
+    parameters: z.object({
+      filePaths: z.array(z.string()).describe("Paths of files to extract metadata from"),
+      includeContent: z.boolean().optional().describe("Whether to include file content (default: false)"),
+      includeFrontmatter: z.boolean().optional().describe("Include YAML frontmatter (default: true)"),
+      includeTags: z.boolean().optional().describe("Include all tags (default: true)"),
+      includeLinks: z.boolean().optional().describe("Include internal links and embeds (default: true)"),
+      includeBacklinks: z.boolean().optional().describe("Include backlinks from other notes (default: false)"),
+    }),
+  },
 } as const; 

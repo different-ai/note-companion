@@ -16,6 +16,7 @@ import { SearchRenameHandler } from "./search-rename-handler";
 import { ExecuteActionsHandler } from "./execute-actions-handler";
 import { AddTextHandler } from "./add-text-handler";
 import { ModifyTextHandler } from "./modify-text-handler";
+import { MetadataHandler } from "./metadata-handler";
 
 interface ToolInvocationHandlerProps {
   toolInvocation: ToolInvocation;
@@ -51,6 +52,9 @@ function ToolInvocationHandler({
       addTextToDocument: "Adding Text to Document",
       modifyDocumentText: "Modifying Document Text",
       onboardUser: "Onboarding User",
+      
+      // New Metadata & Analysis Tools
+      getFileMetadata: "File Metadata Extraction",
     };
     return toolTitles[toolName] ;
   };
@@ -141,6 +145,15 @@ function ToolInvocationHandler({
       ),
       modifyDocumentText: () => (
         <ModifyTextHandler
+          toolInvocation={toolInvocation}
+          handleAddResult={handleAddResult}
+          app={app}
+        />
+      ),
+      
+      // New Metadata & Analysis Tools
+      getFileMetadata: () => (
+        <MetadataHandler
           toolInvocation={toolInvocation}
           handleAddResult={handleAddResult}
           app={app}
