@@ -69,7 +69,16 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
 
   // Track editor selection for contextual understanding
   // Uses frozen context to preserve selection even when chat input gets focus
-  const { frozen: editorContext } = useEditorSelection(app);
+  const { current: currentEditorContext, frozen: frozenEditorContext } = useEditorSelection(app);
+  
+  // Debug both contexts
+  console.log("===== CONTEXT COMPARISON =====");
+  console.log("Current selection:", currentEditorContext.selectedText);
+  console.log("Frozen selection:", frozenEditorContext.selectedText);
+  console.log("Using frozen for AI");
+  console.log("==============================");
+  
+  const editorContext = frozenEditorContext;
 
   const contextItems = {
     files,
@@ -140,6 +149,13 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
   const editorContextString = formatEditorContextForAI(editorContext);
   
   // Debug: Log what we're sending
+  console.log("===== EDITOR SELECTION DEBUG =====");
+  console.log("Has selection:", editorContext.hasSelection);
+  console.log("Selected text:", editorContext.selectedText);
+  console.log("File path:", editorContext.filePath);
+  console.log("Formatted context:", editorContextString);
+  console.log("==================================");
+  
   logger.debug("Editor context:", {
     hasSelection: editorContext.hasSelection,
     selectedText: editorContext.selectedText,
@@ -150,6 +166,11 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
   const fullContext = editorContextString 
     ? `${contextString}\n\n${editorContextString}`
     : contextString;
+  
+  // Debug full context being sent
+  console.log("===== FULL CONTEXT BEING SENT =====");
+  console.log(fullContext.slice(-500)); // Last 500 chars to see editor context
+  console.log("====================================");
 
   const chatBody = {
     currentDatetime: window.moment().format("YYYY-MM-DDTHH:mm:ssZ"),
