@@ -28,7 +28,9 @@ export const ExperimentTab: React.FC<ExperimentTabProps> = ({ plugin }) => {
   const [enableDeepSearch, setEnableDeepSearch] = useState(
     plugin.settings.enableDeepSearch
   );
-
+  const [showSyncTab, setShowSyncTab] = useState(
+    plugin.settings.showSyncTab
+  );
 
   const handleToggleChange = async (
     value: boolean,
@@ -231,6 +233,30 @@ export const ExperimentTab: React.FC<ExperimentTabProps> = ({ plugin }) => {
                     <FabricPromptManager plugin={plugin} />
                   </div>
                 )}
+                
+                <ToggleSetting
+                  name="Show Sync Tab (Advanced)"
+                  description={
+                    <div className="space-y-2">
+                      <p>Enable the Sync tab in the Assistant sidebar for mobile app file synchronization.</p>
+                      <div className="mt-2 p-3 bg-[--background-secondary] rounded text-sm space-y-1">
+                        <p className="text-[--text-warning]">
+                          ⚠️ Advanced Feature
+                        </p>
+                        <p className="text-[--text-muted]">
+                          This feature is designed for users of the Note Companion mobile app who want to sync files between mobile and desktop.
+                        </p>
+                        <p className="text-xs text-[--text-faint]">
+                          Requires Note Companion mobile app setup
+                        </p>
+                      </div>
+                    </div>
+                  }
+                  value={showSyncTab}
+                  onChange={value =>
+                    handleToggleChange(value, setShowSyncTab, "showSyncTab")
+                  }
+                />
               </div>
             </div>
           </div>

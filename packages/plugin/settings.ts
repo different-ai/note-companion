@@ -59,6 +59,7 @@ export class FileOrganizerSettings {
   hasRunOnboarding = false;
   pdfPageLimit = 10; // default to 10 pages
   enableProcessingNotifications = true; // Show toast notifications during file processing
+  showSyncTab = false; // Show Sync tab in assistant (experimental mobile sync feature)
 }
 
 export const DEFAULT_SETTINGS = new FileOrganizerSettings();

@@ -20,10 +20,12 @@ function TabContent({
   activeTab,
   plugin,
   leaf,
+  showSyncTab,
 }: {
   activeTab: Tab;
   plugin: FileOrganizer;
   leaf: WorkspaceLeaf;
+  showSyncTab: boolean;
 }) {
   const [activeFile, setActiveFile] = React.useState<TFile | null>(null);
   const [noteContent, setNoteContent] = React.useState<string>("");
@@ -91,14 +93,16 @@ function TabContent({
         <AIChatSidebar plugin={plugin} apiKey={plugin.settings.API_KEY} />
       </div>
 
-      <div
-        className={tw(
-          "flex-1 min-h-0 w-full",
-          activeTab === "sync" ? "block" : "hidden"
-        )}
-      >
-        <SyncTab plugin={plugin} />
-      </div>
+      {showSyncTab && (
+        <div
+          className={tw(
+            "flex-1 min-h-0 w-full",
+            activeTab === "sync" ? "block" : "hidden"
+          )}
+        >
+          <SyncTab plugin={plugin} />
+        </div>
+      )}
     </div>
   );
 }
@@ -144,6 +148,8 @@ function AssistantContent({
     onTabChange(setActiveTab);
   }, [onTabChange]);
 
+  const showSyncTab = plugin.settings.showSyncTab;
+
   return (
     <div className={tw("flex flex-col h-full w-full")}>
       {/* Native tab navigation */}
@@ -166,17 +172,19 @@ function AssistantContent({
         >
           Chat
         </TabButton>
-        <TabButton
-          isActive={activeTab === "sync"}
-          onClick={() => setActiveTab("sync")}
-        >
-          Sync
-        </TabButton>
+        {showSyncTab && (
+          <TabButton
+            isActive={activeTab === "sync"}
+            onClick={() => setActiveTab("sync")}
+          >
+            Sync
+          </TabButton>
+        )}
       </div>
 
       {/* Content area - no padding */}
       <div className={tw("flex-1 min-h-0 w-full overflow-hidden")}>
-        <TabContent activeTab={activeTab} plugin={plugin} leaf={leaf} />
+        <TabContent activeTab={activeTab} plugin={plugin} leaf={leaf} showSyncTab={showSyncTab} />
       </div>
     </div>
   );
@@ -211,12 +219,14 @@ export class AssistantViewWrapper extends ItemView {
       callback: () => this.activateTab("chat"),
     });
 
-    
-    this.plugin.addCommand({
-      id: "open-sync-tab",
-      name: "Open Sync Tab",
-      callback: () => this.activateTab("sync"),
-    });
+    // Only register sync tab command if enabled in settings
+    if (this.plugin.settings.showSyncTab) {
+      this.plugin.addCommand({
+        id: "open-sync-tab",
+        name: "Open Sync Tab",
+        callback: () => this.activateTab("sync"),
+      });
+    }
   }
 
   activateTab(tab: Tab) {

@@ -154,11 +154,26 @@ export const chatTools = {
   },
 
   getHeadings: {
-    description: "Extract document headings and structure to understand content organization. Useful for analyzing note structure and creating tables of contents.",
+    description: "Extract document heading structure (H1-H6). Useful for understanding note organization and navigation.",
     parameters: z.object({
       filePaths: z.array(z.string()).describe("Files to extract headings from"),
-      minLevel: z.number().min(1).max(6).optional().describe("Minimum heading level (1-6, default: 1)"),
-      maxLevel: z.number().min(1).max(6).optional().describe("Maximum heading level (1-6, default: 6)"),
+      minLevel: z.number().min(1).max(6).optional().describe("Minimum heading level (default: 1)"),
+      maxLevel: z.number().min(1).max(6).optional().describe("Maximum heading level (default: 6)"),
     }),
   },
-} as const; 
+
+  createNewFiles: {
+    description: "Create new notes/documents in the vault with content and optionally link them together. Use this to split content into multiple files or create referenced documents.",
+    parameters: z.object({
+      files: z.array(
+        z.object({
+          fileName: z.string().describe("Name for the new file (without .md extension)"),
+          content: z.string().describe("The markdown content for the new file"),
+          folder: z.string().optional().describe("Folder path where file should be created (default: root)"),
+        })
+      ).describe("Array of files to create"),
+      linkInCurrentFile: z.boolean().optional().describe("Whether to add links to these new files in the current active file (default: true)"),
+      message: z.string().describe("Clear explanation of what files are being created and why"),
+    }),
+  },
+} as const;

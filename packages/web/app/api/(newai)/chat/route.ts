@@ -41,8 +41,11 @@ export async function POST(req: NextRequest) {
 
         dataStream.writeData("initialized call");
 
-        if (enableSearchGrounding) {
-          console.log("Enabling search grounding");
+        // Always enable search grounding by default
+        const shouldUseSearch = true; // Changed from enableSearchGrounding to always true
+        
+        if (shouldUseSearch) {
+          console.log("Search grounding enabled (always on)");
           chosenModelName = "gpt-4o-mini"; // Using standard model
           console.log(`Using model for search: ${chosenModelName}`);
 

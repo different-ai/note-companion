@@ -22,6 +22,7 @@ import { TagsHandler } from "./tags-handler";
 import { BacklinksHandler } from "./backlinks-handler";
 import { OutgoingLinksHandler } from "./outgoing-links-handler";
 import { HeadingsHandler } from "./headings-handler";
+import { CreateFilesHandler } from "./create-files-handler";
 
 interface ToolInvocationHandlerProps {
   toolInvocation: ToolInvocation;
@@ -65,6 +66,7 @@ function ToolInvocationHandler({
       getBacklinks: "Get Backlinks",
       getOutgoingLinks: "Get Outgoing Links",
       getHeadings: "Get Document Structure",
+      createNewFiles: "Creating New Files",
     };
     return toolTitles[toolName] ;
   };
@@ -199,6 +201,13 @@ function ToolInvocationHandler({
       ),
       getHeadings: () => (
         <HeadingsHandler
+          toolInvocation={toolInvocation}
+          handleAddResult={handleAddResult}
+          app={app}
+        />
+      ),
+      createNewFiles: () => (
+        <CreateFilesHandler
           toolInvocation={toolInvocation}
           handleAddResult={handleAddResult}
           app={app}

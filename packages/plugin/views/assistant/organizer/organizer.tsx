@@ -235,8 +235,8 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
         <div className={tw("text-xs text-[--text-normal] font-medium truncate")}>{activeFile.basename}</div>
       </div>
 
-      {/* Content sections - no outer padding */}
-      <div className={tw("flex flex-col")}>
+      {/* Content sections - consistent padding with other tabs */}
+      <div className={tw("flex flex-col px-3")}>
         {renderSection(
           <ClassificationContainer
             plugin={plugin}

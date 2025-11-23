@@ -207,6 +207,19 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     keepLastMessageOnError: true,
     onError: error => {
       logger.error(error.message);
+      
+      // Check if this is a tool invocation error (non-fatal)
+      const isToolError = error.message?.includes('ToolInvocation must have a result');
+      
+      if (isToolError) {
+        // Don't show error message for tool errors - they're handled by the tool handler
+        // Just log it and continue
+        logger.warn("Tool invocation error detected, continuing...");
+        // Clear any existing error to unblock the UI
+        setErrorMessage(null);
+        return;
+      }
+      
       let userFriendlyMessage = "Something went wrong. Please try again.";
       
       if (error.message?.toLowerCase().includes('api key')) {
@@ -429,7 +442,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
           </div>
 
           {/* Row 2: Input area with embedded send button */}
-          <div className={`relative ${error ? "opacity-50 pointer-events-none" : ""}`} ref={inputRef}>
+          <div className="relative" ref={inputRef}>
             <Tiptap
               value={input}
               onChange={handleTiptapChange}
