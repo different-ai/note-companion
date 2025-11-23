@@ -1,8 +1,6 @@
 import { createWebhookHandler } from "../handler-factory";
-import { CustomerData } from "../types";
 import { db, UserUsageTable } from "@/drizzle/schema";
 import { eq } from "drizzle-orm";
-import { updateUserSubscriptionData } from "../utils";
 import { trackLoopsEvent } from "@/lib/services/loops";
 import Stripe from "stripe";
 
