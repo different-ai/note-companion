@@ -64,11 +64,11 @@ async function processImageWithGPT4one(
   imageUrl: string
 ): Promise<{ textContent: string; tokensUsed: number }> {
   try {
-    console.log("Processing image with gpt-4.1 for OCR...");
+    console.log("Processing image with gpt-4o for OCR...");
     const openai = createOpenAI({ apiKey: process.env.OPENAI_API_KEY });
     console.log(`Processing OCR for image: ${imageUrl}`);
     const { object, usage } = await generateObject({
-      model: openai("gpt-4.1"),
+      model: openai("gpt-4o") as any, // Type assertion for AI SDK v1/v2 compatibility
       schema: z.object({ markdown: z.string() }),
       messages: [
         {
@@ -81,11 +81,11 @@ async function processImageWithGPT4one(
     const textContent = object.markdown || "";
     const tokensUsed = usage?.totalTokens ?? Math.ceil(textContent.length / 4);
     console.log(
-      `gpt-4.1 OCR extracted ${textContent.length} chars, used approx ${tokensUsed} tokens`
+      `gpt-4o OCR extracted ${textContent.length} chars, used approx ${tokensUsed} tokens`
     );
     return { textContent, tokensUsed };
   } catch (error) {
-    console.error("Error processing image with gpt-4.1 OCR:", error);
+    console.error("Error processing image with gpt-4o OCR:", error);
     return {
       textContent: `Error processing image OCR: ${
         error instanceof Error ? error.message : String(error)
