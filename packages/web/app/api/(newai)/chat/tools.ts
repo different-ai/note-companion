@@ -1,9 +1,9 @@
 import { z } from "zod";
 
 const settingsSchema = z.object({
-  renameInstructions: z.string().optional(),
-  customFolderInstructions: z.string().optional(),
-  imageInstructions: z.string().optional(),
+  renameInstructions: z.string().default(""),
+  customFolderInstructions: z.string().default(""),
+  imageInstructions: z.string().default(""),
 });
 
 export const chatTools = {
@@ -62,7 +62,7 @@ export const chatTools = {
     description: "Analyze vault organization and provide actionable improvement suggestions (used in onboarding), help me set up my vault organization settings",
     parameters: z.object({
       path: z.string().describe("Path to analyze. Use '/' for all files or specific folder path"),
-      maxDepth: z.number().default("").describe("Maximum folder depth to analyze"),
+      maxDepth: z.number().default(0).describe("Maximum folder depth to analyze (0 = unlimited)"),
     }),
   },
 
@@ -76,7 +76,7 @@ export const chatTools = {
           pattern: z.object({
             namePattern: z.string().default("").describe("File name pattern to match (e.g., 'untitled-*', 'daily-*')"),
             extension: z.string().default("").describe("File extension to match"),
-          }).optional(),
+          }).default({ namePattern: "", extension: "" }),
         })
       ),
       message: z.string().describe("Clear explanation of the proposed file organization"),
