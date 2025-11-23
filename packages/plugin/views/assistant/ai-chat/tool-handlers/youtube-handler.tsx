@@ -24,13 +24,24 @@ export function YouTubeHandler({
           const transcript = await getYouTubeTranscript(videoId);
           const title = await getYouTubeVideoTitle(videoId);
           
+          // Add full transcript to context for AI to access
           addYouTubeContext({
             videoId,
             title,
             transcript
           });
           
-          handleAddResult(JSON.stringify({ transcript, title, videoId }));
+          const wordCount = transcript.split(/\s+/).length;
+          
+          // Return success message without full transcript
+          // AI can access full transcript from context if needed
+          handleAddResult(JSON.stringify({ 
+            success: true,
+            title, 
+            videoId,
+            wordCount,
+            message: `Successfully retrieved YouTube transcript for "${title}" (${wordCount} words)`
+          }));
           setFetchSuccess(true);
         } catch (error) {
           logger.error("Error fetching YouTube transcript:", error);
