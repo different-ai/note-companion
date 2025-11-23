@@ -23,6 +23,11 @@ const EMPTY_CONTEXT: EditorSelectionContext = {
   selection: null,
 };
 
+export interface EditorSelectionResult {
+  current: EditorSelectionContext;
+  frozen: EditorSelectionContext;
+}
+
 /**
  * Hook to track the current editor selection and context
  * 
@@ -32,20 +37,28 @@ const EMPTY_CONTEXT: EditorSelectionContext = {
  * - Current line content
  * - File information
  * 
+ * Returns two contexts:
+ * - `current`: Real-time context (clears when editor loses focus)
+ * - `frozen`: Snapshot of last selection (persists even after blur)
+ * 
+ * The frozen context solves the problem where clicking the chat input
+ * clears the editor selection before the AI can use it.
+ * 
  * This enables the AI to understand what "this" refers to when users say:
  * - "make this more concise"
  * - "fix grammar in this"
  * - "rewrite this paragraph"
  */
-export function useEditorSelection(app: App): EditorSelectionContext {
-  const [context, setContext] = useState<EditorSelectionContext>(EMPTY_CONTEXT);
+export function useEditorSelection(app: App): EditorSelectionResult {
+  const [currentContext, setCurrentContext] = useState<EditorSelectionContext>(EMPTY_CONTEXT);
+  const [frozenContext, setFrozenContext] = useState<EditorSelectionContext>(EMPTY_CONTEXT);
 
   useEffect(() => {
     const updateContext = () => {
       const view = app.workspace.getActiveViewOfType(MarkdownView);
       
       if (!view || !view.editor) {
-        setContext(EMPTY_CONTEXT);
+        setCurrentContext(EMPTY_CONTEXT);
         return;
       }
 
@@ -70,7 +83,7 @@ export function useEditorSelection(app: App): EditorSelectionContext {
             }
           : null;
 
-        setContext({
+        const newContext: EditorSelectionContext = {
           selectedText,
           cursorPosition,
           currentLine,
@@ -79,10 +92,18 @@ export function useEditorSelection(app: App): EditorSelectionContext {
           filePath: file?.path || null,
           fileName: file?.basename || null,
           selection,
-        });
+        };
+
+        setCurrentContext(newContext);
+
+        // Freeze snapshot when there's a selection
+        // This preserves the selection even when editor loses focus
+        if (hasSelection) {
+          setFrozenContext(newContext);
+        }
       } catch (error) {
         console.error("Error getting editor context:", error);
-        setContext(EMPTY_CONTEXT);
+        setCurrentContext(EMPTY_CONTEXT);
       }
     };
 
@@ -112,7 +133,10 @@ export function useEditorSelection(app: App): EditorSelectionContext {
     };
   }, [app]);
 
-  return context;
+  return {
+    current: currentContext,
+    frozen: frozenContext,
+  };
 }
 
 /**

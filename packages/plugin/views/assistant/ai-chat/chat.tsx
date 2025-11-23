@@ -36,6 +36,7 @@ import { ExamplePrompts } from "./components/example-prompts";
 import { AttachmentHandler } from './components/attachment-handler';
 import { LocalAttachment } from './types/attachments';
 import { useEditorSelection, formatEditorContextForAI } from "./use-editor-selection";
+import { EditorContextBadge } from "./components/editor-context-badge";
 
 interface ChatComponentProps {
   plugin: FileOrganizer;
@@ -67,7 +68,8 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
   logger.debug("uniqueReferences", uniqueReferences);
 
   // Track editor selection for contextual understanding
-  const editorContext = useEditorSelection(app);
+  // Uses frozen context to preserve selection even when chat input gets focus
+  const { frozen: editorContext } = useEditorSelection(app);
 
   const contextItems = {
     files,
@@ -462,6 +464,8 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
 
           {/* Row 2: Input area with embedded send button */}
           <div className="relative" ref={inputRef}>
+            {/* Show editor context badge if we have selection */}
+            <EditorContextBadge context={editorContext} />
             <Tiptap
               value={input}
               onChange={handleTiptapChange}
