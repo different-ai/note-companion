@@ -176,4 +176,59 @@ export const chatTools = {
       message: z.string().describe("Clear explanation of what files are being created and why"),
     }),
   },
+
+  deleteFiles: {
+    description: "Delete files from the vault with user confirmation. Use when user explicitly asks to delete, remove, or trash files. Always confirm before deletion.",
+    parameters: z.object({
+      filePaths: z.array(z.string()).describe("Full paths of files to delete"),
+      reason: z.string().describe("Clear explanation of why these files should be deleted"),
+      permanentDelete: z.boolean().optional().describe("If true, permanently delete instead of moving to trash (default: false)"),
+    }),
+  },
+
+  mergeFiles: {
+    description: "Combine multiple files into a single file. Useful for consolidating related notes, combining meeting notes, or merging draft sections.",
+    parameters: z.object({
+      sourceFiles: z.array(z.string()).describe("Paths of files to merge (in order)"),
+      outputFileName: z.string().describe("Name for the merged file (without .md extension)"),
+      outputFolder: z.string().optional().describe("Folder for output file (default: root)"),
+      separator: z.string().optional().describe("Content separator between merged files (default: '\\n\\n---\\n\\n')"),
+      deleteSource: z.boolean().optional().describe("Delete source files after merge (default: false)"),
+      message: z.string().describe("Clear explanation of what's being merged and why"),
+    }),
+  },
+
+  createTemplate: {
+    description: "Create reusable note templates with placeholders and default structure. Useful for recurring note types like meeting notes, daily notes, project plans, etc.",
+    parameters: z.object({
+      templateName: z.string().describe("Name for the template file (without .md extension)"),
+      templateContent: z.string().describe("Template content with placeholders like {{title}}, {{date}}, {{tags}}, etc."),
+      templateFolder: z.string().optional().describe("Folder to store template (default: 'Templates')"),
+      description: z.string().describe("Description of what this template is for"),
+      message: z.string().describe("Clear explanation of the template purpose and usage"),
+    }),
+  },
+
+  bulkFindReplace: {
+    description: "Find and replace text across multiple files. Useful for renaming terms, fixing typos, updating links, or refactoring content.",
+    parameters: z.object({
+      filePaths: z.array(z.string()).describe("Files to perform find/replace on"),
+      find: z.string().describe("Text pattern to find (can be regex if useRegex is true)"),
+      replace: z.string().describe("Replacement text"),
+      useRegex: z.boolean().optional().describe("Treat find pattern as regex (default: false)"),
+      caseSensitive: z.boolean().optional().describe("Case-sensitive search (default: true)"),
+      message: z.string().describe("Clear explanation of what will be changed"),
+    }),
+  },
+
+  exportToFormat: {
+    description: "Export notes to different formats (PDF, HTML, plain text). Useful for sharing notes externally or creating backups.",
+    parameters: z.object({
+      filePaths: z.array(z.string()).describe("Files to export"),
+      format: z.enum(["pdf", "html", "txt"]).describe("Export format"),
+      outputFolder: z.string().optional().describe("Folder for exported files (default: 'Exports')"),
+      includeMetadata: z.boolean().optional().describe("Include frontmatter in export (default: false)"),
+      message: z.string().describe("Clear explanation of export operation"),
+    }),
+  },
 } as const;

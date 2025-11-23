@@ -23,6 +23,11 @@ import { BacklinksHandler } from "./backlinks-handler";
 import { OutgoingLinksHandler } from "./outgoing-links-handler";
 import { HeadingsHandler } from "./headings-handler";
 import { CreateFilesHandler } from "./create-files-handler";
+import { DeleteFilesHandler } from "./delete-files-handler";
+import { MergeFilesHandler } from "./merge-files-handler";
+import { CreateTemplateHandler } from "./create-template-handler";
+import { BulkFindReplaceHandler } from "./bulk-find-replace-handler";
+import { ExportToFormatHandler } from "./export-to-format-handler";
 
 interface ToolInvocationHandlerProps {
   toolInvocation: ToolInvocation;
@@ -67,6 +72,11 @@ function ToolInvocationHandler({
       getOutgoingLinks: "Get Outgoing Links",
       getHeadings: "Get Document Structure",
       createNewFiles: "Creating New Files",
+      deleteFiles: "Deleting Files",
+      mergeFiles: "Merging Files",
+      createTemplate: "Creating Template",
+      bulkFindReplace: "Find & Replace",
+      exportToFormat: "Exporting Files",
     };
     return toolTitles[toolName] ;
   };
@@ -208,6 +218,41 @@ function ToolInvocationHandler({
       ),
       createNewFiles: () => (
         <CreateFilesHandler
+          toolInvocation={toolInvocation}
+          handleAddResult={handleAddResult}
+          app={app}
+        />
+      ),
+      deleteFiles: () => (
+        <DeleteFilesHandler
+          toolInvocation={toolInvocation}
+          handleAddResult={handleAddResult}
+          app={app}
+        />
+      ),
+      mergeFiles: () => (
+        <MergeFilesHandler
+          toolInvocation={toolInvocation}
+          handleAddResult={handleAddResult}
+          app={app}
+        />
+      ),
+      createTemplate: () => (
+        <CreateTemplateHandler
+          toolInvocation={toolInvocation}
+          handleAddResult={handleAddResult}
+          app={app}
+        />
+      ),
+      bulkFindReplace: () => (
+        <BulkFindReplaceHandler
+          toolInvocation={toolInvocation}
+          handleAddResult={handleAddResult}
+          app={app}
+        />
+      ),
+      exportToFormat: () => (
+        <ExportToFormatHandler
           toolInvocation={toolInvocation}
           handleAddResult={handleAddResult}
           app={app}
