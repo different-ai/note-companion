@@ -21,7 +21,6 @@ import { ModelSelector } from "./model-selector";
 import { ModelType } from "./types";
 import { AudioRecorder } from "./audio-recorder";
 import { logger } from "../../../services/logger";
-import { SearchToggle } from "./components/search-toggle";
 import { SubmitButton } from "./submit-button";
 import { getUniqueReferences, useContextItems } from "./use-context-items";
 import { ContextItems } from "./components/context-items";
@@ -344,29 +343,6 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       {/* Chat Messages - compressed spacing */}
       <div className="flex-1 overflow-y-auto px-3 py-2 bg-[--background-primary]">
         <div className="flex flex-col space-y-1">
-          {errorMessage && (
-            <div className="bg-[--background-secondary] border border-[--background-modifier-border] p-4 mb-4">
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 mt-0.5">
-                  <AlertCircle className="w-5 h-5 text-[--text-error]" />
-                </div>
-                <div className="flex-grow">
-                  <h4 className="text-sm font-medium text-[--text-normal] mb-1">Unable to process request</h4>
-                  <p className="text-sm text-[--text-muted]">{errorMessage}</p>
-                </div>
-                
-                <Button
-                  onClick={handleRetry}
-                  variant="ghost"
-                  size="sm"
-                  className="flex-shrink-0 hover:bg-[--background-modifier-hover]"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-          )}
-
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12">
             </div>
@@ -409,6 +385,30 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
                   <div className="w-1.5 h-1.5 bg-[--text-accent] rounded-full animate-pulse"></div>
                   <span>Thinking...</span>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Error message - renders after messages in chat flow */}
+          {errorMessage && (
+            <div className="bg-[--background-secondary] border border-[--background-modifier-border] p-4 my-2">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 mt-0.5">
+                  <AlertCircle className="w-5 h-5 text-[--text-error]" />
+                </div>
+                <div className="flex-grow">
+                  <h4 className="text-sm font-medium text-[--text-normal] mb-1">Unable to process request</h4>
+                  <p className="text-sm text-[--text-muted]">{errorMessage}</p>
+                </div>
+                
+                <Button
+                  onClick={handleRetry}
+                  variant="ghost"
+                  size="sm"
+                  className="flex-shrink-0 hover:bg-[--background-modifier-hover]"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                </Button>
               </div>
             </div>
           )}
@@ -468,7 +468,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
                 unifiedContext={contextString}
                 maxContextSize={maxContextSize}
               />
-              <SearchToggle selectedModel={selectedModel} />
+              {/* Removed SearchToggle - search grounding now auto-triggered by tools */}
             </div>
             <ModelSelector
               selectedModel={selectedModel}
