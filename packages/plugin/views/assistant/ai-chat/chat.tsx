@@ -212,11 +212,9 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       const isToolError = error.message?.includes('ToolInvocation must have a result');
       
       if (isToolError) {
-        // Don't show error message for tool errors - they're handled by the tool handler
-        // Just log it and continue
-        logger.warn("Tool invocation error detected, continuing...");
-        // Clear any existing error to unblock the UI
-        setErrorMessage(null);
+        // Don't suppress tool errors - let them appear as messages
+        // Just log it and continue without blocking the UI
+        logger.warn("Tool invocation error detected, displaying as message...");
         return;
       }
       
@@ -231,10 +229,8 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       } else if (error.message?.toLowerCase().includes('timeout')) {
         userFriendlyMessage = "Request timed out. Please try again.";
       } else if (error.message) {
-        // If we have a specific error message, show a cleaned up version
-        userFriendlyMessage = error.message.length > 100 
-          ? error.message.substring(0, 100) + "..." 
-          : error.message;
+        // If we have a specific error message, show it fully (don't truncate)
+        userFriendlyMessage = error.message;
       }
       
       setErrorMessage(userFriendlyMessage);
@@ -404,25 +400,21 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
             </div>
           )}
 
-          {/* Error message - renders after messages in chat flow */}
+          {/* Error message - renders as normal message in chat flow */}
           {errorMessage && (
-            <div className="bg-[--background-secondary] border border-[--background-modifier-border] p-4 my-2">
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 mt-0.5">
-                  <AlertCircle className="w-5 h-5 text-[--text-error]" />
-                </div>
-                <div className="flex-grow">
-                  <h4 className="text-sm font-medium text-[--text-normal] mb-1">Unable to process request</h4>
-                  <p className="text-sm text-[--text-muted]">{errorMessage}</p>
-                </div>
-                
+            <div className="flex items-start gap-2 py-1.5 border-b border-[--background-modifier-border] pb-2">
+              <div className="w-4 text-xs text-[--text-error]">⚠</div>
+              <div className="flex-1 space-y-1">
+                <div className="text-sm text-[--text-error] font-medium">Error</div>
+                <div className="text-sm text-[--text-normal] whitespace-pre-wrap select-text">{errorMessage}</div>
                 <Button
                   onClick={handleRetry}
                   variant="ghost"
                   size="sm"
-                  className="flex-shrink-0 hover:bg-[--background-modifier-hover]"
+                  className="text-xs mt-1 hover:bg-[--background-modifier-hover]"
                 >
-                  <RefreshCw className="w-4 h-4" />
+                  <RefreshCw className="w-3 h-3 mr-1" />
+                  Retry
                 </Button>
               </div>
             </div>
