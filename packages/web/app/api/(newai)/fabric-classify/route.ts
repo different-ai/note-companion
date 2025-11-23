@@ -1,9 +1,8 @@
 import { NextResponse, NextRequest } from "next/server";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
-import { handleAuthorization } from "@/lib/handleAuthorization";
+import { handleAuthorizationV2 } from "@/lib/handleAuthorization";
 import { generateText } from "ai"
 import { getModel } from "@/lib/models";
-
 
 
 
@@ -12,7 +11,7 @@ export const maxDuration = 60;
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await handleAuthorization(request);
+    const { userId } = await handleAuthorizationV2(request);
     const { content, systemContent, enableFabric } = await request.json();
     console.log("content", content);
     console.log("systemContent", systemContent);

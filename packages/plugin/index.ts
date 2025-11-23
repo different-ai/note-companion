@@ -39,7 +39,6 @@ import { DashboardView, DASHBOARD_VIEW_TYPE } from "./views/assistant/dashboard/
 import Jimp from "jimp/es/index";
 
 import { FileOrganizerSettings, DEFAULT_SETTINGS } from "./settings";
-import { checkAndCreateFolders } from "./fileUtils";
 
 import { registerEventHandlers } from "./handlers/eventHandlers";
 import {
@@ -54,7 +53,6 @@ import {
 } from "./fileUtils";
 
 import { checkLicenseKey } from "./apiUtils";
-import { makeApiRequest } from "./apiUtils";
 
 import {
   VALID_IMAGE_EXTENSIONS,
@@ -62,7 +60,6 @@ import {
   VALID_MEDIA_EXTENSIONS,
 } from "./constants";
 import { initializeInboxQueue, Inbox } from "./inbox";
-import { validateFile } from "./utils";
 import { logger } from "./services/logger";
 import { addTextSelectionContext } from "./views/assistant/ai-chat/use-context-items";
 
@@ -1248,23 +1245,25 @@ export default class FileOrganizer extends Plugin {
   // Create all necessary folders for the plugin to function properly
   public async checkAndCreateRequiredFolders(): Promise<void> {
     try {
-      // Ensure all required folders exist
-      await checkAndCreateFolders(
-        this.app.vault, 
-        [
-          this.settings.pathToWatch,
-          this.settings.defaultDestinationPath,
-          this.settings.referencePath,
-          this.settings.attachmentsPath,
-          this.settings.logFolderPath,
-          this.settings.backupFolderPath,
-          this.settings.templatePaths,
-          this.settings.fabricPaths,
-          this.settings.bypassedFilePath,
-          this.settings.errorFilePath,
-          this.settings.syncFolderPath,
-        ]
-      );
+      // Ensure all required folders exist - using app instead of app.vault
+      const folderPaths = [
+        this.settings.pathToWatch,
+        this.settings.defaultDestinationPath,
+        this.settings.referencePath,
+        this.settings.attachmentsPath,
+        this.settings.logFolderPath,
+        this.settings.backupFolderPath,
+        this.settings.templatePaths,
+        this.settings.fabricPaths,
+        this.settings.bypassedFilePath,
+        this.settings.errorFilePath,
+        this.settings.syncFolderPath,
+      ];
+      
+      // Create each folder individually using ensureFolderExists
+      for (const folderPath of folderPaths) {
+        await ensureFolderExists(this.app, folderPath);
+      }
       
       // Show success message
       new Notice("All required folders have been created successfully!", 3000);

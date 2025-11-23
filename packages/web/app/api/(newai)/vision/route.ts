@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import {  generateText } from "ai";
 import { getModel } from "@/lib/models";
-import { handleAuthorization } from "@/lib/handleAuthorization";
+import { handleAuthorizationV2 } from "@/lib/handleAuthorizationV2";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 
 export const maxDuration = 60;
@@ -9,7 +9,7 @@ export const maxDuration = 60;
 export async function POST(request: NextRequest) {
   try {
     const payload = await request.json();
-    const { userId } = await handleAuthorization(request);
+    const { userId } = await handleAuthorizationV2(request);
     const model = getModel(process.env.VISION_MODEL_NAME);
 
     const defaultInstruction = "Extract text from image. If there's a drawing, describe it.";

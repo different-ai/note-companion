@@ -1,6 +1,6 @@
-import { auth, clerkClient } from "@clerk/nextjs/server";
+import { clerkClient } from "@clerk/nextjs/server";
 
-// Create an anonymous user
+// Create an anonymous user for top-up flow (when user doesn't have account)
 export const createAnonymousUser = async () => {
   try {
     const client = await clerkClient();
@@ -15,51 +15,6 @@ export const createAnonymousUser = async () => {
     return user;
   } catch (error) {
     console.error("Error creating anonymous user:", error);
-    throw error;
-  }
-};
-
-// Update anonymous user's email address
-export const updateAnonymousUserEmail = async (userId: string, newEmail: string) => {
-  console.log("updateAnonymousUserEmail", userId, newEmail);
-  try {
-    const client = await clerkClient();
-    const user = await client.users.getUser(userId);
-    
-    // Check if the user has an anonymous email
-    const isAnonymous = user.emailAddresses.some(email => 
-      email.emailAddress.startsWith('anonymous-') && email.emailAddress.endsWith('@example.com')
-    );
-    console.log("isAnonymous", isAnonymous);
-
-    if (isAnonymous) {
-      // First create the new email address
-      await client.emailAddresses.createEmailAddress({
-        userId: userId,
-        emailAddress: newEmail,
-        primary: true,
-        verified: true,
-      });
-      console.log("created new email", newEmail);
-
-      // Delete the old anonymous email address
-      const anonymousEmail = user.emailAddresses.find(email => 
-        email.emailAddress.startsWith('anonymous-') && 
-        email.emailAddress.endsWith('@example.com')
-      );
-      console.log("anonymousEmail", anonymousEmail);
-      if (anonymousEmail) {
-        await client.emailAddresses.deleteEmailAddress(anonymousEmail.id);
-      }
-
-      console.log(`Updated email for user ${userId} to ${newEmail}`);
-      return true;
-    } else {
-      console.log(`User ${userId} is not an anonymous user. Email not updated.`);
-      return false;
-    }
-  } catch (error) {
-    console.error("Error updating anonymous user email:", error);
     throw error;
   }
 };

@@ -1,14 +1,14 @@
 import { formatDocumentContent } from "../aiService";
 import { NextResponse, NextRequest } from "next/server";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
-import { handleAuthorization } from "@/lib/handleAuthorization";
+import { handleAuthorizationV2 } from "@/lib/handleAuthorizationV2";
 import { getModel } from "@/lib/models";
 
 export const maxDuration = 60; // This function can run for a maximum of 5 seconds
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await handleAuthorization(request);
+    const { userId } = await handleAuthorizationV2(request);
     const { content, formattingInstruction } = await request.json();
     const model = getModel(process.env.MODEL_NAME);
     const response = await formatDocumentContent(

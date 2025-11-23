@@ -1,5 +1,5 @@
 import { NextResponse, NextRequest } from "next/server";
-import { db, UserUsageTable, checkIfUserNeedsUpgrade, checkTokenUsage } from "@/drizzle/schema";
+import { checkIfUserNeedsUpgrade, checkTokenUsage } from "@/drizzle/schema";
 import { handleAuthorizationV2 } from "@/lib/handleAuthorization";
 
 export async function GET(request: NextRequest) {

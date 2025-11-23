@@ -1,12 +1,12 @@
 import { guessRelevantFolder } from "../aiService";
 import { NextRequest, NextResponse } from "next/server";
-import { handleAuthorization } from "@/lib/handleAuthorization";
+import { handleAuthorizationV2 } from "@/lib/handleAuthorizationV2";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { getModel } from "@/lib/models";
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await handleAuthorization(request);
+    const { userId } = await handleAuthorizationV2(request);
     const { content, fileName, folders, customInstructions } = await request.json();
     const model = getModel(process.env.MODEL_NAME);
     const response = await guessRelevantFolder(
