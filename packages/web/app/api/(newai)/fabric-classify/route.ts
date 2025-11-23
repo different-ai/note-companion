@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Fabric not enabled." }, { status: 400 });
     }
 
-    const modelName = process.env.MODEL_NAME || 'gpt-4.1-mini';
+    const modelName = process.env.MODEL_NAME || 'gpt-4o-mini';
     console.log(`Fabric classify using model: ${modelName}`);
     const model = getModel(modelName);
 

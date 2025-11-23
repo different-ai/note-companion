@@ -105,8 +105,8 @@ export const vercelTokens = pgTable('vercel_tokens', {
   updatedAt: timestamp("updated_at").defaultNow(),
   lastDeployment: timestamp("last_deployment"),
   modelProvider: text("model_provider").default('openai'),
-  modelName: text("model_name").default('gpt-4.1-mini'),
-  visionModelName: text("vision_model_name").default('gpt-4.1-mini'),
+  modelName: text("model_name").default('gpt-4o-mini'),
+  visionModelName: text("vision_model_name").default('gpt-4o-mini'),
   lastApiKeyUpdate: timestamp("last_api_key_update"),
 });
 

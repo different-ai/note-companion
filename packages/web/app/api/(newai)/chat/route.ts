@@ -29,8 +29,8 @@ export async function POST(req: NextRequest) {
           deepSearch = false,
         } = await req.json();
 
-        // Default to gpt-4.1-mini with Responses API for better tool support
-        let chosenModelName = "gpt-4.1-mini-responses";
+        // Default to gpt-4o-mini with Responses API for better tool support
+        let chosenModelName = "gpt-4o-mini-responses";
 
         const contextString =
           newUnifiedContext ||
