@@ -11,7 +11,12 @@ interface LastModifiedArgs {
 interface FileResult {
   title: string;
   content: string;
+  contentPreview?: string;
+  contentLength?: number;
+  wordCount?: number;
   path: string;
+  modified?: number;
+  modifiedDate?: string;
   reference: string;
 }
 
@@ -25,17 +30,31 @@ export function LastModifiedHandler({
   const files = useContextItems(state => state.files);
 
   const getLastModifiedFiles = async (count: number): Promise<FileResult[]> => {
+    const MAX_FILES = 20;
+    const PREVIEW_LENGTH = 300;
+    
+    // Limit count to prevent context overload
+    const limitedCount = Math.min(count, MAX_FILES);
+    
     const files = app.vault.getMarkdownFiles();
     const sortedFiles = files.sort((a, b) => b.stat.mtime - a.stat.mtime);
-    const lastModifiedFiles = sortedFiles.slice(0, count);
+    const lastModifiedFiles = sortedFiles.slice(0, limitedCount);
 
     return Promise.all(
-      lastModifiedFiles.map(async file => ({
-        title: file.basename,
-        content: await app.vault.read(file),
-        path: file.path,
-        reference: `Last modified: ${new Date(file.stat.mtime).toLocaleString()}`
-      }))
+      lastModifiedFiles.map(async file => {
+        const content = await app.vault.read(file);
+        return {
+          title: file.basename,
+          content: content, // Keep for UI context
+          contentPreview: content.slice(0, PREVIEW_LENGTH) + (content.length > PREVIEW_LENGTH ? '...' : ''),
+          contentLength: content.length,
+          wordCount: content.split(/\s+/).length,
+          path: file.path,
+          modified: file.stat.mtime,
+          modifiedDate: new Date(file.stat.mtime).toLocaleString(),
+          reference: `Last modified: ${new Date(file.stat.mtime).toLocaleString()}`
+        };
+      })
     );
   };
 
@@ -51,7 +70,7 @@ export function LastModifiedHandler({
           // Clear existing context before adding new results
           clearAll();
           
-          // Add each file to context with proper typing
+          // Add each file to context with full content for UI
           searchResults.forEach(file => {
             addFileContext({
               path: file.path,
@@ -60,9 +79,12 @@ export function LastModifiedHandler({
             });
           });
           
+          // Send minimal data to AI (without full content)
+          const minimalResults = searchResults.map(({ content, ...rest }) => rest);
+          
           handleAddResult(JSON.stringify({
             success: true,
-            files: searchResults,
+            files: minimalResults,
             count: searchResults.length
           }));
         } catch (error) {
