@@ -17,6 +17,7 @@ import { ExecuteActionsHandler } from "./execute-actions-handler";
 import { AddTextHandler } from "./add-text-handler";
 import { ModifyTextHandler } from "./modify-text-handler";
 import { MetadataHandler } from "./metadata-handler";
+import { FrontmatterHandler } from "./frontmatter-handler";
 
 interface ToolInvocationHandlerProps {
   toolInvocation: ToolInvocation;
@@ -55,6 +56,7 @@ function ToolInvocationHandler({
       
       // New Metadata & Analysis Tools
       getFileMetadata: "File Metadata Extraction",
+      updateFrontmatter: "Update Frontmatter",
     };
     return toolTitles[toolName] ;
   };
@@ -154,6 +156,13 @@ function ToolInvocationHandler({
       // New Metadata & Analysis Tools
       getFileMetadata: () => (
         <MetadataHandler
+          toolInvocation={toolInvocation}
+          handleAddResult={handleAddResult}
+          app={app}
+        />
+      ),
+      updateFrontmatter: () => (
+        <FrontmatterHandler
           toolInvocation={toolInvocation}
           handleAddResult={handleAddResult}
           app={app}
