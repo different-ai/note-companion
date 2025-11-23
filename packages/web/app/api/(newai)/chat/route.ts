@@ -42,12 +42,12 @@ export async function POST(req: NextRequest) {
         dataStream.writeData("initialized call");
 
         if (enableSearchGrounding) {
-          console.log("Enabling search grounding with Responses API");
-          chosenModelName = "gpt-4.1-mini"; // Using standard model with the Responses API
+          console.log("Enabling search grounding");
+          chosenModelName = "gpt-4o-mini"; // Using standard model
           console.log(`Using model for search: ${chosenModelName}`);
 
           const result = await streamText({
-            model: openai.responses("gpt-4o-mini"),
+            model: getModel(chosenModelName),
             system: getChatSystemPrompt(
               contextString,
               currentDatetime

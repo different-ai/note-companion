@@ -317,7 +317,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
   };
 
   return (
-    <StyledContainer className="flex flex-col h-full w-full">
+    <StyledContainer className="flex flex-col h-full w-full max-h-full overflow-hidden">
       {/* Chat Header - minimal */}
       <div className="flex-none border-b border-[--background-modifier-border] px-3 py-1.5 bg-[--background-primary]">
         <div className="flex items-center justify-between">
