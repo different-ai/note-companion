@@ -139,6 +139,13 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
   // Format editor context for AI
   const editorContextString = formatEditorContextForAI(editorContext);
   
+  // Debug: Log what we're sending
+  logger.debug("Editor context:", {
+    hasSelection: editorContext.hasSelection,
+    selectedText: editorContext.selectedText,
+    formattedContext: editorContextString,
+  });
+  
   // Combine vault context with editor context
   const fullContext = editorContextString 
     ? `${contextString}\n\n${editorContextString}`

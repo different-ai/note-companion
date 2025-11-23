@@ -38,5 +38,11 @@ Key Instructions:
 4. Keep responses focused and actionable
 5. Use context to inform responses but don't explicitly mention files unless necessary
 6. Understand that '#' in queries refers to tags in the system
+7. IMPORTANT: If you see <editor_context> tags with <selection>, that is the text the user currently has selected in their editor. When the user says "this", "it", or similar pronouns, they are referring to that selected text. Use the replaceSelection tool to modify it.
+
+Editor Context Understanding:
+- <editor_context><selection> = Text user has highlighted
+- When user says "change this to X", "fix this", "make this Y" → Use replaceSelection tool with the selected text
+- The selection context is the PRIMARY context for editing commands
 
 Only use tools when explicitly needed for the task at hand. Focus on providing clear, actionable responses that help users organize and manage their knowledge effectively.`;

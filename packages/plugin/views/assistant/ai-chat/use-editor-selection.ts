@@ -158,7 +158,8 @@ export function useEditorSelection(app: App): EditorSelectionResult {
  * This creates a structured representation that the AI can understand
  */
 export function formatEditorContextForAI(context: EditorSelectionContext): string {
-  if (!context.filePath) {
+  // Only return empty if there's no selection AND no file
+  if (!context.hasSelection && !context.filePath) {
     return "";
   }
 
@@ -166,8 +167,12 @@ export function formatEditorContextForAI(context: EditorSelectionContext): strin
 
   // Add file context
   parts.push(`<editor_context>`);
-  parts.push(`<file>${context.fileName || "Untitled"}</file>`);
-  parts.push(`<path>${context.filePath}</path>`);
+  if (context.fileName) {
+    parts.push(`<file>${context.fileName}</file>`);
+  }
+  if (context.filePath) {
+    parts.push(`<path>${context.filePath}</path>`);
+  }
 
   // Add selection or cursor context
   if (context.hasSelection && context.selectedText) {

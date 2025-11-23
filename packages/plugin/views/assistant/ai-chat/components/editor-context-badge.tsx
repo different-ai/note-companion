@@ -29,7 +29,7 @@ export function EditorContextBadge({ context }: EditorContextBadgeProps) {
           "flex items-center gap-2 px-3 py-1.5 text-xs bg-[--background-secondary] border border-[--background-modifier-border] text-[--text-muted]"
         )}
       >
-        <span className="font-medium">📝 Context:</span>
+        <span className="font-medium">📝 Selection:</span>
         {context.hasSelection ? (
           <span className="text-[--text-normal]">
             "{truncate(context.selectedText)}"
