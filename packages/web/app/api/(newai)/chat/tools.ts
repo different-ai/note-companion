@@ -26,10 +26,10 @@ export const chatTools = {
     }),
   },
   replaceSelection: {
-    description: "Replace the currently selected text in the editor. Use when user says 'change this', 'rewrite this', 'fix this', etc. The AI will receive the selected text in <editor_context> tags.",
+    description: "CRITICAL: Replace currently selected text in the editor. If you see <editor_context><selection>, use THIS tool immediately for any editing command. User says 'use a synonym' with 'research' selected? → Call replaceSelection with synonym. User says 'fix this'? → Call replaceSelection with fix. User says 'make concise'? → Call replaceSelection with concise version. DO NOT ask for clarification when selection exists.",
     parameters: z.object({
       newText: z.string().describe("The new text to replace the current selection with"),
-      message: z.string().describe("Brief explanation of what was changed (e.g., 'Made text more concise', 'Fixed grammar')"),
+      message: z.string().describe("Brief explanation of what was changed (e.g., 'Replaced with synonym', 'Fixed grammar', 'Made text concise')"),
     }),
   },
   getYoutubeVideoId: {
