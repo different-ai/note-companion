@@ -36,22 +36,22 @@ export const chatTools = {
     parameters: z.object({
       content: z.string().describe("The formatted content to append to the file"),
       message: z.string().describe("Clear explanation of what content will be added"),
-      fileName: z.string().optional().describe("Optional specific file to append to"),
+      fileName: z.string().default("").describe("Optional specific file to append to (leave empty to use current file)"),
     }),
   },
   addTextToDocument: {
     description: "Add new sections or content to notes with proper formatting and structure",
     parameters: z.object({
       content: z.string().describe("The formatted text content to add"),
-      path: z.string().optional().describe("Optional path to the document. If not provided, uses current document"),
+      path: z.string().default("").describe("Optional path to the document. If not provided, uses current document"),
     }),
   },
   modifyDocumentText: {
     description: "Edit existing note content while maintaining consistency and structure. Can modify selected text or entire document.",
     parameters: z.object({
       content: z.string().describe("The new formatted content to replace existing content"),
-      path: z.string().optional().describe("Optional path to the document. If not provided, uses current document"),
-      instructions: z.string().optional().describe("Optional specific instructions for how to modify the content"),
+      path: z.string().default("").describe("Optional path to the document. If not provided, uses current document"),
+      instructions: z.string().default("").describe("Optional specific instructions for how to modify the content"),
     }),
   },
   generateSettings: {
