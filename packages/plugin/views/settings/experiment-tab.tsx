@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import FileOrganizer from "../../index";
-import { FabricPromptManager } from "./fabric-prompt-manager";
 import { CatalystGate } from "./catalyst-gate";
 
 interface ExperimentTabProps {
@@ -13,9 +12,6 @@ export const ExperimentTab: React.FC<ExperimentTabProps> = ({ plugin }) => {
     plugin.settings.enableAtomicNotes
   );
 
-  const [enableFabric, setEnableFabric] = useState(
-    plugin.settings.enableFabric
-  );
   const [showLocalLLMInChat, setShowLocalLLMInChat] = useState(
     plugin.settings.showLocalLLMInChat
   );
@@ -220,20 +216,6 @@ export const ExperimentTab: React.FC<ExperimentTabProps> = ({ plugin }) => {
 
 
               <div className="space-y-3">
-                <ToggleSetting
-                  name="Enable Fabric-like Formatting"
-                  description="Use Fabric-like prompt structure for document formatting."
-                  value={enableFabric}
-                  onChange={value =>
-                    handleToggleChange(value, setEnableFabric, "enableFabric")
-                  }
-                />
-                {enableFabric && (
-                  <div className="ml-4 p-4 bg-[--background-primary-alt] rounded-lg border-l-2 border-[--text-accent]">
-                    <FabricPromptManager plugin={plugin} />
-                  </div>
-                )}
-                
                 <ToggleSetting
                   name="Show Sync Tab (Advanced)"
                   description={

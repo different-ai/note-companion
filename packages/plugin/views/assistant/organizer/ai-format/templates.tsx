@@ -2,7 +2,6 @@ import * as React from "react";
 import { TFile, Notice } from "obsidian";
 import FileOrganizer from "../../../../index";
 import { UserTemplates } from "./user-templates";
-import { FabricClassificationBox } from "./fabric-templates";
 import { DEFAULT_SETTINGS } from "../../../../settings";
 import { logger } from "../../../../services/logger";
 
@@ -145,15 +144,6 @@ export const ClassificationContainer: React.FC<ClassificationBoxProps> = ({
           refreshKey={refreshKey}
           onFormat={handleFormat}
         />
-        {plugin.settings.enableFabric && (
-          <FabricClassificationBox
-            plugin={plugin}
-            file={file}
-            content={content}
-            refreshKey={refreshKey}
-            onFormat={handleFormat}
-          />
-        )}
       </div>
     </div>
   );

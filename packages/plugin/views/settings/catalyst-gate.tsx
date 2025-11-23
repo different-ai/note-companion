@@ -56,8 +56,6 @@ export const CatalystGate: React.FC<CatalystGateProps> = ({
           </p>
           <ul className="text-left text-[--text-muted] mb-4 space-y-2">
             <li>• Local LLM Integration</li>
-
-            <li>• Fabric-like Formatting</li>
             <li>• Atomic Notes Generation</li>
             <li>• And more experimental features...</li>
           </ul>

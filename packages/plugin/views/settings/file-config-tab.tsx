@@ -16,7 +16,6 @@ export const FileConfigTab: React.FC<FileConfigTabProps> = ({ plugin }) => {
   const [ignoreFolders, setIgnoreFolders] = useState(plugin.settings.ignoreFolders.join(','));
   const [backupFolderPath, setBackupFolderPath] = useState(plugin.settings.backupFolderPath);
   const [templatePaths, setTemplatePaths] = useState(plugin.settings.templatePaths);
-  const [fabricPaths, setFabricPaths] = useState(plugin.settings.fabricPaths);
   const [bypassedFilePath, setBypassedFilePath] = useState(plugin.settings.bypassedFilePath);
   const [errorFilePath, setErrorFilePath] = useState(plugin.settings.errorFilePath);
 
@@ -187,7 +186,6 @@ export const FileConfigTab: React.FC<FileConfigTabProps> = ({ plugin }) => {
         defaultDestinationPath,
         backupFolderPath,
         templatePaths,
-        fabricPaths,
         bypassedFilePath,
         errorFilePath
       ];
@@ -200,7 +198,7 @@ export const FileConfigTab: React.FC<FileConfigTabProps> = ({ plugin }) => {
     };
 
     checkPaths();
-  }, [pathToWatch, attachmentsPath, logFolderPath, defaultDestinationPath, backupFolderPath, templatePaths, fabricPaths, bypassedFilePath, errorFilePath]);
+  }, [pathToWatch, attachmentsPath, logFolderPath, defaultDestinationPath, backupFolderPath, templatePaths, bypassedFilePath, errorFilePath]);
 
   useEffect(() => {
     const newWarnings: Record<string, string> = {};
@@ -217,7 +215,6 @@ export const FileConfigTab: React.FC<FileConfigTabProps> = ({ plugin }) => {
     checkPath(defaultDestinationPath, 'defaultDestinationPath');
     checkPath(backupFolderPath, 'backupFolderPath');
     checkPath(templatePaths, 'templatePaths');
-    checkPath(fabricPaths, 'fabricPaths');
     checkPath(bypassedFilePath, 'bypassedFilePath');
     checkPath(errorFilePath, 'errorFilePath');
 
@@ -230,7 +227,7 @@ export const FileConfigTab: React.FC<FileConfigTabProps> = ({ plugin }) => {
     }
 
     setWarnings(newWarnings);
-  }, [pathToWatch, attachmentsPath, logFolderPath, defaultDestinationPath, ignoreFolders, backupFolderPath, templatePaths, fabricPaths, bypassedFilePath, errorFilePath]);
+  }, [pathToWatch, attachmentsPath, logFolderPath, defaultDestinationPath, ignoreFolders, backupFolderPath, templatePaths, bypassedFilePath, errorFilePath]);
 
   const renderSettingItem = (
     name: string,
@@ -346,13 +343,6 @@ export const FileConfigTab: React.FC<FileConfigTabProps> = ({ plugin }) => {
           templatePaths,
           (e) => handleSettingChange(e.target.value, setTemplatePaths, 'templatePaths'),
           'templatePaths'
-        )}
-        {renderSettingItem(
-          "Fabric patterns folder",
-          "Choose a folder for fabric patterns.",
-          fabricPaths,
-          (e) => handleSettingChange(e.target.value, setFabricPaths, 'fabricPaths'),
-          'fabricPaths'
         )}
         {renderSettingItem(
           "Bypassed notes path",

@@ -119,6 +119,12 @@ export default class FileOrganizer extends Plugin {
 
   async loadSettings() {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+    
+    // Migration: Fix old gpt-4.1-mini model name to gpt-4o-mini
+    if (this.settings.selectedModel === "gpt-4.1-mini" as any) {
+      this.settings.selectedModel = "gpt-4o-mini";
+      await this.saveSettings();
+    }
   }
 
   async checkCatalystAccess(): Promise<boolean> {
@@ -475,7 +481,6 @@ export default class FileOrganizer extends Plugin {
     const requestBody: any = {
       content,
       formattingInstruction,
-      enableFabric: this.settings.enableFabric,
 
     };
 
@@ -748,7 +753,6 @@ export default class FileOrganizer extends Plugin {
       this.settings.attachmentsPath,
       this.settings.backupFolderPath,
       this.settings.templatePaths,
-      this.settings.fabricPaths,
       this.settings.pathToWatch,
       this.settings.errorFilePath,
       "_NoteCompanion",
@@ -1254,7 +1258,6 @@ export default class FileOrganizer extends Plugin {
         this.settings.logFolderPath,
         this.settings.backupFolderPath,
         this.settings.templatePaths,
-        this.settings.fabricPaths,
         this.settings.bypassedFilePath,
         this.settings.errorFilePath,
         this.settings.syncFolderPath,

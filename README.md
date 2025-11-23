@@ -14,7 +14,6 @@ An AI-powered Obsidian plugin that automatically organizes, formats, and enhance
 This plugin communicates with the following remote services:
 - **Note Companion API Server** (cloud service): For AI-powered features including file classification, formatting, transcription, and chat
 - **YouTube API**: For fetching video transcripts when processing YouTube links
-- **GitHub API**: For downloading Fabric prompt templates
 - **AI Provider APIs**: When self-hosting, you'll connect directly to your chosen AI provider (OpenAI, Anthropic, Google, etc.)
 
 ### Privacy & Data Handling

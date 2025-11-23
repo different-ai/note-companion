@@ -10,7 +10,6 @@ export class FileOrganizerSettings {
   logFolderPath = "_NoteCompanion/Logs";
   backupFolderPath = "_NoteCompanion/Backups";
   templatePaths = "_NoteCompanion/Templates";
-  fabricPaths = "_NoteCompanion/Fabric";
   bypassedFilePath = "_NoteCompanion/Bypassed";
   errorFilePath = "_NoteCompanion/Errors";
   syncFolderPath = "_NoteCompanion/Sync";
@@ -31,7 +30,6 @@ export class FileOrganizerSettings {
   enableSelfHosting = false;
   selfHostingURL = "http://localhost:3000";
 
-  enableFabric = false;
   useFolderEmbeddings = false;
   useVaultTitles = true;
   enableSearchGrounding = false;

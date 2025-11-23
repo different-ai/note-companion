@@ -1401,12 +1401,6 @@
 .duration-200 {
   transition-duration: 200ms;
 }
-.duration-300 {
-  transition-duration: 300ms;
-}
-.ease-in-out {
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-}
 .fo2k-view {
   padding: 0 !important;
   height: 100% !important;
@@ -1936,14 +1930,8 @@
     var(--tw-ring-shadow),
     var(--tw-shadow, 0 0 #0000);
 }
-.focus\:ring-\[--interactive-accent\]:focus {
-  --tw-ring-color: var(--interactive-accent);
-}
 .focus\:ring-ring:focus {
   --tw-ring-color: var(--background-modifier-border-focus);
-}
-.focus\:ring-opacity-50:focus {
-  --tw-ring-opacity: 0.5;
 }
 .focus\:ring-offset-2:focus {
   --tw-ring-offset-width: 2px;
