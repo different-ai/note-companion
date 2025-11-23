@@ -107,13 +107,17 @@ export function LastModifiedHandler({
 
   // Use the files object directly from context instead of items
   const fileCount = Object.keys(files).length;
+  
+  // Get the actual result to show proper count
+  const result = ("result" in toolInvocation) ? JSON.parse(toolInvocation.result as string) : null;
+  const resultCount = result?.count || 0;
 
   return (
     <div className="text-sm text-[--text-muted]">
       {!("result" in toolInvocation) ? (
         "Fetching last modified files..."
-      ) : fileCount > 0 ? (
-        `Found ${fileCount} recently modified files`
+      ) : resultCount > 0 ? (
+        `Found ${resultCount} recently modified files`
       ) : (
         "No recently modified files found"
       )}

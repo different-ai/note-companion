@@ -6,6 +6,7 @@ import { YouTubeHandler } from "./youtube-handler";
 import { SearchHandler } from "./search-handler";
 import { DateRangeHandler } from "./date-range-handler";
 import { LastModifiedHandler } from "./last-modified-handler";
+import { OpenFileHandler } from "./open-file-handler";
 
 import { SettingsUpdateHandler } from "./settings-update-handler";
 import { AppendContentHandler } from "./append-content-handler";
@@ -59,6 +60,7 @@ function ToolInvocationHandler({
       moveFiles: "Moving Files",
       renameFiles: "Renaming Files",
       searchByName: "Search Files by Name",
+      openFile: "Opening File",
       executeActionsOnFileBasedOnPrompt: "Execute Actions on Files",
       addTextToDocument: "Adding Text to Document",
       modifyDocumentText: "Modifying Document Text",
@@ -105,6 +107,13 @@ function ToolInvocationHandler({
       ),
       getLastModifiedFiles: () => (
         <LastModifiedHandler
+          toolInvocation={toolInvocation}
+          handleAddResult={handleAddResult}
+          app={app}
+        />
+      ),
+      openFile: () => (
+        <OpenFileHandler
           toolInvocation={toolInvocation}
           handleAddResult={handleAddResult}
           app={app}

@@ -19,6 +19,12 @@ export const chatTools = {
       query: z.string().describe("The name pattern to search for (e.g., 'Untitled*', 'daily-*', or exact name)"),
     }),
   },
+  openFile: {
+    description: "Open a specific file in Obsidian workspace. Use this when the user asks to open, view, or navigate to a file.",
+    parameters: z.object({
+      filePath: z.string().describe("The full path of the file to open (e.g., 'folder/note.md')"),
+    }),
+  },
   getYoutubeVideoId: {
     description: "Extract YouTube video ID to import and organize video content into notes",
     parameters: z.object({
