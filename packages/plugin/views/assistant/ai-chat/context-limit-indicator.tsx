@@ -88,8 +88,8 @@ export function ContextLimitIndicator({
           <span className="font-mono">{stats.percentUsed.toFixed(0)}%</span>
         </div>
 
-        {/* Enhanced menu-style tooltip */}
-        <div className="absolute left-0 top-full mt-1 w-72 bg-[--background-secondary] border border-[--background-modifier-border] opacity-0 group-hover:opacity-100 transition-opacity z-10">
+        {/* Enhanced menu-style tooltip - renders above */}
+        <div className="absolute left-0 bottom-full mb-1 w-72 bg-[--background-secondary] border border-[--background-modifier-border] opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none group-hover:pointer-events-auto">
           <div
             onClick={toggleLightweightMode}
             className={`w-full px-4 py-3.5 text-left text-xs flex items-start justify-between gap-4 hover:bg-[--background-modifier-hover]  cursor-pointer
