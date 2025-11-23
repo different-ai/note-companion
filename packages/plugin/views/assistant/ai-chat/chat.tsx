@@ -26,6 +26,7 @@ import { SubmitButton } from "./submit-button";
 import { getUniqueReferences, useContextItems } from "./use-context-items";
 import { ContextItems } from "./components/context-items";
 import { ClearAllButton } from "./components/clear-all-button";
+import { NewChatButton } from "./components/new-chat-button";
 import { useCurrentFile } from "./hooks/use-current-file";
 import { SearchAnnotationHandler } from "./tool-handlers/search-annotation-handler";
 import {
@@ -154,6 +155,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     addToolResult,
     error,
     reload,
+    setMessages,
   } = useChat({
     onDataChunk: (chunk: DataChunk) => {
       if (chunk.type === "metadata" && chunk.data?.groundingMetadata) {
@@ -309,6 +311,11 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     reload();
   };
 
+  const handleNewChat = () => {
+    setMessages([]);
+    setErrorMessage(null);
+  };
+
   return (
     <StyledContainer className="flex flex-col h-full w-full">
       {/* Chat Header - minimal */}
@@ -324,8 +331,13 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
             )}
           </div>
           
-          {/* Clear All - icon only */}
-          <ClearAllButton />
+          <div className="flex items-center gap-2">
+            {/* New Chat */}
+            <NewChatButton onClick={handleNewChat} />
+            
+            {/* Clear All - icon only */}
+            <ClearAllButton />
+          </div>
         </div>
       </div>
 
