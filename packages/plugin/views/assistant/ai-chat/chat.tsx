@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useChat, UseChatOptions } from "@ai-sdk/react";
 import { moment } from "obsidian";
 import { Button } from "@/components/ui/button";
@@ -202,17 +202,6 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       if (chunk.type === "metadata" && chunk.data?.groundingMetadata) {
         setGroundingMetadata(chunk.data.groundingMetadata);
       }
-    },
-    // Inject selection into user message before sending
-    experimental_prepareRequestBody: ({ messages }) => {
-      const lastMessage = messages[messages.length - 1];
-      if (lastMessage && lastMessage.role === 'user' && editorContext.hasSelection) {
-        // Prepend selection to the user's message content
-        const selectionNote = `[SELECTED TEXT: "${editorContext.selectedText.trim()}"]\n\n`;
-        lastMessage.content = selectionNote + lastMessage.content;
-        console.log("Injected selection into message:", lastMessage.content);
-      }
-      return { messages };
     },
     maxSteps: 2,
     api: `${plugin.getServerUrl()}/api/chat`,
