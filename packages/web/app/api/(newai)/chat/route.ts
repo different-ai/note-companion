@@ -29,7 +29,8 @@ export async function POST(req: NextRequest) {
           deepSearch = false,
         } = await req.json();
 
-        let chosenModelName = "gpt-4.1-mini";
+        // Default to gpt-4.1-mini with Responses API for better tool support
+        let chosenModelName = "gpt-4.1-mini-responses";
 
         const contextString =
           newUnifiedContext ||
@@ -97,7 +98,7 @@ export async function POST(req: NextRequest) {
 
           result.mergeIntoDataStream(dataStream);
         } else {
-          console.log(`Chat using model: ${chosenModelName}`);
+          console.log(`Chat using model: ${chosenModelName} (no search)`);
           const model = getModel(chosenModelName);
 
           const result = await streamText({
@@ -108,7 +109,7 @@ export async function POST(req: NextRequest) {
             ),
             maxSteps: 3,
             messages: messages,
-            tools: chatTools,
+            tools: chatTools, // Regular tools, no web search
             onFinish: async ({ usage, sources }) => {
               console.log("Token usage:", usage);
               console.log("Sources:", sources);

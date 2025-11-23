@@ -19,10 +19,12 @@ const openaiClient = createOpenAI({
 });
 
 const models = {
+  // Regular chat completion models
   "gpt-4.1-mini": openaiClient("gpt-4.1-mini"),
   "gpt-4o-mini": openaiClient("gpt-4o-mini"),
   "gpt-4o": openaiClient("gpt-4o"),
-  // Responses API models (support web search tool)
+  // Responses API models (support web search tool and structured outputs)
+  "gpt-4.1-mini-responses": openaiClient.responses("gpt-4.1-mini"),
   "gpt-4o-mini-responses": openaiClient.responses("gpt-4o-mini"),
   "gpt-4o-responses": openaiClient.responses("gpt-4o"),
 };
