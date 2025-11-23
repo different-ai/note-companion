@@ -20,6 +20,7 @@ import { MetadataHandler } from "./metadata-handler";
 import { FrontmatterHandler } from "./frontmatter-handler";
 import { TagsHandler } from "./tags-handler";
 import { BacklinksHandler } from "./backlinks-handler";
+import { OutgoingLinksHandler } from "./outgoing-links-handler";
 
 interface ToolInvocationHandlerProps {
   toolInvocation: ToolInvocation;
@@ -61,6 +62,7 @@ function ToolInvocationHandler({
       updateFrontmatter: "Update Frontmatter",
       addTags: "Add Tags",
       getBacklinks: "Get Backlinks",
+      getOutgoingLinks: "Get Outgoing Links",
     };
     return toolTitles[toolName] ;
   };
@@ -181,6 +183,13 @@ function ToolInvocationHandler({
       ),
       getBacklinks: () => (
         <BacklinksHandler
+          toolInvocation={toolInvocation}
+          handleAddResult={handleAddResult}
+          app={app}
+        />
+      ),
+      getOutgoingLinks: () => (
+        <OutgoingLinksHandler
           toolInvocation={toolInvocation}
           handleAddResult={handleAddResult}
           app={app}

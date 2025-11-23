@@ -143,4 +143,13 @@ export const chatTools = {
       includeUnresolved: z.boolean().optional().describe("Include unresolved/broken links (default: false)"),
     }),
   },
+
+  getOutgoingLinks: {
+    description: "Get all outgoing links and embeds from files. Useful for understanding note dependencies and content structure.",
+    parameters: z.object({
+      filePaths: z.array(z.string()).describe("Files to analyze for outgoing links"),
+      includeEmbeds: z.boolean().optional().describe("Include embedded files/images (default: true)"),
+      resolvedOnly: z.boolean().optional().describe("Only include resolved links (default: false)"),
+    }),
+  },
 } as const; 
