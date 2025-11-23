@@ -236,7 +236,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       setErrorMessage(userFriendlyMessage);
     },
     onFinish: () => {
-      setErrorMessage(null);
+      // Don't clear error message on finish - let user dismiss it manually
       // Clear ephemeral context after AI response
       clearEphemeralContext();
     },
@@ -319,6 +319,10 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
   const handleRetry = () => {
     setErrorMessage(null);
     reload();
+  };
+
+  const handleDismissError = () => {
+    setErrorMessage(null);
   };
 
   const handleNewChat = () => {
@@ -405,7 +409,16 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
             <div className="flex items-start gap-2 py-1.5 border-b border-[--background-modifier-border] pb-2">
               <div className="w-4 text-xs text-[--text-error]">⚠</div>
               <div className="flex-1 space-y-1">
-                <div className="text-sm text-[--text-error] font-medium">Error</div>
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-[--text-error] font-medium">Error</div>
+                  <button
+                    onClick={handleDismissError}
+                    className="text-[--text-muted] hover:text-[--text-normal] text-xs"
+                    title="Dismiss error"
+                  >
+                    ✕
+                  </button>
+                </div>
                 <div className="text-sm text-[--text-normal] whitespace-pre-wrap select-text">{errorMessage}</div>
                 <Button
                   onClick={handleRetry}
