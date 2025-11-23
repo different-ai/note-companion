@@ -25,16 +25,18 @@ export async function POST(request: NextRequest) {
     const response = await generateObject({
       model,
       schema: modifySchema,
-      system: `You are a precise code and text modification assistant. Your task is to modify the given content according to the user's instructions.
-              Follow these guidelines:
-              - Make minimal necessary changes to achieve the goal
-              - Preserve important formatting and structure
-              - Generate clear diffs to show changes
-              - Provide clear explanations for changes
-              ${instructions ? `Additional instructions: ${instructions}` : ''}`,
-      prompt: `Original content: """
-              ${originalContent}
-              """`,
+      system: `You are a precise code and text modification assistant. Follow these guidelines:
+- Make minimal necessary changes to achieve the goal
+- Preserve important formatting and structure
+- Provide clear explanations for changes`,
+      prompt: `Modify the following content according to these instructions: ${instructions}
+
+Original content:
+"""
+${originalContent}
+"""
+
+Modified content with the text "${content}" applied according to the instructions.`,
     });
 
     // Generate diff
