@@ -1,7 +1,7 @@
 import { formatDocumentContent } from "../aiService";
 import { NextResponse, NextRequest } from "next/server";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
-import { handleAuthorizationV2 } from "@/lib/handleAuthorizationV2";
+import { handleAuthorizationV2 } from "@/lib/handleAuthorization";
 import { getModel } from "@/lib/models";
 
 export const maxDuration = 60; // This function can run for a maximum of 5 seconds

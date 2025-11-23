@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import {  generateText } from "ai";
 import { getModel } from "@/lib/models";
-import { handleAuthorizationV2 } from "@/lib/handleAuthorizationV2";
+import { handleAuthorizationV2 } from "@/lib/handleAuthorization";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 
 export const maxDuration = 60;

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { handleAuthorizationV2 } from "@/lib/handleAuthorizationV2";
+import { handleAuthorizationV2 } from "@/lib/handleAuthorization";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { getModel } from "@/lib/models";
 import { z } from "zod";

@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import { getModel } from "@/lib/models";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
-import { handleAuthorizationV2 } from "@/lib/handleAuthorizationV2";
+import { handleAuthorizationV2 } from "@/lib/handleAuthorization";
 import { generateObject, LanguageModel } from "ai";
 import { z } from "zod";
 
