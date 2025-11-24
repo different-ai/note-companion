@@ -71,13 +71,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
   // Uses frozen context to preserve selection even when chat input gets focus
   const { current: currentEditorContext, frozen: frozenEditorContext } = useEditorSelection(app);
   
-  // Debug both contexts
-  console.log("===== CONTEXT COMPARISON =====");
-  console.log("Current selection:", currentEditorContext.selectedText);
-  console.log("Frozen selection:", frozenEditorContext.selectedText);
-  console.log("Using frozen for AI");
-  console.log("==============================");
-  
+
   const editorContext = frozenEditorContext;
 
   const contextItems = {
