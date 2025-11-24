@@ -21,13 +21,13 @@
     "report": "pnpm dotenv -c -- tsx scripts/get-detailed-report.ts"
   },
   "dependencies": {
-    "@ai-sdk/amazon-bedrock": "^1.0.6",
-    "@ai-sdk/anthropic": "^1.0.6",
-    "@ai-sdk/deepseek": "^0.1.0",
-    "@ai-sdk/google": "^1.1.20",
-    "@ai-sdk/groq": "^1.1.0",
-    "@ai-sdk/mistral": "^1.1.15",
-    "@ai-sdk/openai": "^1.2.2",
+    "@ai-sdk/amazon-bedrock": "catalog:",
+    "@ai-sdk/anthropic": "catalog:",
+    "@ai-sdk/deepseek": "catalog:",
+    "@ai-sdk/google": "catalog:",
+    "@ai-sdk/groq": "catalog:",
+    "@ai-sdk/mistral": "catalog:",
+    "@ai-sdk/openai": "catalog:",
     "@aws-sdk/client-s3": "^3.787.0",
     "@aws-sdk/s3-request-presigner": "^3.787.0",
     "@clerk/nextjs": "^6.9.6",
@@ -50,7 +50,7 @@
     "@vercel/blob": "^0.27.2",
     "@vercel/postgres": "^0.8.0",
     "@vercel/sdk": "^1.1.0",
-    "ai": "^4.1.54",
+    "ai": "catalog:",
     "autoprefixer": "10.4.21",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -78,7 +78,7 @@
     "wink-eng-lite-web-model": "^1.8.1",
     "wink-nlp": "^2.3.2",
     "youtube-transcript": "^1.2.1",
-    "zod": "3.24.2"
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@jest/types": "^29.6.3",

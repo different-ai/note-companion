@@ -16,7 +16,17 @@ catalog:
   typescript: ^5.7.3
 
   # Misc
-  zod: ^3.24.1
+  zod: 3.24.2
+
+  # AI
+  ai: ^4.1.54
+  "@ai-sdk/amazon-bedrock": ^1.0.6
+  "@ai-sdk/anthropic": ^1.0.6
+  "@ai-sdk/deepseek": ^0.1.0
+  "@ai-sdk/google": ^1.1.20
+  "@ai-sdk/groq": ^1.1.0
+  "@ai-sdk/mistral": ^1.1.15
+  "@ai-sdk/openai": 1.2.2
 
   # Tanstack & tRPC
   "@tanstack/react-query": ^5.67.1

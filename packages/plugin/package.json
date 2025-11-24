@@ -26,7 +26,7 @@
     "@types/react-dom": "catalog:react19"
   },
   "dependencies": {
-    "@ai-sdk/openai": "^1.0.6",
+    "@ai-sdk/openai": "catalog:",
     "@ai-sdk/react": "^1.0.6",
     "@emotion/styled": "^11.13.0",
     "@radix-ui/react-progress": "^1.1.7",
@@ -37,7 +37,7 @@
     "@tiptap/pm": "^2.5.7",
     "@tiptap/react": "^2.5.7",
     "@tiptap/starter-kit": "^2.5.7",
-    "ai": "^4.0.0",
+    "ai": "catalog:",
     "axios": "^1.6.2",
     "chokidar": "^3.6.0",
     "class-variance-authority": "^0.7.1",
@@ -63,7 +63,7 @@
     "tiptap-markdown": "^0.8.10",
     "use-debounce": "^10.0.4",
     "youtube-transcript": "^1.2.1",
-    "zod": "^3.23.8",
+    "zod": "catalog:",
     "zustand": "^5.0.1"
   }
 }
