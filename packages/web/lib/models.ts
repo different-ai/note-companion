@@ -28,14 +28,28 @@ const models = {
 };
 
 export const getModel = (name: string) => {
-  if (!models[name]) {
-    console.log(`Model ${name} not found`);
+  // Migration: Handle old invalid model names
+  const modelMigrations: Record<string, string> = {
+    "gpt-4.1-mini": "gpt-4o-mini",
+    "gpt-4.1": "gpt-4o",
+    "gpt-4.1-mini-responses": "gpt-4o-mini-responses",
+  };
+
+  // Check if model needs migration
+  const migratedName = modelMigrations[name] || name;
+  
+  if (migratedName !== name) {
+    console.log(`Model migration: ${name} → ${migratedName}`);
+  }
+
+  if (!models[migratedName]) {
+    console.log(`Model ${migratedName} not found`);
     console.log(`Defaulting to ${DEFAULT_MODEL}`);
     return models[DEFAULT_MODEL];
   }
-  console.log(`Using model: ${name}`);
+  console.log(`Using model: ${migratedName}`);
 
-  return models[name];
+  return models[migratedName];
 };
 
 export const getAvailableModels = () => {
