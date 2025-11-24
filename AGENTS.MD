@@ -1311,6 +1311,43 @@ const agent = {
 6. Does this affect mobile? → Test on iOS and Android
 7. Does this change the API? → Update documentation
 8. Does this touch the database? → Use migrations
+9. **Does this change backend API contracts?** → Implement backward compatibility (see below)
+
+---
+
+## API Backward Compatibility (CRITICAL)
+
+**Problem:** We cannot control when users update the plugin. Breaking API changes will break the plugin for users who haven't updated yet.
+
+**Solution:** When making backend API changes, implement progressive enhancement that supports both old and new plugin versions.
+
+**Pattern:**
+- Accept both old and new parameter formats
+- Provide sensible defaults for missing fields
+- Gracefully handle deprecated fields
+- Only remove deprecated fields after sufficient migration period (3+ months)
+
+**Example:**
+```typescript
+// BAD: Breaking change
+export async function POST(req: NextRequest) {
+  const { newRequiredField } = await req.json();  // ❌ Old plugins will break
+  // ...
+}
+
+// GOOD: Backward compatible
+export async function POST(req: NextRequest) {
+  const { newRequiredField, oldField } = await req.json();
+  const value = newRequiredField || oldField || 'sensible-default';  // ✅ Works with old & new
+  // ...
+}
+```
+
+**When to suggest this:**
+- User asks for changes to API endpoints (`packages/web/app/api/`)
+- Changes to request/response formats
+- Adding required fields to API requests
+- Removing fields from API responses
 
 ---
 
