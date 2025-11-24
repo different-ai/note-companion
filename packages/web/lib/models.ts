@@ -9,7 +9,6 @@ const DEFAULT_RESPONSES_MODEL = openai.responses("gpt-4o-mini");
  * Note: We ignore any model parameter from the client to ensure consistency
  */
 export const getModel = (_name?: string) => {
-  console.log("Using default model: gpt-4o-mini");
   return DEFAULT_MODEL;
 };
 
@@ -17,6 +16,5 @@ export const getModel = (_name?: string) => {
  * Get the default model with Responses API (supports web search)
  */
 export const getResponsesModel = () => {
-  console.log("Using default responses model: gpt-4o-mini");
   return DEFAULT_RESPONSES_MODEL;
 };
