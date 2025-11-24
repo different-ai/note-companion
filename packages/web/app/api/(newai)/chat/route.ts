@@ -8,7 +8,7 @@ import { NextResponse, NextRequest } from "next/server";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { handleAuthorizationV2 } from "@/lib/handleAuthorization";
 import { openai } from "@ai-sdk/openai";
-import { getModel } from "@/lib/models";
+import { getModel, getResponsesModel } from "@/lib/models";
 import { getChatSystemPrompt } from "@/lib/prompts/chat-prompt";
 import { chatTools } from "./tools";
 
@@ -24,13 +24,9 @@ export async function POST(req: NextRequest) {
           newUnifiedContext,
           currentDatetime,
           unifiedContext: oldUnifiedContext,
-          model: bodyModel,
           enableSearchGrounding = false,
           deepSearch = false,
         } = await req.json();
-
-        // Default to gpt-4o-mini with Responses API for better tool support
-        let chosenModelName = "gpt-4o-mini-responses";
 
         const contextString =
           newUnifiedContext ||
@@ -43,17 +39,13 @@ export async function POST(req: NextRequest) {
         dataStream.writeData("initialized call");
 
         // Use search-enabled models when requested or when deep search is enabled
-        // Deep search automatically enables search grounding
         const shouldUseSearch = enableSearchGrounding || deepSearch;
         
         if (shouldUseSearch) {
-          // Use OpenAI Responses API models with webSearchPreview tool
-          // Deep search uses gpt-4o, regular uses gpt-4o-mini
-          chosenModelName = deepSearch ? "gpt-4o-responses" : "gpt-4o-mini-responses";
-          console.log(`Search grounding enabled - using ${chosenModelName} (deep: ${deepSearch})`);
+          console.log(`Search grounding enabled (deep: ${deepSearch})`);
 
           const result = await streamText({
-            model: getModel(chosenModelName),
+            model: getResponsesModel(),
             system: getChatSystemPrompt(
               contextString,
               currentDatetime
@@ -98,11 +90,10 @@ export async function POST(req: NextRequest) {
 
           result.mergeIntoDataStream(dataStream);
         } else {
-          console.log(`Chat using model: ${chosenModelName} (no search)`);
-          const model = getModel(chosenModelName);
+          console.log("Chat using default model (no search)");
 
           const result = await streamText({
-            model,
+            model: getModel(),
             system: getChatSystemPrompt(
               contextString,
               currentDatetime

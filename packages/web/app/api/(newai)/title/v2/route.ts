@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
       customInstructions,
       count = 3,
     } = await request.json();
-    const model = getModel(process.env.MODEL_NAME);
+    const model = getModel();
     const shouldRename = await generateObject({
       model,
       schema: z.object({

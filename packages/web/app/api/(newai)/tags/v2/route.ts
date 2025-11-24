@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     } = await request.json();
 
     const response = await generateObject({
-      model: getModel(process.env.MODEL_NAME),
+      model: getModel(),
       schema: tagsSchema,
       system: `You are a precise tag generator. Analyze content and suggest ${count} relevant tags.
               ${existingTags.length ? `Consider existing tags: ${existingTags.join(", ")}` : 'Create new tags if needed.'}

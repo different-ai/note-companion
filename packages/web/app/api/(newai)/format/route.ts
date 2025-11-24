@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
   try {
     const { userId } = await handleAuthorizationV2(request);
     const { content, formattingInstruction } = await request.json();
-    const model = getModel(process.env.MODEL_NAME);
+    const model = getModel();
     const response = await formatDocumentContent(
       content,
       formattingInstruction,
