@@ -3,6 +3,7 @@
 This guide will help you set up your own instance of Note Companion, allowing you to use all features for free with your own AI API keys.
 
 ## Table of Contents
+
 - [Prerequisites](#prerequisites)
 - [Quick Setup](#quick-setup)
 - [Detailed Installation](#detailed-installation)
@@ -27,7 +28,7 @@ The fastest way to get started with self-hosting:
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/different-ai/note-companion.git
+git clone https://github.com/Nexus-JPF/note-companion.git
 cd note-companion
 
 # 2. Install dependencies
@@ -52,7 +53,7 @@ Your server will be running at `http://localhost:3010`
 
 ```bash
 # Clone the repository
-git clone https://github.com/different-ai/note-companion.git
+git clone https://github.com/Nexus-JPF/note-companion.git
 cd note-companion
 
 # Install all dependencies
@@ -62,11 +63,13 @@ pnpm install
 ### Step 2: Configure Environment Variables
 
 Navigate to the web package:
+
 ```bash
 cd packages/web
 ```
 
 Create a `.env` file with your configuration:
+
 ```env
 # Required: At least one AI provider API key
 OPENAI_API_KEY=sk-...your_key_here...
@@ -101,6 +104,7 @@ pnpm build:self-host
 ```
 
 This command:
+
 - Builds the Next.js application
 - Configures it for standalone deployment
 - Optimizes for self-hosted environment
@@ -113,6 +117,7 @@ pnpm start
 ```
 
 The server will start on port 3010 by default. You should see:
+
 ```
 ▲ Next.js 15.x.x
 - Local:        http://localhost:3010
@@ -167,6 +172,7 @@ WantedBy=multi-user.target
 ```
 
 Enable and start:
+
 ```bash
 sudo systemctl enable note-companion
 sudo systemctl start note-companion
@@ -189,6 +195,7 @@ CMD ["pnpm", "start"]
 ```
 
 Build and run:
+
 ```bash
 docker build -t note-companion .
 docker run -p 3010:3010 --env-file packages/web/.env note-companion
@@ -197,11 +204,13 @@ docker run -p 3010:3010 --env-file packages/web/.env note-companion
 ### Using PM2 (Process Manager)
 
 Install PM2 globally:
+
 ```bash
 npm install -g pm2
 ```
 
 Start the application:
+
 ```bash
 cd packages/web
 pm2 start "pnpm start" --name note-companion
@@ -212,31 +221,41 @@ pm2 startup  # Follow the instructions to enable auto-start
 ## Supported AI Providers
 
 ### OpenAI (Recommended)
+
 Best overall performance and feature support.
+
 - Models: GPT-4, GPT-4 Turbo, GPT-3.5 Turbo
 - Features: All features supported
 - Cost: ~$0.01-0.03 per file processed
 
 ### Anthropic Claude
+
 Excellent for complex analysis and longer documents.
+
 - Models: Claude 3 Opus, Sonnet, Haiku
 - Features: All text features (no vision/OCR)
 - Cost: Similar to OpenAI
 
 ### Google Gemini
+
 Good balance of features and cost.
+
 - Models: Gemini Pro, Gemini Pro Vision
 - Features: All features including vision
 - Cost: Free tier available
 
 ### Groq
+
 Fastest inference, good for quick processing.
+
 - Models: Llama 3, Mixtral
 - Features: Basic text processing
 - Cost: Very competitive
 
 ### Local Models (Ollama)
+
 Run models completely offline.
+
 1. Install [Ollama](https://ollama.ai)
 2. Pull a model: `ollama pull llama3`
 3. Set in plugin settings: Model = "llama3", API URL = "http://localhost:11434"
@@ -246,26 +265,31 @@ Run models completely offline.
 ### Common Issues
 
 #### "Cannot connect to server"
+
 - Verify the server is running: `curl http://localhost:3010/api/health`
 - Check firewall settings
 - Ensure the URL in plugin settings is correct
 
 #### "Invalid API key"
+
 - Double-check your API key in the `.env` file
 - Ensure there are no extra spaces or quotes
 - Restart the server after changing environment variables
 
 #### "Out of memory"
+
 - Increase Node.js memory limit: `NODE_OPTIONS="--max-old-space-size=4096" pnpm start`
 - Consider using a more powerful server
 
 #### "Permission denied"
+
 - Ensure you have write permissions in the installation directory
 - On Linux/Mac, you might need to use `sudo` for port numbers below 1024
 
 ### Checking Logs
 
 View server logs:
+
 ```bash
 # If using PM2
 pm2 logs note-companion
@@ -362,7 +386,7 @@ Then configure in the plugin settings to use your custom model.
 
 ## Getting Help
 
-- **GitHub Issues**: [github.com/different-ai/note-companion/issues](https://github.com/different-ai/note-companion/issues)
+- **GitHub Issues**: [github.com/Nexus-JPF/note-companion/issues](https://github.com/Nexus-JPF/note-companion/issues)
 - **Documentation**: Check the `/docs` folder in the repository
 - **Community**: Join our Discord server (link in main README)
 

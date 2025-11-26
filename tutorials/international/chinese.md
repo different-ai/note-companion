@@ -6,13 +6,14 @@
 许可证配置
 
 Note Companion 许可证密钥：需要激活密钥才能解锁完整功能
+
 - 状态指示器显示许可证是否当前已激活
 - "获取许可证"按钮重定向到购买页面
 - 通过网站提供开源开发支持
 
 ## 遇到错误时该怎么办
 
-提交[新问题并附上重现步骤](https://github.com/different-ai/note-companion/issues/new/choose)
+提交[新问题并附上重现步骤](https://github.com/Nexus-JPF/note-companion/issues/new/choose)
 
 您也可以启用"调试"模式并将其添加到问题附件中。但请注意，这可能会泄露敏感信息，请仔细检查。
 
@@ -20,14 +21,14 @@ Note Companion 许可证密钥：需要激活密钥才能解锁完整功能
 
 Obsidian web clipper 与 Note Companion 完美配合，不仅可以轻松自动整理剪藏内容，还能对其进行格式化！
 
-只需安装[网页剪藏器]([url](https://obsidian.md/clipper))并将其配置为将文件保存到 _NoteCompanion/Inbox
+只需安装[网页剪藏器](<[url](https://obsidian.md/clipper)>)并将其配置为将文件保存到 \_NoteCompanion/Inbox
 
 您还可以将其与"AI 模板"结合使用，使用 AI 自动格式化特定文章。
 
 ## 整理器出现错误
 
 1. 文件夹过多
-最可能的问题：您的文件夹太多。请在设置中查看此界面（Vault Access）
+   最可能的问题：您的文件夹太多。请在设置中查看此界面（Vault Access）
 
 如果您要从其他系统导入文件，请尝试将它们全部放在单独的文件夹中，将其标记为忽略，然后逐步进行。
 
@@ -59,6 +60,7 @@ File Organizer 2000 中的 Vault Access 是指插件管理和组织 Obsidian 保
 ## 如何维护某些文件的隐私？
 
 您可以通过使用 File Organizer 2000 设置中的"忽略文件夹"功能来维护某些文件的隐私。方法如下：
+
 1. 转到 File Organizer 设置：导航到"Vault Access"或"路径配置"部分
 2. 找到"忽略文件夹"设置：您会找到一个标记为"忽略文件夹"的选项
 3. 指定要忽略的文件夹：输入要插件忽略的文件夹路径，用逗号分隔
@@ -66,12 +68,14 @@ File Organizer 2000 中的 Vault Access 是指插件管理和组织 Obsidian 保
 ## 是否支持 Front Matter？
 
 是的，File Organizer 2000 支持 front matter。该插件提供了一个选项，可以直接将相似标签添加到 Markdown 文件的 front matter 中。启用此功能：
+
 1. 导航到"组织偏好"选项卡
 2. 启用"在 Frontmatter 中添加相似标签"
 
 ## Fabric 集成如何工作？
 
 File Organizer 2000 中的 Fabric 集成允许您使用类似 Fabric 的提示结构来增强文档格式化。工作方式如下：
+
 1. 启用 Fabric 格式化：
    - 转到插件设置中的"实验"选项卡
    - 找到"启用类 Fabric 格式化"选项并启用

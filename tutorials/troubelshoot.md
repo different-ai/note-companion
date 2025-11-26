@@ -11,10 +11,9 @@ Support for open-source development available through website
 
 <img width="1840" alt="Screenshot 2024-11-13 at 14 41 20" src="https://github.com/user-attachments/assets/9a491629-0b00-463e-a9dd-808e55ebe74e">
 
-
 ## What to do when you get an error
 
-Submit a [new issue with steps to reproduce](https://github.com/different-ai/note-companion/issues/new/choose)
+Submit a [new issue with steps to reproduce](https://github.com/Nexus-JPF/note-companion/issues/new/choose)
 
 You can also enable "debug" mode and add it to your issue attachments. But be careful, this can leak sensitive information double check it.
 <img width="1840" alt="Screenshot 2024-11-12 at 16 59 18" src="https://github.com/user-attachments/assets/5d047bf6-205f-4b98-b67c-df408eef285f">
@@ -23,19 +22,16 @@ You can also enable "debug" mode and add it to your issue attachments. But be ca
 
 Obsidian web clipper works great with Note Companion, it makes it easy to easily not only Organize your clips automatically. But also format them!
 
-Just install [the web clipper]([url](https://obsidian.md/clipper)) and configure it to save your files to _NoteCompanion/Inbox
+Just install [the web clipper](<[url](https://obsidian.md/clipper)>) and configure it to save your files to \_NoteCompanion/Inbox
 
 ![image](https://github.com/user-attachments/assets/8117cc17-4665-40ac-987f-191ae35e7484)
 
 You can also mix it with "AI Templates" and auto-format certain articles with AI.
 
-
-
-
 ## I'm getting an error on the organizer
 
 1. Too many folders
-Most likely issue: you have too many folders. Check this screen in settings (Vault Access)
+   Most likely issue: you have too many folders. Check this screen in settings (Vault Access)
 
 ![image](https://github.com/user-attachments/assets/ce2d8436-1cb5-42c5-9b8b-c066ea6db832)
 
@@ -45,7 +41,7 @@ If you're importing files from another system. Try to put them all in a seperate
 
 ## Debugging organizer sidebar issues
 
-Open developers settings, reload the organizer side bar by typing refresh, and show us your logs and network tabs. 
+Open developers settings, reload the organizer side bar by typing refresh, and show us your logs and network tabs.
 
 You can hover over the network logs to find out which api is causing issues (see screenshot below)
 <img width="509" alt="Screenshot 2024-11-12 at 15 52 10" src="https://github.com/user-attachments/assets/1dfba391-813b-4e9c-91cd-02d2945b8461">
@@ -55,18 +51,15 @@ then you can browse through headers, payload, and preview
 
 take screenshot of each section and send it to us.
 
-
 ## I'm getting "Too many requests"
 
 Try to organize less files at once. We usually recommend max 100 files.
 
-
 ## I have issues when using the Inbox
 
-Try to turn off "Document Auto Formatting" in the inbox. Auto-formating can sometimes cause the inbox to behave in unexpected ways. 
+Try to turn off "Document Auto Formatting" in the inbox. Auto-formating can sometimes cause the inbox to behave in unexpected ways.
 
 <img width="1840" alt="Screenshot 2024-11-12 at 14 23 59" src="https://github.com/user-attachments/assets/d78149c0-233f-4498-a7b2-185e971b3c77">
-
 
 ## Generating diagrams from handwritten notes.
 
@@ -80,33 +73,25 @@ Vault Access in Note Companion refers to the plugin’s ability to manage and or
 
 ## How Can I Maintain Privacy of Certain Files?
 
-You can maintain the privacy of certain files by using the “Ignore Folders” feature in the Note Companion settings. Here’s how:
-	1.	Go to the File Organizer Settings: Navigate to the “Vault Access” or “Path Configuration” section.
-	2.	Locate the “Ignore Folders” Setting: You’ll find an option labeled “Ignore folders.”
-	3.	Specify Folders to Ignore: Enter the paths of the folders you want the plugin to ignore, separated by commas (e.g., PrivateFolder1,SecretsFolder2). If you want the plugin to ignore all folders, you can enter *.
+You can maintain the privacy of certain files by using the “Ignore Folders” feature in the Note Companion settings. Here’s how: 1. Go to the File Organizer Settings: Navigate to the “Vault Access” or “Path Configuration” section. 2. Locate the “Ignore Folders” Setting: You’ll find an option labeled “Ignore folders.” 3. Specify Folders to Ignore: Enter the paths of the folders you want the plugin to ignore, separated by commas (e.g., PrivateFolder1,SecretsFolder2). If you want the plugin to ignore all folders, you can enter \*.
 
 By specifying these folders, the plugin will exclude them from its organization processes, ensuring your sensitive or private files remain untouched.
 
 ## Do You Support Front Matter?
 
-Yes, Note Companion supports front matter. The plugin provides an option to add similar tags directly into the front matter of your Markdown files. To enable this feature:
-	1.	Navigate to the “Organization Preferences” Tab: In the plugin settings, go to the “Organization Preferences” section.
-	2.	Enable “Add Similar Tags in Frontmatter”: Look for the setting named “Add similar tags in frontmatter” and toggle it on.
+Yes, Note Companion supports front matter. The plugin provides an option to add similar tags directly into the front matter of your Markdown files. To enable this feature: 1. Navigate to the “Organization Preferences” Tab: In the plugin settings, go to the “Organization Preferences” section. 2. Enable “Add Similar Tags in Frontmatter”: Look for the setting named “Add similar tags in frontmatter” and toggle it on.
 
 When this option is enabled, any similar tags generated by the plugin will be added to the front matter section of your files, helping you keep metadata organized and easily accessible.
 
 ## How Does Fabric Integration Work?
 
-Fabric integration in Note Companion allows you to enhance your document formatting using Fabric-like prompt structures. Here’s how it works:
-	1.	Enable Fabric Formatting:
-	•	Go to the “Experiment” tab in the plugin settings.
-	•	Find the option labeled “Enable Fabric-like Formatting” and toggle it on.
-	2.	Download Fabric Prompts:
-	•	Once enabled, a Fabric Prompt Manager will appear.
-	•	Use the Fabric Prompt Manager to download or update prompts from the Fabric repository.
-	•	These prompts are stored in a designated folder specified in your settings (e.g., fabricPaths).
+Fabric integration in Note Companion allows you to enhance your document formatting using Fabric-like prompt structures. Here’s how it works: 1. Enable Fabric Formatting:
+• Go to the “Experiment” tab in the plugin settings.
+• Find the option labeled “Enable Fabric-like Formatting” and toggle it on. 2. Download Fabric Prompts:
+• Once enabled, a Fabric Prompt Manager will appear.
+• Use the Fabric Prompt Manager to download or update prompts from the Fabric repository.
+• These prompts are stored in a designated folder specified in your settings (e.g., fabricPaths).
 
- 
-	3.	Apply Fabric Prompts:
-	•	The downloaded prompts are used to format your documents according to Fabric methodologies.
-	•	When you process files, the plugin applies these prompts to enhance organization and structure.
+    3.	Apply Fabric Prompts:
+    •	The downloaded prompts are used to format your documents according to Fabric methodologies.
+    •	When you process files, the plugin applies these prompts to enhance organization and structure.

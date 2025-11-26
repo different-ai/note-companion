@@ -5,18 +5,22 @@ An AI-powered Obsidian plugin that automatically organizes, formats, and enhance
 ## 📢 Important Disclosures
 
 ### Account & Payment Requirements
+
 - **Payment required for cloud service**: The plugin requires a paid subscription to use the cloud-hosted service
 - **7-day free trial**: New subscriptions include a 7-day trial period
 - **Self-hosting option available**: You can run your own instance for free (see [Self-Hosting Instructions](#-self-hosting) below)
 - **Account creation**: Using the cloud service requires creating an account at [notecompanion.ai](https://notecompanion.ai)
 
 ### Network Usage
+
 This plugin communicates with the following remote services:
+
 - **Note Companion API Server** (cloud service): For AI-powered features including file classification, formatting, transcription, and chat
 - **YouTube API**: For fetching video transcripts when processing YouTube links
 - **AI Provider APIs**: When self-hosting, you'll connect directly to your chosen AI provider (OpenAI, Anthropic, Google, etc.)
 
 ### Privacy & Data Handling
+
 - **Cloud service**: Files are processed through our secure API for AI analysis
 - **Self-hosted**: All processing happens on your own server, data never leaves your control
 - Usage statistics are collected only for the cloud service to manage billing and rate limits
@@ -42,9 +46,11 @@ note-companion/
 ## 📦 Package Details
 
 ### `packages/plugin` - Obsidian Plugin
+
 The core Obsidian plugin that provides AI-powered note organization.
 
 **Tech Stack:**
+
 - TypeScript
 - React 19 for UI components
 - TailwindCSS (with `fo-` prefix to avoid conflicts)
@@ -52,6 +58,7 @@ The core Obsidian plugin that provides AI-powered note organization.
 - Tiptap editor integration
 
 **Key Features:**
+
 - Automatic file organization based on AI classification
 - Custom AI prompt templates
 - Audio transcription
@@ -61,9 +68,11 @@ The core Obsidian plugin that provides AI-powered note organization.
 - Atomic note generation
 
 ### `packages/web` - Web Application
+
 The cloud backend and web interface for the plugin.
 
 **Tech Stack:**
+
 - Next.js 15.1.6 with App Router
 - React 19
 - Drizzle ORM with PostgreSQL (Vercel Postgres)
@@ -73,6 +82,7 @@ The cloud backend and web interface for the plugin.
 - TailwindCSS v4
 
 **Features:**
+
 - User account management
 - Subscription handling
 - AI API endpoints
@@ -80,35 +90,40 @@ The cloud backend and web interface for the plugin.
 - Settings synchronization
 
 ### `packages/mobile` - Mobile Application
+
 Cross-platform mobile app for Note Companion.
 
 **Tech Stack:**
+
 - React Native with Expo SDK 52
 - NativeWind for styling
 - Clerk authentication
 - Shared functionality with web app
 
 ### `packages/landing` - Landing Page
+
 Marketing website for Note Companion.
 
 **Tech Stack:**
+
 - Next.js 15.2.1
 - PostHog analytics
 - Framer Motion animations
 - Radix UI components
-
 
 ## 🚀 Getting Started
 
 You have two options for using Note Companion:
 
 ### Option 1: Cloud Service (Easiest)
+
 1. Install the plugin from Obsidian Community Plugins
 2. Sign up at [notecompanion.ai](https://notecompanion.ai)
 3. Start your 7-day free trial
 4. Enter your license key in the plugin settings
 
 ### Option 2: Self-Hosting (Free, Technical)
+
 See the [Self-Hosting section](#-self-hosting) below for detailed instructions.
 
 ## 🏠 Self-Hosting
@@ -118,20 +133,24 @@ Self-hosting allows you to run Note Companion on your own server for free. You'l
 ### Quick Start
 
 1. **Clone and install:**
+
 ```bash
-git clone https://github.com/different-ai/note-companion.git
+git clone https://github.com/Nexus-JPF/note-companion.git
 cd note-companion
 pnpm install
 ```
 
 2. **Configure environment:**
-Create a `.env` file in `packages/web` with:
+   Create a `.env` file in `packages/web` with:
+
 ```env
 OPENAI_API_KEY=your_api_key_here
 ```
+
 Get your API key from [platform.openai.com](https://platform.openai.com)
 
 3. **Build and start the server:**
+
 ```bash
 cd packages/web
 pnpm build:self-host
@@ -139,6 +158,7 @@ pnpm start
 ```
 
 4. **Configure the plugin:**
+
 - In Obsidian, go to Note Companion settings
 - Enable "Self-hosting mode"
 - Set server URL to `http://localhost:3010`
@@ -151,6 +171,7 @@ For detailed instructions, troubleshooting, and advanced configuration, see [SEL
 For development and contributing:
 
 #### Prerequisites
+
 - Node.js 18+
 - pnpm 10.8.1+
 - Git
@@ -158,12 +179,14 @@ For development and contributing:
 #### Installation
 
 1. Clone the repository:
+
 ```bash
-git clone https://github.com/different-ai/note-companion.git
+git clone https://github.com/Nexus-JPF/note-companion.git
 cd note-companion
 ```
 
 2. Install dependencies:
+
 ```bash
 pnpm install
 ```
@@ -175,11 +198,13 @@ pnpm install
 ### Development
 
 Run all packages in development mode:
+
 ```bash
 pnpm dev
 ```
 
 Run specific packages:
+
 ```bash
 # Plugin development
 pnpm --filter plugin dev
@@ -194,11 +219,13 @@ pnpm --filter mobile start
 ### Building
 
 Build all packages:
+
 ```bash
 pnpm build
 ```
 
 Build specific package:
+
 ```bash
 pnpm --filter plugin build
 ```
@@ -206,13 +233,16 @@ pnpm --filter plugin build
 ## 🏭 Architecture
 
 ### Core Workflow
+
 1. **Inbox Processing**: Users place files in a designated "inbox" folder
 2. **AI Classification**: The plugin analyzes files and determines appropriate organization
 3. **Automatic Filing**: Files are moved to appropriate folders based on classification
 4. **Enhancement**: Notes are enhanced with formatting, tags, and metadata
 
 ### AI Integration
+
 ### Deployment Options
+
 1. **Cloud Service**: Managed subscription service
 2. **Self-Hosted**: Run your own instance
 3. **Local Development**: Full local setup for development
@@ -220,17 +250,20 @@ pnpm --filter plugin build
 ## 🛠️ Development Guidelines
 
 ### Code Style
+
 - TypeScript for type safety
 - React 19 for UI components
 - TailwindCSS with `fo-` prefix in plugin
 - Follow existing patterns and conventions
 
 ### Testing
+
 - Unit tests with Jest (web package)
 - Playwright for E2E testing (web/landing)
 - Manual testing for Obsidian plugin
 
 ### Git Workflow
+
 - Use descriptive commit messages
 - Create feature branches
 - Submit PRs for review
@@ -258,4 +291,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - [Website](https://notecompanion.ai)
 - [Documentation](https://notecompanion.ai/docs) (redirects to GitHub)
-- [GitHub Issues](https://github.com/different-ai/note-companion/issues)
+- [GitHub Issues](https://github.com/Nexus-JPF/note-companion/issues)

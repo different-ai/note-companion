@@ -1,7 +1,7 @@
 export async function getGitHubStars(): Promise<number> {
   try {
     const response = await fetch(
-      'https://api.github.com/repos/different-ai/file-organizer-2000',
+      'https://api.github.com/repos/Nexus-JPF/note-companion',
       {
         headers: {
           'Accept': 'application/vnd.github.v3+json',

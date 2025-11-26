@@ -3,7 +3,7 @@
 ## Project Overview
 Note Companion (formerly File Organizer 2000) is an AI-powered Obsidian plugin that automatically organizes and enhances notes.
 
-Repository: different-ai/note-companion
+Repository: Nexus-JPF/note-companion
 
 ## Project Structure
 
@@ -41,7 +41,7 @@ Repository: different-ai/note-companion
 - **File Naming**: Always use kebab-case
 - **TypeScript**: Strict mode enabled
 - **React**: Version 19 across all packages
-- **Styling**: 
+- **Styling**:
   - Plugin: TailwindCSS with `fo-` prefix
   - Web/Mobile: Standard TailwindCSS
 
