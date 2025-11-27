@@ -9,6 +9,7 @@
     "dev": "tsc -w"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "catalog:",
     "@ai-sdk/openai": "catalog:",
     "ai": "catalog:",
     "ignore": "^5.3.0",

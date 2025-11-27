@@ -1,4 +1,5 @@
 import { createOpenAI } from "@ai-sdk/openai";
+import { createAnthropic } from "@ai-sdk/anthropic";
 import { generateObject } from "ai";
 import { z } from "zod";
 import { execSync } from "child_process";
@@ -24,14 +25,12 @@ export const releaseNotesSchema = z.object({
 
 export type ReleaseNotes = z.infer<typeof releaseNotesSchema>["releaseNotes"];
 
-const diffCache = new Map<string, string>();
+interface ChangedFilesInfo {
+  diff: string;
+  changedFiles: string[];
+}
 
-function getDiff(repoRoot: string, targetVersion: string): string {
-  const cacheKey = `${repoRoot}-${targetVersion}`;
-  if (diffCache.has(cacheKey)) {
-    return diffCache.get(cacheKey)!;
-  }
-
+function getDiffAndChangedFiles(repoRoot: string, targetVersion: string): ChangedFilesInfo {
   try {
     // Get the current HEAD commit hash for comparison
     const currentCommit = execSync('git rev-parse HEAD', {
@@ -66,17 +65,17 @@ function getDiff(repoRoot: string, targetVersion: string): string {
     console.log("Changed files in packages/plugin:");
     changedFiles.forEach((file) => console.log(`- ${file}`));
 
-    diffCache.set(cacheKey, diff);
-    return diff;
+    return { diff, changedFiles };
   } catch (error) {
     console.error("Error getting git diff:", error);
-    return "";
+    return { diff: "", changedFiles: [] };
   }
 }
 
 export interface GenerateOptions {
   repoRoot: string;
-  openAIApiKey: string;
+  openAIApiKey?: string;
+  anthropicApiKey?: string;
 }
 
 interface VersionInfo {
@@ -127,26 +126,7 @@ export async function updateVersions(increment: VersionInfo['type'], repoRoot: s
   };
 }
 
-export async function generateReleaseNotes(
-  version: string,
-  options: GenerateOptions
-): Promise<ReleaseNotes> {
-  const openai = createOpenAI({
-    apiKey: options.openAIApiKey,
-  });
-
-  const model = openai("gpt-4.1");
-  const diff = getDiff(options.repoRoot, version);
-  
-  const maxRetries = 3;
-  let attempt = 0;
-  
-  while (attempt < maxRetries) {
-    try {
-      const { object } = await generateObject({
-        model,
-        schema: releaseNotesSchema,
-        prompt: `You are a release notes generator for an Obsidian plugin called Note Companion.
+const RELEASE_NOTES_PROMPT = `You are a release notes generator for an Obsidian plugin called Note Companion.
 Given the following git diff between versions, generate a user-friendly release name and description.
 Focus on the user-facing changes and new features that will benefit users.
 Note Companion is an Obsidian plugin that helps you organize your files and notes.
@@ -159,12 +139,9 @@ Chat interface is in:
 Organizer is in:
 /views/assistant/organizer/organizer.tsx
 
-
-
 You can do things like:
 - Tag my book notes with relevant categories
 - Analyze my vault structure and suggest improvements
-
 - Help me set up my vault organization settings
 - Show me my recently modified files
 - Add notes from this YouTube video (and more)
@@ -178,24 +155,170 @@ It does things like:
 On top of that there's a special "inbox" functionality that automatically tags and categorizes files based on their content.
 
 When users drop files in their Obsidian vault special inbox folder, Note Companion will automatically tag and categorize them.
-They then can view in the "inbox" tab. the changes that were made to the files.
+They then can view in the "inbox" tab. the changes that were made to the files.`;
 
-
-
-
-
-${diff.slice(0, 100000)}`,
-      });
-      
-      return object.releaseNotes;
-    } catch (error) {
-      attempt++;
-      if (attempt === maxRetries) throw error;
-      await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+/**
+ * Generate fallback release notes based on changed files when AI providers fail.
+ * This ensures the release can still proceed even without AI-generated notes.
+ */
+function generateFallbackReleaseNotes(changedFiles: string[]): ReleaseNotes {
+  console.log("Generating fallback release notes from changed files...");
+  
+  // Categorize changes by area
+  const areas = {
+    chat: false,
+    organizer: false,
+    inbox: false,
+    settings: false,
+    ui: false,
+    other: false,
+  };
+  
+  const technicalChanges: string[] = [];
+  
+  for (const file of changedFiles) {
+    const fileName = file.replace('packages/plugin/', '');
+    
+    if (fileName.includes('chat') || fileName.includes('assistant')) {
+      areas.chat = true;
+    }
+    if (fileName.includes('organizer')) {
+      areas.organizer = true;
+    }
+    if (fileName.includes('inbox')) {
+      areas.inbox = true;
+    }
+    if (fileName.includes('settings')) {
+      areas.settings = true;
+    }
+    if (fileName.includes('view') || fileName.includes('component') || fileName.includes('.css')) {
+      areas.ui = true;
+    }
+    
+    // Add simplified file change as technical change
+    if (!fileName.includes('dist/') && !fileName.includes('node_modules/')) {
+      technicalChanges.push(`Updated ${fileName}`);
     }
   }
   
-  throw new Error('Failed to generate release notes after retries');
+  // Build description based on areas affected
+  const affectedAreas: string[] = [];
+  if (areas.chat) affectedAreas.push("AI chat assistant");
+  if (areas.organizer) affectedAreas.push("file organizer");
+  if (areas.inbox) affectedAreas.push("inbox processing");
+  if (areas.settings) affectedAreas.push("settings");
+  if (areas.ui) affectedAreas.push("user interface");
+  
+  let description: string;
+  let name: string;
+  
+  if (affectedAreas.length > 0) {
+    description = `This release includes updates to ${affectedAreas.join(", ")}. ${changedFiles.length} file(s) were modified to improve functionality and user experience.`;
+    name = `Improvements to ${affectedAreas.slice(0, 2).join(" & ")}`;
+  } else {
+    description = `This release includes various improvements and updates. ${changedFiles.length} file(s) were modified.`;
+    name = "Plugin Update";
+  }
+  
+  // Limit technical changes to first 10
+  const limitedTechnicalChanges = technicalChanges.slice(0, 10);
+  if (technicalChanges.length > 10) {
+    limitedTechnicalChanges.push(`... and ${technicalChanges.length - 10} more changes`);
+  }
+  
+  return {
+    name,
+    description,
+    technicalChanges: limitedTechnicalChanges.length > 0 
+      ? limitedTechnicalChanges 
+      : ["Various internal improvements and bug fixes"],
+  };
+}
+
+/**
+ * Try to generate release notes with OpenAI
+ */
+async function tryOpenAI(diff: string, apiKey: string): Promise<ReleaseNotes> {
+  console.log("Attempting to generate release notes with OpenAI...");
+  
+  const openai = createOpenAI({ apiKey });
+  const model = openai("gpt-4.1");
+  
+  const { object } = await generateObject({
+    model,
+    schema: releaseNotesSchema,
+    prompt: `${RELEASE_NOTES_PROMPT}\n\n${diff.slice(0, 100000)}`,
+  });
+  
+  console.log("Successfully generated release notes with OpenAI");
+  return object.releaseNotes;
+}
+
+/**
+ * Try to generate release notes with Anthropic
+ */
+async function tryAnthropic(diff: string, apiKey: string): Promise<ReleaseNotes> {
+  console.log("Attempting to generate release notes with Anthropic...");
+  
+  const anthropic = createAnthropic({ apiKey });
+  const model = anthropic("claude-3-5-sonnet-20241022");
+  
+  const { object } = await generateObject({
+    model,
+    schema: releaseNotesSchema,
+    prompt: `${RELEASE_NOTES_PROMPT}\n\n${diff.slice(0, 100000)}`,
+  });
+  
+  console.log("Successfully generated release notes with Anthropic");
+  return object.releaseNotes;
+}
+
+/**
+ * Generate release notes with fallback providers.
+ * 
+ * Priority:
+ * 1. OpenAI (gpt-4.1)
+ * 2. Anthropic (claude-3-5-sonnet)
+ * 3. Template-based fallback (always succeeds)
+ */
+export async function generateReleaseNotes(
+  version: string,
+  options: GenerateOptions
+): Promise<ReleaseNotes> {
+  const { diff, changedFiles } = getDiffAndChangedFiles(options.repoRoot, version);
+  const errors: Error[] = [];
+  
+  // Try OpenAI first
+  if (options.openAIApiKey) {
+    try {
+      return await tryOpenAI(diff, options.openAIApiKey);
+    } catch (error) {
+      console.error("OpenAI failed:", error instanceof Error ? error.message : error);
+      errors.push(error instanceof Error ? error : new Error(String(error)));
+    }
+  } else {
+    console.log("OpenAI API key not provided, skipping OpenAI...");
+  }
+  
+  // Try Anthropic as fallback
+  if (options.anthropicApiKey) {
+    try {
+      return await tryAnthropic(diff, options.anthropicApiKey);
+    } catch (error) {
+      console.error("Anthropic failed:", error instanceof Error ? error.message : error);
+      errors.push(error instanceof Error ? error : new Error(String(error)));
+    }
+  } else {
+    console.log("Anthropic API key not provided, skipping Anthropic...");
+  }
+  
+  // Fall back to template-based generation
+  console.log("All AI providers failed or unavailable, using template-based fallback...");
+  if (errors.length > 0) {
+    console.log("Previous errors:", errors.map(e => e.message).join("; "));
+  }
+  
+  return generateFallbackReleaseNotes(changedFiles);
 }
 
 export async function prepareReleaseArtifacts(version: string): Promise<string[]> {
@@ -254,14 +377,15 @@ if (require.main === module) {
     process.exit(1);
   }
 
-  if (!process.env.OPENAI_API_KEY) {
-    console.error("Please set OPENAI_API_KEY environment variable");
-    process.exit(1);
+  // At least one API key should be provided, or fallback will be used
+  if (!process.env.OPENAI_API_KEY && !process.env.ANTHROPIC_API_KEY) {
+    console.warn("Warning: No AI API keys provided. Fallback template-based release notes will be used.");
   }
 
   generateReleaseNotes(version, {
     repoRoot,
     openAIApiKey: process.env.OPENAI_API_KEY,
+    anthropicApiKey: process.env.ANTHROPIC_API_KEY,
   })
     .then((notes) => {
       console.log(JSON.stringify(notes, null, 2));

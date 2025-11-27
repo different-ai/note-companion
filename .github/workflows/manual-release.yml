@@ -82,6 +82,7 @@ jobs:
         id: release_prep
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           # Build all packages including release-notes
           echo "Building packages..."
@@ -105,14 +106,16 @@ jobs:
                 console.log('Building plugin...');
                 await generateReleaseArtifacts(versionInfo.previous, {
                   repoRoot,
-                  openAIApiKey: process.env.OPENAI_API_KEY
+                  openAIApiKey: process.env.OPENAI_API_KEY,
+                  anthropicApiKey: process.env.ANTHROPIC_API_KEY
                 });
                 
-                // Step 3: Generate release notes
+                // Step 3: Generate release notes (with fallback support)
                 console.log('Generating release notes...');
                 const notes = await generateReleaseNotes(versionInfo.previous, {
                   repoRoot,
-                  openAIApiKey: process.env.OPENAI_API_KEY
+                  openAIApiKey: process.env.OPENAI_API_KEY,
+                  anthropicApiKey: process.env.ANTHROPIC_API_KEY
                 });
                 
                 // Step 4: Prepare artifacts
