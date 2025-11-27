@@ -307,7 +307,7 @@ To update to the latest version:
 
 ```bash
 cd note-companion
-git pull origin main
+git pull origin master
 pnpm install
 cd packages/web
 pnpm build:self-host
