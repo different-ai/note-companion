@@ -7,25 +7,23 @@ import { eq } from "drizzle-orm";
 const CRON_SECRET = process.env.CRON_SECRET;
 
 export async function GET(request: Request) {
-    console.log("Redeploy cron job started");
+  console.log("Redeploy cron job started");
   // Verify the request is from Vercel Cron
   const headersList = await headers();
   const authHeader = headersList.get("authorization");
 
   if (authHeader !== `Bearer ${CRON_SECRET}`) {
-    return new NextResponse('Unauthorized', { status: 401 });
+    return new NextResponse("Unauthorized", { status: 401 });
   }
 
   try {
     // Get all tokens from the database
-    const tokens = await db
-      .select()
-      .from(vercelTokens);
+    const tokens = await db.select().from(vercelTokens);
 
     console.log(`Found ${tokens.length} tokens to process`);
 
-    const repo = "file-organizer-2000";
-    const org = "different-ai";
+    const repo = "note-companion";
+    const org = "Nexus-JPF";
     const ref = "master";
 
     const results = await Promise.allSettled(
@@ -43,7 +41,7 @@ export async function GET(request: Request) {
           // Create new deployment
           const deployment = await vercel.deployments.createDeployment({
             requestBody: {
-              name: `file-organizer-redeploy-${Date.now()}`,
+              name: `note-companion-redeploy-${Date.now()}`,
               target: "production",
               project: tokenRecord.projectId,
               gitSource: {
@@ -71,10 +69,15 @@ export async function GET(request: Request) {
             })
             .where(eq(vercelTokens.userId, tokenRecord.userId));
 
-          console.log(`Redeployed project ${tokenRecord.projectId} for user ${tokenRecord.userId}`);
+          console.log(
+            `Redeployed project ${tokenRecord.projectId} for user ${tokenRecord.userId}`
+          );
           return deployment;
         } catch (error) {
-          console.error(`Failed to redeploy for user ${tokenRecord.userId}:`, error);
+          console.error(
+            `Failed to redeploy for user ${tokenRecord.userId}:`,
+            error
+          );
           throw error;
         }
       })
@@ -93,6 +96,9 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error("Error in redeploy cron:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
   }
-}    
+}

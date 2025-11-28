@@ -1,9 +1,15 @@
-'use client';
+"use client";
 
 import { Plus, Minus } from "lucide-react";
 import { useState } from "react";
 
-const FaqItem = ({ question, answer }: { question: string; answer: string }) => {
+const FaqItem = ({
+  question,
+  answer,
+}: {
+  question: string;
+  answer: string;
+}) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -21,7 +27,7 @@ const FaqItem = ({ question, answer }: { question: string; answer: string }) => 
       </button>
       {isOpen && (
         <div className="px-6 pb-4">
-          <p 
+          <p
             className="text-muted-foreground whitespace-pre-line"
             dangerouslySetInnerHTML={{ __html: answer }}
           />
@@ -45,7 +51,7 @@ export function FaqSection() {
 3. You're all set!
 
 <strong>Learn More</strong>
-• <a href="https://github.com/different-ai/file-organizer-2000/blob/master/README.md#a-ai-organizer" class="text-accent underline hover:no-underline">Read our documentation</a> for core features and setup guide
+• <a href="https://github.com/Nexus-JPF/note-companion/blob/master/README.md#a-ai-organizer" class="text-accent underline hover:no-underline">Read our documentation</a> for core features and setup guide
 
 <strong>Video Tutorials</strong>
 • Check out our <a href="https://www.youtube.com/playlist?list=PLgRcC-DFR5jcwwg0Dr3gNZrkZxkztraKE" class="text-accent underline hover:no-underline">comprehensive video tutorials</a> for detailed walkthroughs`}
@@ -68,7 +74,6 @@ export function FaqSection() {
             question="Is there a free version?"
             answer="Yes! You can self-host the plugin for free. We also offer a 7-day free trial for our managed service if you prefer a no-hassle experience.
             If you get enough value out of the plugin, please consider supporting the product. This is an open source initiative developed by two brothers and we are 100% self-funded. Any contribution helps us continue to maintain and improve the plugin. ❤️"
-            
           />
           <FaqItem
             question="Privacy Policy & Contact"
@@ -90,4 +95,4 @@ export function FaqSection() {
       </div>
     </section>
   );
-}  
+}
